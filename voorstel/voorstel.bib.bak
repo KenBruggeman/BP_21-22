@@ -1,0 +1,12 @@
+% Encoding: UTF-8
+
+@Report{KoltonAndrus2021,
+  author      = {Kolton Andrus, Matthew Fornaciari},
+  date        = {2021},
+  institution = {Gremlin},
+  title       = {State of Chaos Engineering report},
+  type        = {resreport},
+  url         = {https://www.gremlin.com/state-of-chaos-engineering/2021/?ref=blog},
+}
+
+@Comment{jabref-meta: databaseType:biblatex;}

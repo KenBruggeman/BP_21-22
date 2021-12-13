@@ -3,49 +3,51 @@
 \section{Introductie} % The \section*{} command stops section numbering
 \label{sec:introductie}
 
-Hier introduceer je werk. Je hoeft hier nog niet te technisch te gaan.
-
-Je beschrijft zeker:
-
-\begin{itemize}
-  \item de probleemstelling en context
-  \item de motivatie en relevantie voor het onderzoek
-  \item de doelstelling en onderzoeksvraag/-vragen
-\end{itemize}
-
+Netflix is de pionier wat betreft chaos engineering. Een drie dagen durende outage door een grootschalige database corruptie in 2008 zorgde ervoor dat zij hun diensten, toen nog gehuisvestigd in verticale server racks in hun datacenter, migreerden naar de AWS cloud. Tijdens deze zeven jaar durende migratie naar de cloud herbouwden zij stap voor stap de architectuur van hun monolitische applicatie tot honderden microservices.
+  
+Om de weerbaarheid van de cloud infrastructuur te testen ontwikkelden ze tijdens de migratie ook verschillende tools, nu beter bekend als chaos engineering tools. Op deze manier konden zij de zwaktes in het systeem vroegtijdig opsporen en verbeteren, om de uptime zo hoog mogelijk te houden. Hun bevindingen en tools werden kort nadien gepubliceerd en lagen aan de basis van een nieuwe mindset in disaster recovery en business continuity.    
+ 
+De groeiende complexiteit van systemen en de kwalijke gevolgen die een faling kunnen veroorzaken leiden tot dit onderzoek waarin gezocht wordt om open source chaos engineering tools en experimenten op te zetten om een Kubernetes cluster te testen, met de bedoeling deze in het toekomstig curriculum systeem- en netwerkbeheer te verwerken. 
+ 
+ 
 %---------- Stand van zaken ---------------------------------------------------
 
 \section{State-of-the-art}
 \label{sec:state-of-the-art}
 
-Hier beschrijf je de \emph{state-of-the-art} rondom je gekozen onderzoeksdomein. Dit kan bijvoorbeeld een literatuurstudie zijn. Je mag de titel van deze sectie ook aanpassen (literatuurstudie, stand van zaken, enz.). Zijn er al gelijkaardige onderzoeken gevoerd? Wat concluderen ze? Wat is het verschil met jouw onderzoek? Wat is de relevantie met jouw onderzoek?
+Er zijn tegenwoordig meerdere open source chaos engineering platformen beschikbaar. Gremlin, ChaosMesh, Litmus, ... zijn enkele van de bekendste die tools aanbieden om chaos experimenten uit te voeren. Met behulp van deze tools kan men proactief zwaktes in een systeem opsporen en verbeteren, om de weerbaarheid ervan in productie te verhogen.
 
-Verwijs bij elke introductie van een term of bewering over het domein naar de vakliteratuur, bijvoorbeeld~\autocite{Doll1954}! Denk zeker goed na welke werken je refereert en waarom.
+Chaos engineering wint aan populariteit en er is een groeiende diversiteit in de teams die dit toepassen. Wat begon als een engineering oefening werd al snel opgepikt door SRE teams. Vandaag zijn er vele platform-, infrastructuur-, operations- en applicatieontwikkelingsteams die deze tools toepassen om de betrouwbaarheid van hun systeem en applicaties te verhogen.
+De positieve effecten van chaos engineering toe te passen zijn o.a. een toegenomen uptime, minder tijd nodig om problemen te detecteren en te herstellen, minder bugs die in productie terecht komen, ... \autocite{KoltonAndrus2021}
 
-% Voor literatuurverwijzingen zijn er twee belangrijke commando's:
-% \autocite{KEY} => (Auteur, jaartal) Gebruik dit als de naam van de auteur
-%   geen onderdeel is van de zin.
-% \textcite{KEY} => Auteur (jaartal)  Gebruik dit als de auteursnaam wel een
-%   functie heeft in de zin (bv. ``Uit onderzoek door Doll & Hill (1954) bleek
-%   ...'')
-
-Je mag gerust gebruik maken van subsecties in dit onderdeel.
 
 %---------- Methodologie ------------------------------------------------------
 \section{Methodologie}
 \label{sec:methodologie}
 
-Hier beschrijf je hoe je van plan bent het onderzoek te voeren. Welke onderzoekstechniek ga je toepassen om elk van je onderzoeksvragen te beantwoorden? Gebruik je hiervoor experimenten, vragenlijsten, simulaties? Je beschrijft ook al welke tools je denkt hiervoor te gebruiken of te ontwikkelen.
+De experimenten zullen opgezet en uitgevoerd worden in een lokale virtuele omgeving, waarin verschillende virtuele machines in hetzelfde netwerk via Vagrant en Ansible opgezet worden. Deze virtuele machines gaan  verschillende microservices bevatten en  samen ondergebracht worden in een Kubernetes cluster. 
+
+Experimenten opzetten gebeurt steeds in 4 stappen \autocite{Pawlikowski2020}:
+\begin{enumerate}
+    \item Men neem een (set van) variabele(n) en een betrouwbare manier om deze te meten.
+    \item Men definieert een normaal gedragspatroon voor deze variabelen (= steady state).
+    \item Men stelt een hypothese op omtrent het gedragspatroon van de variabele(n) bij een bepaalde gebeurtenis.
+    \item Men voert het experiment uit en analyseert het resultaat.
+\end{enumerate}
+Gebruik makende van verschillende open source chaos engineering tools, waaronder o.a. ChaosToolkit, Powerful Seal, ... zullen meerdere experimenten toegepast worden op een Kubernetes cluster en via een open source monitoring tool opgevolgd worden. Deze experimenten veroorzaken falingen zoals het uitvallen van een server, onbeschikbaarheid van DNS, latency injection, resource exhaustion, enz. Het doel van deze experimenten is om inzicht te verwerven in hoe een systeem/applicatie zich gedraagt wanneer falingen gebeuren en eveneens oplossingen te voorzien om deze in de toekomst te kunnen vermijden. 
+
 
 %---------- Verwachte resultaten ----------------------------------------------
 \section{Verwachte resultaten}
 \label{sec:verwachte_resultaten}
 
-Hier beschrijf je welke resultaten je verwacht. Als je metingen en simulaties uitvoert, kan je hier al mock-ups maken van de grafieken samen met de verwachte conclusies. Benoem zeker al je assen en de stukken van de grafiek die je gaat gebruiken. Dit zorgt ervoor dat je concreet weet hoe je je data gaat moeten structureren.
+Het resultaat van dit onderzoek zal een aanbeveling zijn naar een geschikte open source tool en enkele chaos engineering experimenten die kunnen opgezet worden die in lijn liggen met het curriculum systeem- en netwerkbeheer. Op basis van het resultaat van de verschillende experimenten zullen ook aanbevelingen gegeven worden hoe men het systeem kan verbeteren om een zo hoog mogelijke uptime te garanderen. 
 
 %---------- Verwachte conclusies ----------------------------------------------
 \section{Verwachte conclusies}
 \label{sec:verwachte_conclusies}
 
-Hier beschrijf je wat je verwacht uit je onderzoek, met de motivatie waarom. Het is \textbf{niet} erg indien uit je onderzoek andere resultaten en conclusies vloeien dan dat je hier beschrijft: het is dan juist interessant om te onderzoeken waarom jouw hypothesen niet overeenkomen met de resultaten.
+Het opzetten van verschillende types servers en microservices in Docker containers komt alreeds aan bod in het huidige curriculum. Monitoring toepassen op een Kubernetes cluster en vervolgens Chaos Engineering experimenten erop uitvoeren kan een waardige bijdrage leveren.
+Waar momenteel de focus ligt in het opzetten en troubleshooten, zal door de aanbevolen chaos engineering experimenten uit te voeren een beter inzicht verworven worden in de werking van een systeem/applicatie en hoe men proactief problemen kan opsporen en aanpakken. 
+
 
