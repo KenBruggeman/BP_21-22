@@ -5,7 +5,7 @@
 
 Netflix is de pionier wat betreft chaos engineering. Een drie dagen durende outage door een grootschalige database corruptie in 2008 zorgde ervoor dat zij hun diensten, toen nog gehuisvestigd in verticale server racks in hun datacenter, migreerden naar de AWS cloud. Tijdens deze zeven jaar durende migratie naar de cloud herbouwden zij stap voor stap de architectuur van hun monolitische applicatie tot honderden microservices.
   
-Om de weerbaarheid van de cloud infrastructuur te testen ontwikkelden ze tijdens de migratie ook verschillende tools, nu beter bekend als chaos engineering tools. Op deze manier konden zij de zwaktes in het systeem vroegtijdig opsporen en verbeteren, om de uptime zo hoog mogelijk te houden. Hun bevindingen en tools werden kort nadien gepubliceerd en lagen aan de basis van een nieuwe mindset in disaster recovery en business continuity.    
+Om de weerbaarheid van de cloud infrastructuur te testen ontwikkelden ze tijdens de migratie ook verschillende tools, nu beter bekend als chaos engineering tools. Op deze manier konden zij de zwaktes in het systeem vroegtijdig opsporen en verbeteren, om de uptime zo hoog mogelijk te houden. Hun bevindingen en tools werden kort nadien gepubliceerd en lagen aan de basis van een nieuwe mindset in disaster recovery en business continuity. \autocite{Izrailevsky2016}    
  
 De groeiende complexiteit van systemen en de kwalijke gevolgen die een faling kunnen veroorzaken leiden tot dit onderzoek waarin gezocht wordt om open source chaos engineering tools en experimenten op te zetten om een Kubernetes cluster te testen, met de bedoeling deze in het toekomstig curriculum systeem- en netwerkbeheer te verwerken. 
  
@@ -15,10 +15,10 @@ De groeiende complexiteit van systemen en de kwalijke gevolgen die een faling ku
 \section{State-of-the-art}
 \label{sec:state-of-the-art}
 
-Er zijn tegenwoordig meerdere open source chaos engineering platformen beschikbaar. Gremlin, ChaosMesh, Litmus, ... zijn enkele van de bekendste die tools aanbieden om chaos experimenten uit te voeren. Met behulp van deze tools kan men proactief zwaktes in een systeem opsporen en verbeteren, om de weerbaarheid ervan in productie te verhogen.
+Er zijn tegenwoordig meerdere open source chaos engineering platformen beschikbaar. Gremlin, ChaosMesh, Litmus ... zijn enkele van de bekendste die tools aanbieden om chaos experimenten uit te voeren. Met behulp van deze tools kan men proactief zwaktes in een systeem opsporen en verbeteren, om de weerbaarheid ervan in productie te verhogen.
 
 Chaos engineering wint aan populariteit en er is een groeiende diversiteit in de teams die dit toepassen. Wat begon als een engineering oefening werd al snel opgepikt door SRE teams. Vandaag zijn er vele platform-, infrastructuur-, operations- en applicatieontwikkelingsteams die deze tools toepassen om de betrouwbaarheid van hun systeem en applicaties te verhogen.
-De positieve effecten van chaos engineering toe te passen zijn o.a. een toegenomen uptime, minder tijd nodig om problemen te detecteren en te herstellen, minder bugs die in productie terecht komen, ... \autocite{KoltonAndrus2021}
+De positieve effecten van chaos engineering toe te passen zijn o.a. een toegenomen uptime, minder tijd nodig om problemen te detecteren en te herstellen, minder bugs die in productie terecht komen ... \autocite{KoltonAndrus2021}
 
 
 %---------- Methodologie ------------------------------------------------------
@@ -41,7 +41,17 @@ Gebruik makende van verschillende open source chaos engineering tools, waaronder
 \section{Verwachte resultaten}
 \label{sec:verwachte_resultaten}
 
-Het resultaat van dit onderzoek zal een aanbeveling zijn naar een geschikte open source tool en enkele chaos engineering experimenten die kunnen opgezet worden die in lijn liggen met het curriculum systeem- en netwerkbeheer. Op basis van het resultaat van de verschillende experimenten zullen ook aanbevelingen gegeven worden hoe men het systeem kan verbeteren om een zo hoog mogelijke uptime te garanderen. 
+Het resultaat van dit onderzoek zal een aanbeveling zijn naar een geschikte open source tool en enkele chaos engineering experimenten die kunnen opgezet worden die in lijn liggen met het curriculum systeem- en netwerkbeheer. 
+
+Deze aanbeveling zal gemaakt worden op basis van criteria die belangrijk zijn voor het onderwijs:
+\begin{enumerate}
+    \item Is er voldoende documentatie beschikbaar om de tool op te zetten?
+    \item Wat is de kost van de tool? 
+    \item Welke voorkennis is nodig om de tool te kunnen gebruiken?
+\end{enumerate}
+
+De manier waarop deze tool en monitoring opgezet wordt kan afwijken van de oorspronkelijke methodologie. 
+Op basis van het resultaat van de verschillende experimenten zullen ook aanbevelingen gegeven worden hoe men het systeem kan verbeteren om een zo hoog mogelijke uptime te garanderen. 
 
 %---------- Verwachte conclusies ----------------------------------------------
 \section{Verwachte conclusies}
