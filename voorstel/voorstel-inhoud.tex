@@ -25,7 +25,7 @@ De positieve effecten van chaos engineering toe te passen zijn o.a. een toegenom
 \section{Methodologie}
 \label{sec:methodologie}
 
-De experimenten zullen opgezet en uitgevoerd worden in een lokale virtuele omgeving, waarin verschillende virtuele machines in hetzelfde netwerk via Vagrant en Ansible opgezet worden. Deze virtuele machines gaan  verschillende microservices bevatten en  samen ondergebracht worden in een Kubernetes cluster. 
+De experimenten zullen opgezet en uitgevoerd worden in een lokale virtuele omgeving, waarin verschillende virtuele machines in hetzelfde netwerk via Vagrant en Ansible opgezet worden. Deze virtuele machines gaan  verschillende microservices bevatten en samen ondergebracht worden als nodes in een Kubernetes cluster. 
 
 Experimenten opzetten gebeurt steeds in 4 stappen \autocite{Pawlikowski2020}:
 \begin{enumerate}
@@ -34,7 +34,7 @@ Experimenten opzetten gebeurt steeds in 4 stappen \autocite{Pawlikowski2020}:
     \item Men stelt een hypothese op omtrent het gedragspatroon van de variabele(n) bij een bepaalde gebeurtenis.
     \item Men voert het experiment uit en analyseert het resultaat.
 \end{enumerate}
-Gebruik makende van verschillende open source chaos engineering tools, waaronder o.a. ChaosToolkit, Powerful Seal, ... zullen meerdere experimenten toegepast worden op een Kubernetes cluster en via een open source monitoring tool opgevolgd worden. Deze experimenten veroorzaken falingen zoals het uitvallen van een server, onbeschikbaarheid van DNS, latency injection, resource exhaustion, enz. Het doel van deze experimenten is om inzicht te verwerven in hoe een systeem/applicatie zich gedraagt wanneer falingen gebeuren en eveneens oplossingen te voorzien om deze in de toekomst te kunnen vermijden. 
+Gebruik makende van verschillende open source chaos engineering tools, waaronder o.a. ChaosToolkit, Powerful Seal ... zullen meerdere experimenten toegepast worden op een Kubernetes cluster en via een open source monitoring tool opgevolgd worden. Deze experimenten veroorzaken falingen zoals het uitvallen van een server, onbeschikbaarheid van DNS, latency injection, resource exhaustion, enz. Het doel van deze experimenten is om inzicht te verwerven in hoe een systeem/applicatie zich gedraagt wanneer falingen gebeuren en eveneens oplossingen te voorzien om deze in de toekomst te kunnen vermijden. 
 
 
 %---------- Verwachte resultaten ----------------------------------------------
