@@ -40,7 +40,7 @@ Een hosted type 2 hypervisor is software die bovenop het bestaande besturingssys
     \centering
     \includegraphics[scale=.6]{img/Hypervisor-Types.png}
     \caption{hypervisor types \autocite{Vembu2019}}
-    \label{fig}
+    \label{hypervisors}
 \end{figure}
 
 
@@ -63,8 +63,8 @@ Om deze problemen met monolitische applicaties aan te pakken gebruikten grote be
 \begin{figure}[h]
     \centering
     \includegraphics[scale=.1]{img/monolithic_vs_microservices.png}
-    \caption{hypervisor types \autocite{Sanjaya2020}}
-    \label{fig}
+    \caption{evoloutie in softwarearchitectuur \autocite{Sanjaya2020}}
+    \label{softwarearchitectuur}
 \end{figure}
 
 \section{Containerisatie}
@@ -104,31 +104,140 @@ Kubernetes wordt op hun eigen website omschreven als een overdraagbaar, uit te b
 \subsection{Kubernetes architectuur}
 
 Het grootste object in de Kubernetes architectuur noemt men een cluster. Hierin worden fysieke of virtuele machines als nodes gegroepeerd. Men kan afhankelijk van het aantal nodes twee types clusters onderscheiden:
+
 \begin{itemize}
     \item een single-node cluster 
     \item een multi-node cluster 
 \end{itemize} 
- 
+
 Wanneer men meerdere nodes in een cluster onderbrengt kan het onderscheid gemaakt worden tussen:
+
 \begin{itemize}
-    \item de control-plane node(s)
+    \item de control-plane node(s), in oudere versies nog de master node genoemd.
     \item de worker node(s)
 \end{itemize} 
-In een single-node cluster is de enige node zowel de control-plane als worker node. 
 
-De control-plane node(s) zijn verantwoordelijk voor het beheren van de worker nodes. Op de worker nodes zullen de containers geplaatst worden van een applicatie. Een container wordt ondergebracht in een Pod, wat het kleinste Kubernetes object is. 
+In een single-node cluster is de enige node zowel de control-plane als worker node.
+Later in hoofdstuk \ref{ch:methodologie} zullen verschillende Kubernetes distributies gebruikt worden om een lokale cluster op te zetten. Hierbij zal zowel een single-node cluster via minikube, alsook multi-node clusters via kubespray en KinD opgezet worden. Ook zal aangetoond worden hoe men via Google Cloud (GKE) een cluster in een cloudomgeving kan opzetten.
 
-Een Pod kan meer dan 1 container bevatten, maar nooit van dezelfde aard. XXXXXXX
+De infrastructuur van een Kubernetes cluster bevat een aantal componenten die afhankelijk van het type node zullen geïnstalleerd worden. Op deze manier zijn de verantwoordelijkheden in een cluster duidelijk afgelijnd. De volgende componenten kan men in elke cluster terugvinden: 
 
-Kubernetes bevat een aantal componenten die afhankelijk van het type node zullen geïnstalleerd worden. Op deze manier zijn de verantwoordelijkheden in een cluster duidelijk afgelijnd. De volgende componenten ziet men in elke cluster terugkeren: 
 \begin{itemize}
-    \item API server: de front-end voor de control-plane en laat interactie met een cluster toe. 
-    \item etcd: een key-value store die gebruikt wordt om clusterdata op te slaan. 
-    \item scheduler: verantwoordelijk voor de distributie van containers naar de nodes.
-    \item controller: verantwoordelijk voor het monitoren en reageren wanneer nodes/pods uitvallen. De controller beslist als nieuwe nodes/pods gecreërd moeten worden.
-    \item container runtime: de onderliggende software die het mogelijk maakt om containers uit te voeren bv. Docker   
-    \item kubelet: een agent die op elke node actief is en verantwoordelijk is voor de correcte uitvoering van de containers.   
+    \item {\bf API server}: de front-end voor de control-plane en laat interactie met een cluster toe. 
+    \item {\bf etcd}: een key-value store die gebruikt wordt om clusterdata op te slaan. 
+    \item {\bf scheduler}: verantwoordelijk voor de distributie van containers naar de nodes.
+    \item {\bf controller}: verantwoordelijk voor het monitoren en reageren wanneer nodes/pods uitvallen en beslist als nieuwe nodes/pods gecreëerd moeten worden.
+    \item {\bf container runtime}: de onderliggende software die het mogelijk maakt om containers uit te voeren bv. Docker. 
+    \item {\bf kubelet}: een agent die op elke node actief is en verantwoordelijk is voor de correcte uitvoering van de containers.   
 \end{itemize}
+
+Elk infrastructuurcomponent hierboven opgesomd zal steeds ondergebracht worden in een pod, wat het kleinste Kubernetes object is. Meer over pods kan u later lezen in sectie \ref{sec:workloads}.
+
+De API-server, etcd, scheduler en controller zijn de componenten die verantwoordelijk zijn voor het beheer van de cluster en zijn samen gebundeld in de control-plane node. Deze staat in voor het beheer van de worker nodes en de pods in de cluster.
+
+Een worker node bevat de pods van een workload, of anders geformuleerd de containers van een applicatie. De kubelet en een kube-proxy zijn de enige infrastructuurcomponenten benodigd op een worker node. De kubelet is verantwoordelijk voor de communicatie met de control-plane node en zal deze eveneens informeren over de interne staat van de worker node. De kube-proxy staat in voor de netwerkcommunicatie. 
+
+Een overzicht van de verschillende infrastructuurcomponenten en de onderverdeling over de verschillende nodes kan u zien in figuur \ref{k8s-architectuur}. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.7]{img/k8s-architecture.png}
+    \caption{k8s clusterarchitectuur \autocite{Collabnix2019}}
+    \label{k8s-architectuur}
+\end{figure}
+
+\subsection{kubectl}
+
+Wanneer men acties wil uitvoeren in een cluster dan communiceert men steeds via de API-server op de control-plane node. Men kan dit doen via een user interface ofwel in een terminal via de kubectl commandline tool. Deze tool wordt gebruikt om applicaties uit te rollen en te beheren binnenin een Kubernetes cluster.
+Elk commando die men via deze tool uitvoert zal intern omgevormd worden tot een HTTP-request richting de API-server. \autocite{Biradar2019}
+   
+
+\subsection{Workloads}
+\label{sec:workloads}
+
+Een workload is een gecontaineriseerde applicatie in Kubernetes. Containers worden nooit rechtstreeks op een worker node ondergebracht maar worden door Kubernetes in pods geplaatst. Een pod kan meer dan 1 container bevatten van een applicatie indien de functionaliteit van deze containers verschillend is. Meerdere instanties van dezelfde applicatie zullen dus nooit binnenin één pod actief zijn. Elke container binnen een pod zal gebruik maken van dezelfde systeembronnen. Het “één-container-per-pod” model is de meest gebruikte Kubernetes use case. \autocite{Kubernetes2022}
+
+De werking van een pod kan op vele manieren verstoord worden en dit manueel beheren zou een tijdrovende taak zijn. Om deze redenen bestaan volgende ingebouwde workload resources in Kubernetes, die deze manuele taken kunnen automatiseren:
+\begin{itemize}
+    \item Deployments en ReplicaSets
+    \item StatefulSets
+    \item DaemonSets
+    \item Jobs en CronJob
+\end{itemize}   
+
+In dit onderzoek wordt enkel gebruik gemaakt van Deployments en ReplicaSets om podcreatie te automatiseren. Kubernetes kan ook nog verder uitgebreid worden via Custom Resource Definitions (CRDs) om extra workload resources te creëren. 
+
+Een Deployment wordt gebruikt om de creatie van pods of aanpassingen aan pods in een gecontaineriseerde applicatie te automatiseren. Via een Deployment kan men de pods van een applicatie schalen, gecontroleerd updates uitvoeren zonder downtime, en indien noodzakelijk terugrollen naar vorige versies van de applicatie.
+Updates uitvoeren zonder downtime noemt men een rolling update, wat de defaultconfiguratie is wanneer een nieuwe Deployment gemaakt wordt. Bij een rolling update zal men 1 voor 1 de pods gaan vervangen met een nieuwere versie van de pod. Op deze manier zal de applicatie steeds bereikbaar blijven. 
+
+Het schalen van de pods gebeurt via een ReplicaSet, wat als doel heeft om continu een vooraf gedefinieerd aantal pods van een applicatie (op basis van de geconfigureerde labels) actief te houden. Men hoeft deze echter niet manueel te configureren aangezien een ReplicaSet steeds automatisch gecreëerd zal worden tijdens de creatie van een Deployment. 
+
+Aangezien de Kubernetes Deployment Controller altijd de gezondheid van pods en nodes monitort, kan het een gefaalde pod vervangen of verstoorde nodes tijdelijk omzeilen en de pods erop verhuizen om de continuïteit te verzekeren van applicaties. 
+
+Om een pod of andere vormen van workloads te creëren binnenin een cluster kan men gebruik maken van 2 methodes: 
+\begin{itemize}
+    \item {\bf declaratief}: men verwijst in het commando naar een YAML-configuratiebestand waar de definitie staat.  
+    \item {\bf imperatief}: men gaat rechtstreeks in het commando via parameters meegeven hoe deze opgezet moet worden.
+\end{itemize}
+
+\subsection{Creatie van een Kubernetes object via een YAML-configuratiebestand}
+
+Wanneer men via een declaratieve methode een Kubernetes object wil creëren dient men eerst een YAML-configuratiebestand te schrijven. De naam van dit bestand kiest men vrij bv. pod-definition.yaml.
+
+In elke definitie van een Kubernetes object dienen 4 verplichte velden aanwezig te zijn:
+\begin{itemize}
+    \item {\bf apiVersion}: gebruikte versie van de Kubernetes API om het object te creëren
+    \item {\bf kind}: type object die gecreëerd wordt
+    \item {\bf metadata}: data waarmee het object uniek geïdentificeerd kan worden bv. naam, namespace ...
+    \item {\bf spec}: de gewenste staat van het object
+\end{itemize}
+
+TO DO: voorbeeld pod YAML-definitie via minted tonen !!! 
+
+Wanneer de configuratie geschreven is slaat men het bestand vervolgens op en kan men het object creëren via het commando 'kubectl apply -f [YAML-configuratiebestand]'. 
+
+Met behulp van het commando 'kubectl get pods' of het algemenere commando 'kubectl get all' kan het zopas gecreëerde object opgevraagd worden. 
+  
+Om het overzicht te bewaren over de Kubernetes objecten zoals pods, deployments, services ... die in een cluster actief zijn wordt gebruik gemaakt van labels. Verder kan men ook nog onderscheid creëren door gebruik te maken van namespaces, wat een manier is om een aparte groep te vormen waaronder Kubernetes objecten actief zijn. Het toepassen van namespaces zal later in hoofdstuk \ref{ch:chaos} Chaos Engineering gebruikt worden om de scope van de experimenten te bepalen. 
+
+\subsection{Services}
+\label{sec:services}
+
+Elke pod in een cluster heeft zijn eigen IP-adres, gedeeld door de onderliggende containers. Pods kunnen echter falen of naar een andere node verplaatst worden, waarop ze een nieuw IP-adres toegewezen krijgen.
+
+Om een oplossing te bieden voor dit probleem gebruikt men in Kubernetes Services. Dit zijn Kubernetes objecten (zoals pods, Deployments, ReplicaSets ...) die communicatie tussen verschillende componenten binnen en buiten een applicatie mogelijk maken. Meerdere pods die op verschillende nodes aanwezig zijn kunnen samen vertegenwoordigd worden door een Service. 
+
+Via de parameter labels in de definitie van een pod kan men de functionaliteit ervan verduidelijken. Dit komt van pas wanneer we een Service willen opzetten bv. alle nginx web server pods hebben in hun configuratie de label 'frontend' gekregen, en mysql database pods hebben de label 'backend' gekregen. Vervolgens kan men via een YAML-configuratiebestand voor beiden een nieuwe Service maken waaronder alle pods ondergebracht worden die beantwoorden aan hun geconfigureerde label. Vanaf dan is de communicatie tussen front- en backend pods opgezet. 
+
+Een Service krijgt net zoals de pods eronder eveneens een IP-adres toegewezen. Kubernetes bevat een ingebouwde (eenvoudige) load balancer die het verkeer kan leiden richting de verschillende pods onder een Service. 
+
+Er bestaan vier verschillende types Services: 
+\begin{itemize}
+    \item {\bf ClusterIP}: maakt de Service enkel binnen de cluster bereikbaar zodat communicatie tussen verschillende Services mogelijk is.  
+    \item {\bf NodePort}: maakt de Service buiten de cluster bereikbaar zodat men van buitenaf de applicatie kan bereiken.
+    \item {\bf LoadBalancer}: idem zoals NodePort maar maakt gebruik van een load balancer bij een cloud provider.
+    \item {\bf ExternalName}: mapt de Service aan het geconfigureerde externalName veld.     
+\end{itemize}
+
+Om te controleren als een Service succesvol gecreëerd is kan men het commando 'kubectl get svc' gebruiken. 
+
+TO DO: Voorbeeld output tonen commando !!!
+
+\subsection{Ingress}
+
+Voorgaand hoofdstuk \ref{sec:services} Services toonde aan dat via de Service NodePort een applicatie van buitenaf bereikbaar is. Dit is echter niet de beste methode om een applicatie in een productieomgeving bereikbaar te maken. \autocite{Dinesh2018} Er zijn namelijk enkele nadelen te ondervinden: 
+\begin{itemize}
+    \item Er kan slechts 1 Service per poort geconfigureerd worden.
+    \item Enkel poorten in de range 30000–32767 kunnen gebruikt worden.
+    \item Als het IP-adres van de node of virtuele machine verandert zal de Service onbeschikbaar worden.
+\end{itemize} 
+
+De oplossing is om het Kubernetes object Ingress te gebruiken. Dis ter verduidelijking géén Service. Het is de toegangspoort tot de cluster. Qua abstractielaag situeert Ingress zich boven Services en zal het functioneren zoals een router. 
+In de YAML-definitie van de Ingress wordt geconfigureerd hoe verkeer naar Services binnen de cluster verloopt. 
+
+\subsection{Container Network Interface}
+
+TO DO !!! 
 
 \subsection{Helm}
 
@@ -136,15 +245,13 @@ Een besturingssysteem maakt vaak standaard gebruik van een pakketbeheerder (of p
 
 Ook Kubernetes maakt gebruik van een eigen package manager genaamd Helm, die het mogelijk maakt om Kubernetes applicaties te beheren. Via Helm charts kan men de meest complexe Kubernetes applicaties definiëren, installeren en upgraden.
 
-Later in dit onderzoek, tijdens de installatie van de lokale Kubernetes distributie KinD zal Helm gebruikt worden. 
+Later in dit onderzoek zal één van de chaos engineering tools genaamd 'Chaos Mesh' in een cluster in de Google Cloud geïnstalleerd worden met behulp van Helm.  
 
 \section{Chaos Engineering}
+\label{ch:chaos}
   
-Dit hoofdstuk bevat je literatuurstudie. De inhoud gaat verder op de inleiding, maar zal het onderwerp van de bachelorproef *diepgaand* uitspitten. De bedoeling is dat de lezer na lezing van dit hoofdstuk helemaal op de hoogte is van de huidige stand van zaken (state-of-the-art) in het onderzoeksdomein. Iemand die niet vertrouwd is met het onderwerp, weet nu voldoende om de rest van het verhaal te kunnen volgen, zonder dat die er nog andere informatie moet over opzoeken \autocite{Pollefliet2011}.
+\section{Vagrant}
 
-Je verwijst bij elke bewering die je doet, vakterm die je introduceert, enz. naar je bronnen. In \LaTeX{} kan dat met het commando \texttt{$\backslash${textcite\{\}}} of \texttt{$\backslash${autocite\{\}}}. Als argument van het commando geef je de ``sleutel'' van een ``record'' in een bibliografische databank in het Bib\LaTeX{}-formaat (een tekstbestand). Als je expliciet naar de auteur verwijst in de zin, gebruik je \texttt{$\backslash${}textcite\{\}}.
-Soms wil je de auteur niet expliciet vernoemen, dan gebruik je \texttt{$\backslash${}autocite\{\}}. In de volgende paragraaf een voorbeeld van elk.
+\section{Ansible}
 
-\textcite{Knuth1998} schreef een van de standaardwerken over sorteer- en zoekalgoritmen. Experten zijn het erover eens dat cloud computing een interessante opportuniteit vormen, zowel voor gebruikers als voor dienstverleners op vlak van informatietechnologie~\autocite{Creeger2009}.
-
-\lipsum[7-20]
+\section{VirtualBox}
