@@ -249,9 +249,44 @@ Later in dit onderzoek zal één van de chaos engineering tools genaamd 'Chaos M
 
 \section{Chaos Engineering}
 \label{ch:chaos}
-  
-\section{Vagrant}
 
-\section{Ansible}
+Wanneer men de term chaos engineering online opzoekt zal men ongetwijfeld de zin 'breaking things on purpose' (opzettelijk dingen breken) tegenkomen. Deze zin dekt maar een fractie van de lading wat chaos engineering werkelijk is. Om een meer volledige beeld te vormen kan men de volgende definitie in acht nemen: Chaos Engineering is de discipline van het experimenteren op een systeem met de intentie om vertrouwen te krijgen in de capaciteiten van het systeem om te volharden tijdens turbulente omstandigheden in een productieomgeving. \autocite{Eliot2019}
 
-\section{VirtualBox}
+Met behulp van chaos engineering experimenten kunnen we proactief problemen oplossen, falingen en storingen voorkomen, en nieuwe inzichten ontwikkelen over de werking van een applicatie of systeem.  
+
+\subsection{Geschiedenis van Chaos Engineering}
+
+Netflix is een pionier wat betreft chaos engineering. In 2007 lanceerden zij, bovenop hun bestaande DVD-via-mail service, hun streamingdienst die vandaag de dag wereldwijd gekend is. Door het groeiende succes in de beginjaren van deze dienst ondervonden zij ook de nadelen van hun monolitische applicatie toen in 2008 hun service drie dagen lang onderbroken werd door een grootschalige databasecorruptie. 
+Daarop besloten zij om hun monolitische applicatie die actief was op lokale server racks te herbouwen naar een applicatie met een microservices architectuur in de AWS cloud. Deze migratie duurde maar liefst zeven jaar en werd pas in 2016 afgerond.
+
+Door de complexiteit die een microservices architectuur met zich meebracht ontstond een nieuwe aanpak om falingen te voorkomen. Door tools te ontwikkelen zoals Chaos Monkey begonnen zij doelbewust en proactief fouten te injecteren in hun applicatie, door willekeurige instanties en services te vernietigen. De bedoeling van Chaos Monkey was om de engineers bij Netflix aan te moedigen om software services te maken die falingen kunnen weerstaan van individuele instanties. \autocite{Basiri2016}  
+
+Later werden nog extra tools ontworpen die elk op zich een bepaalde functionaliteit hadden qua foutinjectie. Deze set tools noemde men de 'Simian Army'. Zo wist Netflix via hun proactieve aanpak een weerbare architectuur te creëren door middel van deze tools die nu bekend zijn als chaos engineering tools.
+
+\subsection{Chaos Engineering tools}
+
+Vooraleer men van start kan gaan met chaos experimenten moet men eerst een geschikte tool kiezen. Chaos engineering is nog steeds relatief nieuw, waardoor sommige tools die vandaag de dag beschikbaar zijn nog onderontwikkeld of slecht gedocumenteerd zijn.
+
+In dit onderzoek gaan we volgende tools testen die toegepast kunnen worden op een Kubernetes cluster: 
+\begin{itemize}
+    \item ChaosToolkit
+    \item Chaos Mesh
+    \item PowerfulSeal 
+    \item Litmus
+\end{itemize} 
+
+\subsection{Chaos Engineering experimenten}
+
+Chaos Engineering experimenten verlopen volgens 4 theoretische principes: 
+\begin{itemize}
+    \item Definieer het normale, verwachte gedrag van het systeem (= de steady state)
+    \item Vorm een hypothese dat het normale gedrag overeind zal blijven 
+    \item Introduceer een fout-injectie in het systeem
+    \item Probeer de hypothese te ontkrachten
+\end{itemize}
+
+In de praktijk worden deze experimenten in YAML-bestanden opgeslaan en variëren deze qua inhoud afhankelijk van de gekozen tool. In hoofdstuk \ref{ch:methodologie} Methodologie zal men enkele van deze uitgevoerde experimenten en het resultaat ervan bestuderen.
+
+Om de impact van een experiment steeds te beperken zal gebruik gemaakt worden van namespaces, waarin de demo-applicatie actief zal zijn. Op deze manier voorkomt men dat experimenten een onverwachte en negatieve impact hebben op andere Kubernetes objecten buiten deze namespace.
+
+De soort experimenten die uitgevoerd worden zullen ook afhangen van de opgezette clusteromgeving. Men kan bijvoorbeeld geen experimenten uitvoeren die een node zullen uitschakelen op een single-node cluster, omdat hierdoor de enige node geraakt wordt en dit zonder twijfel kwalijke gevolgen zal hebben.    
