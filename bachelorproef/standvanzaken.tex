@@ -146,7 +146,7 @@ Een overzicht van de verschillende infrastructuurcomponenten en de onderverdelin
     \label{k8s-architectuur}
 \end{figure}
 
-\subsection{kubectl}
+\subsection{kubectl commandline tool}
 
 Wanneer men acties wil uitvoeren in een cluster dan communiceert men steeds via de API-server op de control-plane node. Men kan dit doen via een user interface ofwel in een terminal via de kubectl commandline tool. Deze tool wordt gebruikt om applicaties uit te rollen en te beheren binnenin een Kubernetes cluster.
 Elk commando die men via deze tool uitvoert zal intern omgevormd worden tot een HTTP-request richting de API-server. \autocite{Biradar2019}
@@ -179,26 +179,6 @@ Om een pod of andere vormen van workloads te creëren binnenin een cluster kan m
     \item {\bf declaratief}: men verwijst in het commando naar een YAML-configuratiebestand waar de definitie staat.  
     \item {\bf imperatief}: men gaat rechtstreeks in het commando via parameters meegeven hoe deze opgezet moet worden.
 \end{itemize}
-
-\subsection{Creatie van een Kubernetes object via een YAML-configuratiebestand}
-
-Wanneer men via een declaratieve methode een Kubernetes object wil creëren dient men eerst een YAML-configuratiebestand te schrijven. De naam van dit bestand kiest men vrij bv. pod-definition.yaml.
-
-In elke definitie van een Kubernetes object dienen 4 verplichte velden aanwezig te zijn:
-\begin{itemize}
-    \item {\bf apiVersion}: gebruikte versie van de Kubernetes API om het object te creëren
-    \item {\bf kind}: type object die gecreëerd wordt
-    \item {\bf metadata}: data waarmee het object uniek geïdentificeerd kan worden bv. naam, namespace ...
-    \item {\bf spec}: de gewenste staat van het object
-\end{itemize}
-
-TO DO: voorbeeld pod YAML-definitie via minted tonen !!! 
-
-Wanneer de configuratie geschreven is slaat men het bestand vervolgens op en kan men het object creëren via het commando 'kubectl apply -f [YAML-configuratiebestand]'. 
-
-Met behulp van het commando 'kubectl get pods' of het algemenere commando 'kubectl get all' kan het zopas gecreëerde object opgevraagd worden. 
-  
-Om het overzicht te bewaren over de Kubernetes objecten zoals pods, deployments, services ... die in een cluster actief zijn wordt gebruik gemaakt van labels. Verder kan men ook nog onderscheid creëren door gebruik te maken van namespaces, wat een manier is om een aparte groep te vormen waaronder Kubernetes objecten actief zijn. Het toepassen van namespaces zal later in hoofdstuk \ref{ch:chaos} Chaos Engineering gebruikt worden om de scope van de experimenten te bepalen. 
 
 \subsection{Services}
 \label{sec:services}
@@ -235,10 +215,43 @@ Voorgaand hoofdstuk \ref{sec:services} Services toonde aan dat via de Service No
 De oplossing is om het Kubernetes object Ingress te gebruiken. Dis ter verduidelijking géén Service. Het is de toegangspoort tot de cluster. Qua abstractielaag situeert Ingress zich boven Services en zal het functioneren zoals een router. 
 In de YAML-definitie van de Ingress wordt geconfigureerd hoe verkeer naar Services binnen de cluster verloopt. 
 
-\subsection{Container Network Interface}
+\subsection{Creatie van een Kubernetes object via een YAML-configuratiebestand}
 
-TO DO !!! 
+Wanneer men via een declaratieve methode een Kubernetes object wil creëren dient men eerst een YAML-configuratiebestand te schrijven. De naam van dit bestand kiest men vrij bv. pod-definition.yaml.
 
+In elke definitie van een Kubernetes object dienen 4 verplichte velden aanwezig te zijn:
+\begin{itemize}
+    \item {\bf apiVersion}: gebruikte versie van de Kubernetes API om het object te creëren
+    \item {\bf kind}: type object die gecreëerd wordt
+    \item {\bf metadata}: data waarmee het object uniek geïdentificeerd kan worden bv. naam, namespace ...
+    \item {\bf spec}: de gewenste staat van het object
+\end{itemize}
+
+TO DO: voorbeeld pod YAML-definitie via minted tonen !!! 
+
+Wanneer de configuratie geschreven is slaat men het bestand vervolgens op en kan men het object creëren via het commando 'kubectl apply -f [YAML-configuratiebestand]'. 
+
+Met behulp van het commando 'kubectl get pods' of het algemenere commando 'kubectl get all' kan het zopas gecreëerde object opgevraagd worden. 
+
+Om het overzicht te bewaren over de Kubernetes objecten zoals pods, deployments, services ... die in een cluster actief zijn wordt gebruik gemaakt van labels. Verder kan men ook nog onderscheid creëren door gebruik te maken van namespaces, wat een manier is om een aparte groep te vormen waaronder Kubernetes objecten actief zijn. Het toepassen van namespaces zal later in hoofdstuk \ref{ch:chaos} Chaos Engineering gebruikt worden om de scope van de experimenten te bepalen. 
+
+\subsection{Kubernetes Networking}
+
+Elke pod in een Kubernetes cluster krijgt een IP-adres toegewezen vanuit een intern gebruikt private netwerk vb. 10.244.x.x. 
+Deze range verschilt met de range van het IP-adres van de node waarop deze pods aanwezig zijn vb. 192.168.1.x
+
+In een multi-node cluster zal dit bovenstaande voorbeeld echter een probleem vormen want elke node wordt opgezet met hetzelfde intern gebruikte private netwerk. Hierdoor zouden pods op verschillende nodes in een cluster hetzelfde IP-adres toegewezen kunnen krijgen wat zal leiden tot conflicten.
+
+Wanneer een cluster opgezet wordt zal Kubernetes géén oplossing bieden voor dit probleem maar wordt verwacht dat we zelf een gepaste netwerkoplossing installeren die beantwoordt aan enkele fundamentele vereisten: 
+\begin{itemize}
+    \item Alle pods in een cluster moeten met elkaar kunnen communiceren zonder Network Address Translation (NAT) te configureren.
+    \item Alle nodes moeten kunnen communiceren met alle pods en vice-versa zonder NAT te configureren.
+\end{itemize} 
+
+Om een netwerkoplossing te bieden gebruikt men een Container Network Interface (CNI), wat een specificatie is voor het configureren van netwerkinterfaces voor Linux containers. Een CNI installeert men via een plugin. Meerdere CNI's kunnen operationeel zijn in een cluster en ondertussen verschillende functionaliteiten invullen bv. een CNI die de routing voorziet terwijl een andere CNI zich ontfermt over de netwerkbeveiliging. Er zijn heel wat CNI plugins waaruit men kan kiezen, waarvan enkele bekende o.a. Calico, WeaveNet, Cilium en Istio zijn. \autocite{Power2019}
+
+In dit onderzoek zal op verschillende manieren een lokale omgeving voor een Kubernetes cluster opgezet worden. In deze omgevingen zal gebruik gemaakt worden van WeaveNet, Istio en Calico. Een cluster opzetten in de Google Cloud (GKE) zal eveneens aan bod komen. Een voordeel van deze cloudomgeving is dat er alreeds gebruik gemaakt wordt van een CNI genaamd kubenet na het opzetten van de cluster.    
+ 
 \subsection{Helm}
 
 Een besturingssysteem maakt vaak standaard gebruik van een pakketbeheerder (of package manager). Denk maar aan apt bij de Linux distributie Debian, of yum bij distributie Red Hat Enterprise Linux. Dit maakt het mogelijk om software te (de)installeren en softwareupgrades uit te voeren.
