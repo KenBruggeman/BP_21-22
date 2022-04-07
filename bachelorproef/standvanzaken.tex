@@ -199,9 +199,14 @@ Er bestaan vier verschillende types Services:
     \item {\bf ExternalName}: mapt de Service aan het geconfigureerde externalName veld.     
 \end{itemize}
 
-Om te controleren als een Service succesvol gecreëerd is kan men het commando 'kubectl get svc' gebruiken. 
+Om te controleren als een Service succesvol gecreëerd is kan men het commando 'kubectl get svc' gebruiken. Zie onderstaand voorbeeld van output:
 
-TO DO: Voorbeeld output tonen commando !!!
+\begin{lstlisting}[language=bash]
+$ kubectl get svc
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        11d
+myapp-service   NodePort    10.98.136.223   <none>        80:30004/TCP   3m17s
+\end{lstlisting}
 
 \subsection{Ingress}
 
@@ -227,11 +232,36 @@ In elke definitie van een Kubernetes object dienen 4 verplichte velden aanwezig 
     \item {\bf spec}: de gewenste staat van het object
 \end{itemize}
 
-TO DO: voorbeeld pod YAML-definitie via minted tonen !!! 
+Zie onderstaand voorbeeld van een eenvoudige pod-definitie:
+
+\begin{lstlisting}[language=bash]
+---------------------------
+# pod-definition.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+    type: front-end
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+
+----------------------------
+\end{lstlisting}
 
 Wanneer de configuratie geschreven is slaat men het bestand vervolgens op en kan men het object creëren via het commando 'kubectl apply -f [YAML-configuratiebestand]'. 
 
 Met behulp van het commando 'kubectl get pods' of het algemenere commando 'kubectl get all' kan het zopas gecreëerde object opgevraagd worden. 
+
+\begin{lstlisting}[language=bash]
+$ kubectl get pods
+NAME    READY   STATUS    RESTARTS   AGE
+nginx   1/1     Running   0          24s
+\end{lstlisting}
 
 Om het overzicht te bewaren over de Kubernetes objecten zoals pods, deployments, services ... die in een cluster actief zijn wordt gebruik gemaakt van labels. Verder kan men ook nog onderscheid creëren door gebruik te maken van namespaces, wat een manier is om een aparte groep te vormen waaronder Kubernetes objecten actief zijn. Het toepassen van namespaces zal later in hoofdstuk \ref{ch:chaos} Chaos Engineering gebruikt worden om de scope van de experimenten te bepalen. 
 
@@ -298,7 +328,9 @@ Chaos Engineering experimenten verlopen volgens 4 theoretische principes:
     \item Probeer de hypothese te ontkrachten
 \end{itemize}
 
-In de praktijk worden deze experimenten in YAML-bestanden opgeslaan en variëren deze qua inhoud afhankelijk van de gekozen tool. In hoofdstuk \ref{ch:methodologie} Methodologie zal men enkele van deze uitgevoerde experimenten en het resultaat ervan bestuderen.
+In de praktijk worden deze experimenten in YAML-bestanden opgeslaan en variëren deze qua inhoud afhankelijk van de gekozen tool. Er zijn experimenten die bv. willekeurig de werking van pods verstoren, pods vernietigen, communicatie tussen pods tijdelijk verstoren, nodes vernietigen ... In hoofdstuk \ref{ch:methodologie} Methodologie zal men enkele van deze uitgevoerde experimenten en het resultaat ervan bestuderen. 
+
+De manier hoe Kubernetes reageert op deze experimenten en hoe men uit de resultaten ervan vervolgens structureel en proactief zaken kan verbeteren om de beschikbaarheid en fouttolerantie van de applicatie te verhogen is de essentie van chaos engineering.   
 
 Om de impact van een experiment steeds te beperken zal gebruik gemaakt worden van namespaces, waarin de demo-applicatie actief zal zijn. Op deze manier voorkomt men dat experimenten een onverwachte en negatieve impact hebben op andere Kubernetes objecten buiten deze namespace.
 
