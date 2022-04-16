@@ -17,7 +17,7 @@ Het essentiële onderdeel om de virtuele machines te binden aan de hardware van 
 
 \subsection{Voordelen van een hypervisor}
 
-Het gebruik van een hypervisor om virtuele machines op een host aan te maken heeft enkele voordelen:
+Het gebruik van een hypervisor om virtuele machines op een host aan te maken heeft enkele voordelen \autocite{Yfantis2020} :
 \begin{itemize}
     \item Snelheid: virtuele machines opzetten verloopt snel in vergelijking met de tijd benodigd om een fysieke server op te zetten.
     \item (Kost)efficiëntie: men maakt optimaal gebruik van de beschikbare resources op het hostsysteem door deze dynamisch te verdelen over meerdere virtuele machines.   
@@ -149,7 +149,7 @@ Een overzicht van de verschillende infrastructuurcomponenten en de onderverdelin
 \subsection{kubectl commandline tool}
 
 Wanneer men acties wil uitvoeren in een cluster dan communiceert men steeds via de API-server op de control-plane node. Men kan dit doen via een user interface ofwel in een terminal via de kubectl commandline tool. Deze tool wordt gebruikt om applicaties uit te rollen en te beheren binnenin een Kubernetes cluster.
-Elk commando die men via deze tool uitvoert zal intern omgevormd worden tot een HTTP-request richting de API-server. \autocite{Biradar2019}
+Elk commando dat men via deze tool uitvoert zal intern omgevormd worden tot een HTTP-request richting de API-server. \autocite{Biradar2019}
    
 
 \subsection{Workloads}
@@ -199,25 +199,18 @@ Er bestaan vier verschillende types Services:
     \item {\bf ExternalName}: mapt de Service aan het geconfigureerde externalName veld.     
 \end{itemize}
 
-Om te controleren als een Service succesvol gecreëerd is kan men het commando 'kubectl get svc' gebruiken. Zie onderstaand voorbeeld van output:
-
-\begin{lstlisting}[language=bash]
-$ kubectl get svc
-NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        11d
-myapp-service   NodePort    10.98.136.223   <none>        80:30004/TCP   3m17s
-\end{lstlisting}
+Om te controleren als een Service succesvol gecreëerd is kan men het commando 'kubectl get svc' gebruiken.
 
 \subsection{Ingress}
 
 Voorgaand hoofdstuk \ref{sec:services} Services toonde aan dat via de Service NodePort een applicatie van buitenaf bereikbaar is. Dit is echter niet de beste methode om een applicatie in een productieomgeving bereikbaar te maken. \autocite{Dinesh2018} Er zijn namelijk enkele nadelen te ondervinden: 
 \begin{itemize}
     \item Er kan slechts 1 Service per poort geconfigureerd worden.
-    \item Enkel poorten in de range 30000–32767 kunnen gebruikt worden.
+    \item Enkel poorten in de range 30000 t.e.m. 32767 kunnen gebruikt worden.
     \item Als het IP-adres van de node of virtuele machine verandert zal de Service onbeschikbaar worden.
 \end{itemize} 
 
-De oplossing is om het Kubernetes object Ingress te gebruiken. Dis ter verduidelijking géén Service. Het is de toegangspoort tot de cluster. Qua abstractielaag situeert Ingress zich boven Services en zal het functioneren zoals een router. 
+De oplossing is om het Kubernetes object Ingress te gebruiken. Dit is ter verduidelijking géén Service. Het is de toegangspoort tot de cluster. Qua abstractielaag situeert Ingress zich boven Services en zal het functioneren zoals een router. 
 In de YAML-definitie van de Ingress wordt geconfigureerd hoe verkeer naar Services binnen de cluster verloopt. 
 
 \subsection{Creatie van een Kubernetes object via een YAML-configuratiebestand}
@@ -258,9 +251,9 @@ Wanneer de configuratie geschreven is slaat men het bestand vervolgens op en kan
 Met behulp van het commando 'kubectl get pods' of het algemenere commando 'kubectl get all' kan het zopas gecreëerde object opgevraagd worden. 
 
 \begin{lstlisting}[language=bash]
-$ kubectl get pods
-NAME    READY   STATUS    RESTARTS   AGE
-nginx   1/1     Running   0          24s
+    $ kubectl get pods
+    NAME    READY   STATUS    RESTARTS   AGE
+    nginx   1/1     Running   0          24s
 \end{lstlisting}
 
 Om het overzicht te bewaren over de Kubernetes objecten zoals pods, deployments, services ... die in een cluster actief zijn wordt gebruik gemaakt van labels. Verder kan men ook nog onderscheid creëren door gebruik te maken van namespaces, wat een manier is om een aparte groep te vormen waaronder Kubernetes objecten actief zijn. Het toepassen van namespaces zal later in hoofdstuk \ref{ch:chaos} Chaos Engineering gebruikt worden om de scope van de experimenten te bepalen. 
@@ -310,11 +303,10 @@ Later werden nog extra tools ontworpen die elk op zich een bepaalde functionalit
 
 Vooraleer men van start kan gaan met chaos experimenten moet men eerst een geschikte tool kiezen. Chaos engineering is nog steeds relatief nieuw, waardoor sommige tools die vandaag de dag beschikbaar zijn nog onderontwikkeld of slecht gedocumenteerd zijn.
 
-In dit onderzoek gaan we volgende tools testen die toegepast kunnen worden op een Kubernetes cluster: 
+In dit onderzoek worden volgende tools getest die toegepast kunnen worden op een Kubernetes cluster: 
 \begin{itemize}
     \item ChaosToolkit
     \item Chaos Mesh
-    \item PowerfulSeal 
     \item Litmus
 \end{itemize} 
 
@@ -328,10 +320,10 @@ Chaos Engineering experimenten verlopen volgens 4 theoretische principes:
     \item Probeer de hypothese te ontkrachten
 \end{itemize}
 
-In de praktijk worden deze experimenten in YAML-bestanden opgeslaan en variëren deze qua inhoud afhankelijk van de gekozen tool. Er zijn experimenten die bv. willekeurig de werking van pods verstoren, pods vernietigen, communicatie tussen pods tijdelijk verstoren, nodes vernietigen ... In hoofdstuk \ref{ch:methodologie} Methodologie zal men enkele van deze uitgevoerde experimenten en het resultaat ervan bestuderen. 
+In de praktijk worden deze experimenten in YAML-bestanden opgeslaan en variëren deze qua inhoud afhankelijk van de gekozen tool. Er zijn experimenten die bv. willekeurig de werking van pods verstoren, pods vernietigen, communicatie tussen pods tijdelijk verstoren, nodes vernietigen ... In hoofdstuk \ref{ch:methodologie} Methodologie worden enkele van deze uitgevoerde experimenten en het resultaat ervan bestudeerd. 
 
-De manier hoe Kubernetes reageert op deze experimenten en hoe men uit de resultaten ervan vervolgens structureel en proactief zaken kan verbeteren om de beschikbaarheid en fouttolerantie van de applicatie te verhogen is de essentie van chaos engineering.   
+De essentie van het uitvoeren van chaos engineering experimenten is het bestuderen hoe Kubernetes reageert en hoe men uit de resultaten ervan vervolgens structureel en proactief zaken kan verbeteren om de beschikbaarheid en fouttolerantie van een applicatie te verhogen.  
 
 Om de impact van een experiment steeds te beperken zal gebruik gemaakt worden van namespaces, waarin de demo-applicatie actief zal zijn. Op deze manier voorkomt men dat experimenten een onverwachte en negatieve impact hebben op andere Kubernetes objecten buiten deze namespace.
 
-De soort experimenten die uitgevoerd worden zullen ook afhangen van de opgezette clusteromgeving. Men kan bijvoorbeeld geen experimenten uitvoeren die een node zullen uitschakelen op een single-node cluster, omdat hierdoor de enige node geraakt wordt en dit zonder twijfel kwalijke gevolgen zal hebben.    
+Het soort experimenten die uitgevoerd worden zullen ook afhankelijk zijn van de opgezette clusteromgeving. Men kan bijvoorbeeld geen experimenten uitvoeren die een node zullen uitschakelen op een single-node cluster, omdat hierdoor de enige node geraakt wordt en dit zonder twijfel kwalijke gevolgen zal hebben.    
