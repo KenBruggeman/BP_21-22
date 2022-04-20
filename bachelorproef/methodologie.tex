@@ -11,5 +11,42 @@
 %% mogelijke manier toegepast hebt om een antwoord te vinden op de
 %% onderzoeksvraag.
 
-\lipsum[21-25]
+Bij de start van dit onderzoek moest eerst een basiskennis Kubernetes verworven worden. Hiervoor is via het online leerplatform Udemy de cursus 'Kubernetes for the absolute beginners' geraadpleegd. \autocite{Mannambeth2021}  
 
+Vooraleer men van start kan gaan met het uitvoeren van chaos engineering experimenten is een Kubernetes cluster nodig waarin een demo-applicatie actief is. In schoolcontext werd steeds gebruik gemaakt van een type 2 hypervisor zoals VirtualBox om virtuele machines op te zetten, aangevuld met automatisatietools zoals Vagrant en Ansible. Hierdoor is eerst onderzocht welke mogelijkheden er waren om op soortgelijke manier een lokale Kubernetes cluster op te zetten. 
+
+De volgende Kubernetes distributies zijn gebruikt om een lokale Kubernetes cluster op te zetten:
+ 
+\begin{itemize}
+    \item {\bf Minikube}: een single-node Kubernetes cluster opgezet op een Ubuntu Linux VM. 
+    \item {\bf Kubeadm}: een multi-node Kubernetes cluster opgezet m.b.v. Vagrant, die 1 control-plane (master) node en 2 worker nodes bevat.
+    \item {\bf Kubespray}: een multi-node Kubernetes cluster opgezet m.b.v. Ansible, die 2 control-plane en 2 worker nodes bevat.  
+    \item {\bf KinD}: een multi-node Kubernetes cluster opgezet op één Ubuntu Linux VM. Alle nodes bestaan in de vorm van Docker containers, waardoor men een multi-node cluster kan simuleren binnen 1 VM. Deze cluster bevat 1 control-plane en 2 worker nodes.
+\end{itemize}
+
+Om een basis te verwerven in chaos engineering is de online Udemy cursus 'Kubernetes Chaos Engineering With Chaos Toolkit And Istio' geraadpleegd. Deze cursus is gebaseerd op het 'boek The DevOps Toolkit: Kubernetes Chaos Engineering' en wordt gegeven door de auteur Victor Farcic.  \autocite{Farcic2020}
+
+De volgende chaos engineering tools zijn getest in een lokale Kubernetes cluster:
+
+\begin{itemize}
+    \item Chaos Toolkit
+    \item Chaos Mesh 
+\end{itemize}
+
+Doordat een Kubernetes cluster in een lokale omgeving zijn beperkingen heeft is gekozen om ook een cluster op te zetten in een Google Cloud omgeving. In deze cloudomgeving zijn volgende chaos engineering tools getest: 
+
+\begin{itemize}
+    \item Chaos Mesh
+    \item Litmus 
+\end{itemize}
+
+
+
+
+
+
+\subsection{Chaos Toolkit}
+
+\subsection{Chaos Mesh}
+
+\subsection{Litmus}
