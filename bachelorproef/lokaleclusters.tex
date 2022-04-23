@@ -5,9 +5,145 @@
 \chapter{\IfLanguageName{dutch}{Lokale Kubernetes Clusters}{Local Kubernetes clusters}}
 \label{ch:lokaleclusters}
 
+Om chaos engineering experimenten te kunnen toepassen is er eerst een Kubernetes cluster nodig. De bedoeling van dit onderzoek is om deze omgeving eveneens te kunnen reproduceren voor educatieve doeleinden, in de veronderstelling dat deze geïntegreerd kan worden in een toekomstig curriculum.
+
+Vandaar start dit onderzoek met het opzetten en testen van Kubernetes clusters in een lokale omgeving. 
+Eerst wordt beschreven hoe men een single node Minikube cluster kan opzetten, om vervolgens de setup van multi-node clusters via KubeAdm en Kubespray te bespreken. Tenslotte zal ook de setup van KinD (Kubernetes in Docker) besproken worden, die een multi-node cluster op één virtuele machine kan reproduceren m.b.v. Docker containers.
+
+Er bestaan meerdere manieren om een Kubernetes cluster in een lokale omgeving op te zetten. 
+Elke lokale Kubernetes distributie werd geïnstalleerd op één of meerdere virtuele machines m.b.v. de type 2 hypervisor VirtualBox. 
+
 \section{Minikube}
 
+Minikube is een single-node cluster die snel en makkelijk opgezet kan worden, dit voor zowel Windows, MacOS en Linux omgevingen. \autocite{Minikube2022}
+
+In dit onderzoek is gekozen om Minikube te installeren op een Linux VM met distributie Ubuntu (Bionic) 18.04. Er is voor Linux gekozen omdat de eerst geteste chaos engineering tool 'Chaos Toolkit' via Python geïnstalleerd wordt. 
+
+\subsection{Vereisten}
+
+Voor de Linux virtuele machine op te zetten, waar men nadien de Minikube Kubernetes cluster op kan installeren, heeft men de tool Vagrant en een Vagrantfile met de beschrijving van de Ubuntu Linux virtuele machine nodig. Minikube vereist qua resources minimum 2 CPU, 2 GB RAM en 20 GB schijfruimte. In de setup van de Ubuntu Linux virtuele machine is gekozen om dubbel zoveel CPU en RAM toe te wijzen, om een veilige buffer te voorzien.  
+
+Volgend stappenplan kan u volgen om de virtuele machine op te zetten:
+\begin{itemize}
+    \item Maak een directory aan op uw host systeem met een gepaste naam vb. ubuntu-bionic. Hierin zullen alle configuratiebestanden van de virtuele machine in de toekomst bewaard worden.
+    \item Maak een bestand 'Vagrantfile' aan in deze directory (zonder een extensie).
+    \item Plaats de onderstaande configuratie in de zopas gecreëerde Vagrantfile en sla op.
+\end{itemize}
+ 
+Dit is een aangepaste versie van de oorspronkelijke 'gusztavvargadr/ubuntu-desktop' Vagrantfile \autocite{Varga2022}, waarmee een virtuele machine opgezet wordt met de naam 'ubuntu-desktop' en qua resources 4 GB RAM-geheugen en 4 CPU's bevat. 
+
+\begin{lstlisting}[language=bash]
+-------------------------------------------------
+Vagrant.configure("2") do |config|
+  config.vm.box = "gusztavvargadr/ubuntu-desktop"
+  config.vm.hostname = "ubuntu-desktop"
+  config.vm.define "ubuntu-desktop" do |node|
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "ubuntu-desktop"
+      vb.memory = "4096"
+      vb.cpus = 4
+    end
+  end
+end
+-------------------------------------------------
+\end{lstlisting}
+
+Via een terminalsessie te openen in de directory waar de Vagrantfile staat, en vervolgens het commando 'vagrant up' uit te voeren, zal de installatieprocedure voor de setup van de virtuele machine opstarten. Na afloop kan men via VirtualBox inloggen op de virtuele machine met de credentials vagrant/vagrant. 
+
+
+\subsection{Minikube installatie}
+
+Eens men ingelogd is op de virtuele machine opent men een terminal sessie. 
+Volg deze stappen om Minikube te installeren: \autocite{Simic2020}
+\begin{enumerate}
+    \item {\bf Update het systeem en installeer vereiste packages:}
+\begin{lstlisting}[language=bash]
+# Update het systeem
+$ sudo apt-get update -y
+
+# Upgrade het systeem
+$ sudo apt-get upgrade -y
+
+# Installeer de curl package
+$ sudo apt-get install curl
+
+# Installeer de apt-transport-https package
+$ sudo apt-get install apt-transport-https
+    \end{lstlisting}
+
+    \item {\bf Installeer Minikube:}
+\begin{lstlisting}[language=bash]
+# Download de minikube binary
+$ wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+# Kopieer het gedownloade bestand naar de directory /usr/local/bin/minikube
+$ sudo cp minikube-linux-amd64 /usr/local/bin/minikube
+
+# Verander de rechten van de binary zodat deze uitvoerbaar wordt
+$ sudo chmod 755 /usr/local/bin/minikube
+
+# Verifieer de installatie
+$ minikube version
+\end{lstlisting}
+
+    \item {\bf Installeer de kubectl tool om de communicatie met- / en het beheer van de Minikube cluster mogelijk te maken:}
+\begin{lstlisting}[language=bash]
+# Download de kubectl tool binary
+$ curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+
+# Maak de binary uitvoerbaar
+$ chmod +x ./kubectl
+
+# Verplaats de binary naar /usr/local/bin/
+$ sudo mv ./kubectl /usr/local/bin/kubectl
+
+# Verifieer de installatie
+$kubectl version -o json
+\end{lstlisting}
+    
+\end{enumerate} 
+
+\subsection{Minikube opstarten}
+
+Op dit moment zijn alle benodigde zaken geïnstalleerd maar is de Minikube cluster nog niet actief. De cluster start men op m.b.v. commando 'minikube start'. Hou er rekening mee dat dit commando steeds zal uitgevoerd moeten worden wanneer men de virtuele machine herstart.
+Om de werking van de geïnstalleerde Kubernetes componenten controleren kan men commando 'minikube status' gebruiken. Zie onderstaand voorbeeld ter illustratie: 
+\begin{lstlisting}[language=bash]
+$ minikube status
+
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+\end{lstlisting} 
+
+Optioneel: Door een systemd unit file te maken voor minikube, kan men ervoor zorgen dat een minikube.service gecreëerd wordt die vervolgens automatisch gestart kan worden bij het booten van de virtuele machine. 
+
+** Vraag aan promotor: procedure unit file maken is beschreven, misschien toevoegen als bijlage? **
+
+Enkele handige commando's om extra info van de minikube cluster op te vragen zijn:
+\begin{lstlisting}[language=bash]
+# De kubeconfig file opvragen die toegang tot de cluster regelt.
+$ kubectl config view 
+
+# Cluster info opvragen (vb. master node status en adres)
+$ kubectl cluster-info
+
+# SSH-verbinding met de cluster maken
+$ minikube ssh 
+\end{lstlisting}
+
+\subsection{Conclusie}
+
+Het opzetten van de virtuele machine en de Minikube cluster vereisen enerzijds eenvoudige, maar anderzijds veel manuele stappen die eventueel via scripting of andere vormen van automatisatie (vb. via Ansible) versneld kunnen worden. 
+
+De setup van Minikube is eenvoudig maar de eenvoud van een single-node cluster kan als nadeel aanzien worden wanneer men meer inzicht wil verwerven in Kubernetes. Men kan de principes rond control-plane(s) (master) en worker nodes moeilijker uitleggen aangezien alles zich op dezelfde node bevindt. 
+Sommige van de chaos engineering experimenten die aan bod komen in dit onderzoek zullen daardoor ook niet toegepast kunnen worden in deze omgeving.  
+
 \section{KubeAdm}
+
+
 
 \section{Kubespray}
 
