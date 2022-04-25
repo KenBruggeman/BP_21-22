@@ -15,13 +15,20 @@ Elke lokale Kubernetes distributie werd geïnstalleerd op één of meerdere virt
 
 \section{Minikube}
 
-Minikube is een single-node cluster die snel en makkelijk opgezet kan worden, dit voor zowel Windows, MacOS en Linux omgevingen. \autocite{Minikube2022}
+Minikube is een snelle en makkelijke manier om een lokale Kubernetes cluster op te zetten, dit voor zowel Windows, MacOS en Linux omgevingen.  \autocite{Minikube2022} Men kan zowel een single-node als multi-node cluster opzetten via Minikube, maar beiden zullen op één fysieke machine bestaan. Ditzelfde principe komt later terug aan bod wanneer de Kubernetes distributie KinD besproken wordt. 
 
-In dit onderzoek is gekozen om Minikube te installeren op een Linux VM met distributie Ubuntu (Bionic) 18.04. Er is voor Linux gekozen omdat de eerst geteste chaos engineering tool 'Chaos Toolkit' via Python geïnstalleerd wordt. 
+In dit onderzoek is gekozen om Minikube als een single-node cluster te installeren op een Linux VM met distributie Ubuntu (Bionic) 18.04. Er is voor een setup op een Linux virtuele machine gekozen om praktische redenen. Minikube kwam aan bod tijdens het volgen van de online cursus 'Kubernetes for the absolute beginners', waarbij een single-node Minikube cluster oorspronkelijk als een virtuele machine werd opgezet. 
+Nadien, toen de eerste chaos engineering tool 'Chaos Toolkit' aan bod kwam en deze via Python geïnstalleerd moest worden, kwamen de nadelen van deze setup naar boven.
+
+Op het eind van de online cursus 'Kubernetes for the absolute beginners' werd de tool kubeadm geïntroduceerd, die in volgend hoofdstuk besproken wordt. 
 
 \subsection{Vereisten}
 
-Voor de Linux virtuele machine op te zetten, waar men nadien de Minikube Kubernetes cluster op kan installeren, heeft men de tool Vagrant en een Vagrantfile met de beschrijving van de Ubuntu Linux virtuele machine nodig. Minikube vereist qua resources minimum 2 CPU, 2 GB RAM en 20 GB schijfruimte. In de setup van de Ubuntu Linux virtuele machine is gekozen om dubbel zoveel CPU en RAM toe te wijzen, om een veilige buffer te voorzien.  
+Voor de Linux virtuele machine op te zetten, waar men nadien de Minikube Kubernetes cluster op kan installeren, heeft men de tool Vagrant en een Vagrantfile met de beschrijving van de Ubuntu Linux virtuele machine nodig. 
+
+Minikube vereist qua resources minimum 2 CPU, 2 GB RAM en 20 GB schijfruimte. In de setup van de Ubuntu Linux virtuele machine is gekozen om dubbel zoveel CPU en RAM toe te wijzen, om een veilige buffer te voorzien.  
+
+\subsection{Opzetten van de virtuele machine}
 
 Volgend stappenplan kan u volgen om de virtuele machine op te zetten:
 \begin{itemize}
@@ -134,18 +141,234 @@ $ kubectl cluster-info
 $ minikube ssh 
 \end{lstlisting}
 
-\subsection{Conclusie}
+\subsection{Conclusie Minikube}
 
 Het opzetten van de virtuele machine en de Minikube cluster vereisen enerzijds eenvoudige, maar anderzijds veel manuele stappen die eventueel via scripting of andere vormen van automatisatie (vb. via Ansible) versneld kunnen worden. 
 
-De setup van Minikube is eenvoudig maar de eenvoud van een single-node cluster kan als nadeel aanzien worden wanneer men meer inzicht wil verwerven in Kubernetes. Men kan de principes rond control-plane(s) (master) en worker nodes moeilijker uitleggen aangezien alles zich op dezelfde node bevindt. 
+De setup van Minikube is eenvoudig maar de eenvoud van een single-node cluster kan als nadeel aanzien worden wanneer men meer inzicht wil verwerven in Kubernetes. Men kan de principes rond control-plane(s) (master) en worker nodes moeilijker vatten aangezien alles zich op dezelfde node bevindt. 
 Sommige van de chaos engineering experimenten die aan bod komen in dit onderzoek zullen daardoor ook niet toegepast kunnen worden in deze omgeving.  
+
+**TO DO --> Update: Minikube kan wel een multi-node cluster opzetten: zie https://minikube.sigs.k8s.io/docs/tutorials/multi_node/ **
 
 \section{KubeAdm}
 
+Via de kubeadm tool kan men acties uitvoeren om een simpele, operationele en beveiligde Kubernetes cluster op te zetten op een alreeds bestaande infrastructuur. De scope van deze tool is gelimiteerd tot de lokale node en de Kubernetes API, en is bedoeld om toegepast te worden als bouwblok door andere, meer complete tools. \autocite{Kubeadm2021}
+Er zijn alreeds enkele Kubernetes distributies, waaronder de later besproken tool Kubespray, die de kubeadm tool gebruiken om een cluster te bootstrappen.     
 
+In dit onderzoek is gekozen om eerst via Vagrant drie virtuele machines op te zetten  en nadien via de kubeadm tool een multi-node Kubernetes cluster te creëeren bestaande uit één control-plane node en twee worker nodes. De kubeadm commando's 'kubeadm init' die de control-plane node van de cluster zal opzetten, en 'kubeadm join' die de worker nodes nadien zullen toevoegen, zullen ervoor zorgen dat een multi-node cluster tot stand komt.
+
+\subsection{Vereisten}
+
+Net zoals voordien bij de setup van Minikube zal opnieuw gebruik gemaakt worden van Vagrant en een Vagrantfile om in dit geval meerdere Linux virtuele machines op te zetten.
+
+Elke virtuele machine heeft minimum 2 GB RAM en 2 CPU's nodig om over voldoende resources te beschikken voor applicaties die nadien in de cluster actief zullen zijn. Ook moet swap uitgeschakeld worden op elke machine, om een goede werking van de kubelet te verzekeren. \autocite{Kubernetes2022a}
+
+** Vraag aan mentor: de bron is een verwijzing naar de Kubernetes website, maar deze toont geen auteur. Vooraf is alreeds gebruik gemaakt van dezelfde bron, waardoor hier nu een a achter staat. Is deze manier van bronvermelding (Online) correct of beter een andere vorm gebruiken? ** 
+
+\subsection{Opzetten van een multi-node cluster met kubeadm}
+
+Volgend stappenplan beschrijft eerst in grote lijnen de volledige setup van de multi-node clusteromgeving, die nadien in detail besproken zal worden: 
+\begin{enumerate}
+    \item Creëer drie virtuele machines die later onderdeel zullen uitmaken van de cluster
+    \item Pas de Linux firewall aan zodat bridged netwerkverkeer correct verwerkt wordt
+    \item Installeer een Container Runtime (vb. Docker) op elke virtuele machine    
+    \item Installeer de kubeadm tool op elke virtuele machine
+    \item Stel één virtuele machine in met de rol van master node
+    \item Zet een Container Networking Interface (CNI) op om een netwerk tussen nodes/pods te voorzien
+    \item Voeg de worker nodes toe aan de cluster
+\end{enumerate}
+
+\subsubsection{Meerdere virtuele machines opzetten via Vagrant}
+
+Maak een nieuwe directory (met naam naar wens) op uw hostsysteem aan waar de configuratiebestanden van de virtuele machines zullen bewaard worden. 
+De Vagrantfile die gebruikt wordt om de drie virtuele machines op te zetten is terug te vinden op de Github pagina van Kodekloudhub. Open een Git Bash terminal in de zojuist gecreëerde directory en kloon de repository via volgend commando:  
+\begin{lstlisting}[language=bash]
+$ git clone https://github.com/kodekloudhub/certified-kubernetes-administrator-course
+\end{lstlisting}
+
+Optioneel: men kan de inhoud van de Vagrantfile bekijken/aanpassen alvorens tot de installatie van de virtuele machines over te gaan. 
+
+Via het commando 'vagrant status' kan u zien dat er drie virtuele machines zijn met de status 'not created'. Wanneer men vervolgens commando 'vagrant up' uitvoert zal het proces starten om de drie virtuele machines op te zetten.
+
+Na afloop van de installatie kan men nogmaals de status opvragen en zal men volgende output zien:
+\begin{lstlisting}[language=bash]
+$ vagrant status
+Current machine states:
+
+kubemaster                running (virtualbox)
+kubenode01                running (virtualbox)
+kubenode02                running (virtualbox)
+\end{lstlisting}
+
+Wanneer men VirtualBox opent kan men eveneens zien dat deze drie virtuele machines operationeel zijn. 
+
+
+\subsubsection{Controles uitvoeren en Linux firewall configureren}
+
+Men kan via m.b.v. een Git Bash terminal inloggen via SSH op elke virtuele machine via commando 'vagrant ssh [nodenaam]'.
+
+Let op: Wanneer men Powershell zou gebruiken (op een Windows host) om een SSH-verbinding te maken met deze virtuele machines kan dit leiden tot de foutmelding 'Permission denied', omdat Powershell eerst de native ssh.exe op het hostsysteem zal proberen aanspreken in plaats van het ingebouwde 'vagrant ssh'.
+
+Volgende stappen worden uitgevoerd op elke virtuele machine alvorens men kan overgaan tot het installeren van de kubeadm tool: 
+\begin{enumerate}
+    \item {\bf Verifieer dat MAC-adres en product_uuid uniek zijn voor elke node.}
+\begin{lstlisting}[language=bash]
+# MAC-adres controle op enp0s8 interface
+$ ip link OF ipconfig -a
+
+# product_uuid controle 
+$ sudo cat /sys/class/dmi/id/product_uuid     
+\end{lstlisting} 
+
+    \item {\bf Laad de module br_netfilter zodat iptables bridged netwerkverkeer kan zien.}
+Het programma iptables wordt gebruikt om regels te configureren m.b.v. verschillende Netfilter modules zodat bepaalde IP pakketten toegestaan/geblokkeerd worden op de Linux firewall.
+\begin{lstlisting}[language=bash]
+# Controleer als de module br_netfilter ingeladen is 
+$ lsmod | grep br_netfilter
+
+# Laad de module br_netfilter in
+$ sudo modprobe br_netfilter
+\end{lstlisting}
+
+    \item {\bf Pas de 'sysctl' configuratie aan zodat iptables het bridged netwerkverkeer correct kan zien.}
+Gebruik volgende commando's om dit te bekomen:
+\begin{lstlisting}[language=bash]
+$ cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+br_netfilter
+EOF
+
+$ cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+$ sudo sysctl --system
+\end{lstlisting}
+    
+\end{enumerate}
+
+
+\subsubsection{Een Container Runtime op elke VM installeren}
+
+Men heeft verschillende opties qua Container Runtimes, maar in dit geval wordt gekozen voor Docker. Om Docker te installeren kan men gebruik maken van het 'convenience script ', te vinden op de officiële Docker webpagina. \autocite{Docker2021}
+\begin{enumerate}
+        \item {\bf Installeer Docker op de nodes m.b.v. het convenience script.}   
+\begin{lstlisting}[language=bash]
+    $ curl -fsSL https://get.docker.com -o get-docker.sh
+    $ sudo sh get-docker.sh    
+\end{lstlisting}
+    
+    \item {\bf Controleer als Docker succesvol is geïnstalleerd.}
+\begin{lstlisting}[language=bash]  
+    $ systemctl status docker
+\end{lstlisting}
+\end{enumerate}
+
+\subsubsection{kubeadm, kubelet en kubectl installeren + cgroup driver configureren}
+
+Volgende packages worden geïnstalleerd op alle virtuele machines:
+\begin{itemize}
+    \item {\bf kubeadm:} commando waarmee de cluster op het systeem wordt geïnstalleerd.
+    \item {\bf kubelet:} verantwoordelijk voor het opstarten van pods/containers.
+    \item {\bf kubectl:} cmdline-tool om te communiceren met de cluster.
+\end{itemize}
+
+Gebruik volgende commando's om deze drie te installeren op de nodes:
+\begin{lstlisting}[language=bash]
+# Update de apt package index en installeer de nodige packages 
+# om de Kubernetes apt repository te kunnen gebruiken:
+$ sudo apt-get update
+$ sudo apt-get install -y apt-transport-https ca-certificates curl
+
+# Download de Google Cloud public signing key
+$ sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+
+# Voeg de Kubernetes apt repository toe 
+$ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+# Update de apt package index, installeer kubelet, kubeadm en kubectl
+$ sudo apt-get update
+$ sudo apt-get install -y kubelet kubeadm kubectl
+$ sudo apt-mark hold kubelet kubeadm kubectl
+\end{lstlisting}
+
+Nota: De kubelet zal nu in een herstart-loop terecht komen aangezien het wacht op orders van kubeadm.
+
+Het configureren van een 'cgroup driver' is eveneens van belang aangezien deze er voor zorgt dat de Container Runtime (= Docker) en de kubelet cgroup drivers overeenkomen. De cgroup driver voor zowel Docker als kubelet moeten beiden systemd zijn! 
+Normaal gezien zou dit voor Docker die eerder geïnstalleerd is nog niet het geval zijn. Men kan dit controleren via het commando 'docker info' als root uit te voeren. Daar zal men kunnen zien dat de cgroup driver momenteel nog 'cgroupfs' is. Om dit te veranderen naar 'systemd' voeren we volgend commando's uit op elke node: 
+\begin{lstlisting}[language=bash]
+$ echo '{"exec-opts": ["native.cgroupdriver=systemd"]}' >> /etc/docker/daemon.json`
+$ systemctl restart docker
+\end{lstlisting}
+
+\subsubsection{de master node configureren}
+
+In deze stap wordt een cluster opgezet op de master node. De stappen in deze procedure zijn afgeleid van de officiële Kubernetes documentatie en kan men in volgende bron raadplegen. \autocite{Kubernetes2022b}
+
+Om een cluster op te starten gebruikt men commando 'kubeadm init', aangevuld met extra parameters om het POD-netwerk en het IP-adres van de Kubernetes API Server te specifiëren. Dit is het IP-adres van de master node, en wordt gebruikt om in de cluster te adverteren wie de API Server is. Pas dit commando ENKEL toe op de master node: 
+\begin{lstlisting}[language=bash]
+$ kubeadm init --pod-network-cidr 10.244.0.0/16 --apiserver-advertise-address=[IP-master node]
+\end{lstlisting}
+
+Nota: Indien er problemen zijn kan men deze troubleshooten via commando 'journalctl -xeu kubelet'. 
+
+Het verwerken van dit commando zal even tijd nodig hebben. Als dit succesvol is zal u onderaan in de output de melding 'Your Kubernetes control-plane has initialized successfully!' zien. Onder deze melding krijgt men ook enkele commando's te zien die noodzakelijk zijn om gebruik te kunnen maken van de cluster. Ondanks er nog meer commando's verder in de output te zien zijn is het voorlopig enkel nodig onderstaande uit te voeren:
+\begin{lstlisting}[language=bash]
+$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+\end{lstlisting}
+
+De resterende commando's te zien in de output worden uitgevoerd om worker nodes toe te voegen aan de cluster. Dit lukt pas nadat een Container Network Interface is geconfigureerd in volgend hoofdstuk. Bewaar de output voorlopig in een tekstbestand zodat men later kan terug grijpen naar de benodigde commando's.
+
+\subsubsection{Een Container Network Interface configureren}
+
+Een CNI opzetten doet men om een netwerk te voorzien waardoor PODs/nodes onderling kunnen communiceren. Er zijn verschillende keuzes qua CNI, en de installatie verloopt steeds door een plugin te installeren. In het opzetten van een cluster via kubeadm is gekozen voor de CNI plugin 'Weavenet'. \autocite{Weaveworks2022}
+
+Voer volgend commando uit om de Weavenet CNI te installeren in de cluster: 
+\begin{lstlisting}[language=bash]
+$ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+\end{lstlisting}
+
+\subsubsection{de worker nodes toevoegen aan de cluster}
+
+De bewaarde output die men kreeg op het eind van hoofdstuk 'de master node configureren' kan men nu toepassen om de worker nodes toe te voegen aan de cluster. 
+Men gebruikt hiervoor het 'kubeadm join' commando, aangevuld met een token om authenticatie te voorzien. Voer onderstaand commando uit op de worker nodes zodat deze toegevoegd worden aan de cluster:
+\begin{lstlisting}[language=bash]
+$ kubeadm join 192.168.56.2:6443 --token e8o6jv.tc8zjy6g0ehppm2x 
+  --discovery-token-ca-cert-hash
+  sha256:f5b7af4f8a6df7239f4e6adfbd91444aff1f25d4fbcddcfccffb88a2b
+\end{lstlisting} 
+
+Indien de toevoeging succesvol is zal men onderaan de gegenereerde output de melding 'This node has joined the cluster' zien. Men kan dit bevestigen via commando 'kubectl get nodes'. 
+
+Nota: Indien men de error krijgt 'invalid discovery token CA certificate hash' kan men nog steeds een andere token creëeren en het proces herhalen. Volgende bron kan gebruikt worden om dit te bekomen. \autocite{Mukul2020} 
+
+\subsection{Conclusie Kubeadm}
+
+Het opzetten van een multi-node cluster via Kubeadm is tijdrovend door de vele manuele stappen die ondernomen moeten worden op de verschillende nodes. Ondanks het een tijdrovende taak is geeft het wel enig inzicht in wat op het allemaal systeem moet gebeuren om een multi-node Kubernetes cluster operationeel te krijgen. Zo ziet men o.a. dat firewall regels moeten toegepast worden om het bridged netwerkverkeer mogelijk te maken, cgroup drivers correct geconfigureerd moeten worden, nodes aan de cluster toegevoegd worden o.b.v. tokens, een Container Network Interface (CNI) moet opgezet worden ... 
+
+Zoals alreeds aangegeven is de kubeadm tool ontworpen om toegepast te worden als een bouwblok in andere, meer-complete tools. Zo gebruikt Kubespray, de tool die in volgend hoofdstuk besproken wordt, de kubeadm tool om een Kubernetes multi-node cluster te creëeren op een volledig geautomatiseerde manier m.b.v. een Ansible playbook.       
 
 \section{Kubespray}
+
+Kubespray is een tool waarmee men het opzetten van Kubernetes clusters kan automatiseren m.b.v. Ansible. Er is nog steeds nood om vooraf een infrastructuur op te zetten waarop de cluster actief zal zijn, inclusief een Ansible provisioning node. Dit is het systeem vanwaar het uitvoeren van de Ansible playbook ervoor zal zorgen dat op een geautomatiseerde manier een cluster tot stand zal komen met twee control-plane nodes en twee worker nodes. 
+
+Nota: De provisioning node maakt géén deel uit van de cluster en hoeft dus ook niet in dezelfde IP-range te zitten als de virtuele machines waarop de cluster actief is.
+
+\subsection{Vereisten}  
+
+In dit onderzoek is gekozen voor de Ansible provisioning node een Linux Debian Bullseye virtuele machine met 4 GB RAM en 2 CPU's te gebruiken. De nodes die deel zullen uitmaken van de cluster zijn Linux Ubuntu (bionic64) virtuele machines met 2 GB RAM en 2 CPU's. Om deze setup snel te verkrijgen is opnieuw gebruik gemaakt van Vagrant en een Vagrantfile. 
+
+Men kan indien de resources op het host systeem beperkt zijn ervoor kiezen om in de Vagrantfile een aanpassing te maken bv. slechts 1 control-plane node op te zetten i.p.v. twee, of de resources van de Ansible provisioning node te verlagen. Volgens de officiële documentatie moet men aan een control-plane node minimum 1.5 GB RAM, en aan een worker node minimum 1 GB RAM toewijzen.
+
+Alle vereiste packages die nodig zijn op de Ansible provisioning node, vb. de specifieke versies van packages zoals Ansible, Jinja, python-netaddr ..., worden geïnstalleerd door het 'requirements.txt' bestand aan te spreken. \autocite{Kubespray2022} 
+
+Nota: Let op wanneer men gebruik zou maken van een virtuele machine waar alreeds Ansible op geïnstalleerd is kan dit mogelijks leiden tot falende uitvoer van de playbook. Dit komt omdat de packages die via het requirements.txt bestand geïnstalleerd worden dan mogelijks op een verkeerde locatie terecht komen op het systeem. \autocite{Kubespray2022a}
+
+\subsection{Een multi-node cluster opzetten met Kubespray}
+
+Volgende Vagrantfile kan gebruikt worden om vier virtuele machines op te zetten, waaronder één zal dienen als Ansible provisioning node en de andere drie zullen gebruikt worden om de multi-node cluster in op te zetten. 
 
 \section{KinD}
 

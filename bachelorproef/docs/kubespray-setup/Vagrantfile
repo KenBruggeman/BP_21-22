@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi:set ft=ruby sw=2 ts=2 sts=2:
+
+# Define the number of master and worker nodes
+# If this number is changed, remember to update setup-hosts.sh script with the new hosts IP details in /etc/hosts of each VM.
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "debian/bullseye64"
+    config.vm.hostname = "provisioningnode"
+    config.vm.define "provisioningnode" do |node|
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "provisioningnode"
+        vb.memory = "4096"
+        vb.cpus = 4
+      end
+    end
+end
+
+NUM_MASTER_NODE = 1
+NUM_WORKER_NODE = 2
+PROJECT_NAME = '/Kubespray test' # used for grouping the VM's, don't forget to use the /
+
+IP_NW = '10.10.2.' 
+MASTER_IP_START = 1
+NODE_IP_START = 2
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.box_check_update = false
+
+  # Provision Master Nodes
+  (1..NUM_MASTER_NODE).each do |i|
+      config.vm.define "master#{i}" do |node|
+        # Name shown in the GUI
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "master#{i}"
+            vb.memory = 2048
+            vb.cpus = 2
+            vb.customize ['modifyvm', :id, '--groups', PROJECT_NAME]
+        end
+        node.vm.hostname = "master#{i}"
+        node.vm.network :private_network, ip: IP_NW + "#{MASTER_IP_START + i}"
+        node.vm.network "forwarded_port", guest: 22, host: "#{2710 + i}"
+        end
+  end
+
+
+  # Provision Worker Nodes
+  (1..NUM_WORKER_NODE).each do |i|
+    config.vm.define "worker#{i}" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "worker#{i}"
+            vb.memory = 2048
+            vb.cpus = 2
+            vb.customize ['modifyvm', :id, '--groups', PROJECT_NAME] # Adding the VM to a group defined in PROJECT_NAME. 
+        end
+        node.vm.hostname = "worker#{i}"
+        node.vm.network :private_network, ip: IP_NW + "#{NODE_IP_START + i}"
+        node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
+        end
+  end
+
+end

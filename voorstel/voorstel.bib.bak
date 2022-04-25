@@ -21,4 +21,173 @@ Unfortunately the Internet is still full of slogans like "breaking things in pro
 To do that, I'm going to cover three case studies: a single process, a JVM application, and a set of microservices running on Kubernetes.},
 }
 
+@Online{Izrailevsky2016,
+  author = {Yury Izrailevsky, Stevan Vlaovic, Ruslan Meshenberg},
+  date   = {2016-02-11},
+  title  = {Completing the Netflix Cloud Migration},
+  url    = {https://about.netflix.com/en/news/completing-the-netflix-cloud-migration},
+}
+
+@Online{Vembu2019,
+  author = {Vembu},
+  date   = {2019-12-12},
+  title  = {Type-1 and Type-2 Hypervisors explained},
+  url    = {https://www.vembu.com/blog/type-1-and-type-2-hypervisor/},
+}
+
+@Book{Holt2018,
+  author = {Alan Holt and Chi-Yu Huang},
+  date   = {2018},
+  title  = {Embedded Operating Systems: A Practical Approach},
+  doi    = {https://doi.org/10.1007/978-3-319-72977-0},
+}
+
+@Online{Sanjaya2020,
+  author = {Hengky Sanjaya},
+  date   = {2020-03-11},
+  title  = {Monolith vs Microservices},
+  url    = {https://medium.com/hengky-sanjaya-blog/monolith-vs-microservices-b3953650dfd},
+}
+
+@Online{Singh2020,
+  author = {Balvinder Singh},
+  date   = {2020-12-26},
+  title  = {Kubernetes : The Rise of Containers and Microservices},
+  url    = {https://medium.com/nerd-for-tech/kubernetes-the-rise-of-containers-and-microservices-50abff7c2cee},
+}
+
+@Online{Richardson2015,
+  author = {Chris Richardson},
+  date   = {2015-05-19},
+  title  = {Introduction to Microservices},
+  url    = {https://www.nginx.com/blog/introduction-to-microservices/},
+}
+
+@Online{Osnat2020,
+  author = {Rani Osnat},
+  date   = {2020-01-10},
+  title  = {A Brief History of Containers: From the 1970s Till Now},
+  url    = {https://blog.aquasec.com/a-brief-history-of-containers-from-1970s-chroot-to-docker-2016},
+}
+
+@Online{Biradar2019,
+  author = {Sangam Biradar},
+  date   = {2019-07-31},
+  title  = {What is kubectl?},
+  url    = {https://github.com/collabnix/dockerlabs/blob/master/kubernetes/beginners/what-is-kubect.md},
+}
+
+@Online{Collabnix2019,
+  author = {Collabnix},
+  date   = {2019-07-31},
+  title  = {What is K8s made up of?},
+  url    = {https://github.com/collabnix/dockerlabs/blob/master/kubernetes/beginners/what-is-kubernetes/README.md#what-is-k8s-made-up-of},
+}
+
+@Online{Kubernetes2022,
+  author = {Kubernetes},
+  date   = {2022-01-10},
+  title  = {Pods},
+  url    = {https://kubernetes.io/docs/concepts/workloads/pods/},
+}
+
+@Online{Dinesh2018,
+  author = {Sandeep Dinesh},
+  date   = {2018-03-11},
+  title  = {Kubernetes NodePort vs LoadBalancer vs Ingress? When should I use what?},
+  url    = {https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0},
+}
+
+@Online{Eliot2019,
+  author = {Seth Eliot},
+  date   = {2019-03-01},
+  title  = {PRINCIPLES OF CHAOS ENGINEERING},
+  url    = {https://github.com/chaos-eng/chaos-eng.github.io/blob/master/content/_index.en.md},
+}
+
+@Article{Basiri2016,
+  author = {Ali Basiri and Niosha Behnam and Ruud de Rooij, and Lorin Hochstein and Luke Kosewski and Justin Reynolds and Casey Rosenthal},
+  date   = {2016-05-31},
+  title  = {Chaos Engineering},
+  url    = {https://netflixtechblog.com/5-lessons-weve-learned-using-aws-1f2a28588e4c},
+}
+
+@Online{Power2019,
+  author = {Olive Power},
+  date   = {2019},
+  title  = {An introduction to CNI},
+  url    = {https://kube.academy/courses/kubernetes-in-depth/lessons/an-introduction-to-cni},
+}
+
+@Online{Yfantis2020,
+  author = {Vissarion Yfantis},
+  date   = {2020-04-30},
+  title  = {What Is a Hypervisor and What Are Its Benefits?},
+  url    = {https://www.parallels.com/blogs/ras/hypervisor/},
+}
+
+@Online{Mannambeth2021,
+  author = {Mumshad Mannambeth},
+  date   = {2021-10-20},
+  title  = {Kubernetes for the absolute beginners},
+  url    = {https://www.udemy.com/course/learn-kubernetes/},
+}
+
+@Online{Farcic2020,
+  author = {Victor Farcic and Darin Pope},
+  date   = {2020-06-19},
+  title  = {Kubernetes Chaos Engineering With Chaos Toolkit And Istio},
+  url    = {https://www.devopstoolkitseries.com/posts/chaos/},
+}
+
+@Online{Minikube2022,
+  author = {Minikube},
+  date   = {2022-02-24},
+  title  = {Minikube documentation},
+  url    = {https://minikube.sigs.k8s.io/docs/},
+}
+
+@Online{Varga2022,
+  author = {Gusztáv Varga},
+  date   = {2022},
+  editor = {HashiCorp Vagrant Cloud},
+  title  = {gusztavvargadr/ubuntu-desktop},
+  url    = {https://app.vagrantup.com/gusztavvargadr/boxes/ubuntu-desktop},
+}
+
+@Online{Simic2020,
+  author = {Sofija Simic},
+  date   = {2020-04-30},
+  title  = {How to Install Minikube on Ubuntu 18.04 / 20.04},
+  url    = {https://phoenixnap.com/kb/install-minikube-on-ubuntu},
+}
+
+@Online{Kubernetes2022a,
+  author = {Kubernetes},
+  date   = {2022-04-19},
+  title  = {Installing kubeadm},
+  url    = {https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#before-you-begin},
+}
+
+@Online{Docker2021,
+  author = {Docker},
+  date   = {2021},
+  title  = {Install Docker Engine on Ubuntu},
+  url    = {https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script},
+}
+
+@Online{Kubernetes2022b,
+  author = {Kubernetes},
+  date   = {2022},
+  title  = {Creating a cluster with kubeadm},
+  url    = {https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#initializing-your-control-plane-node},
+}
+
+@Online{Weaveworks2022,
+  author = {Weaveworks},
+  date   = {2022},
+  title  = {Integrating Kubernetes via the Addon},
+  url    = {https://www.weave.works/docs/net/latest/kubernetes/kube-addon/#-installation},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}
