@@ -18,7 +18,7 @@ end
 
 NUM_MASTER_NODE = 1
 NUM_WORKER_NODE = 2
-PROJECT_NAME = '/Kubespray test' # used for grouping the VM's, don't forget to use the /
+PROJECT_NAME = '/Kubespray' # used for grouping the VM's, don't forget to use the /
 
 IP_NW = '10.10.2.' 
 MASTER_IP_START = 1
