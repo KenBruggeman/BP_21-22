@@ -6,3 +6,52 @@
 \label{ch:cloudclusters}
 
 \section{Google Cloud Platform}
+
+In het voorgaande hoofdstuk \ref{ch:lokaleclusters} lag de focus op het in stand brengen van een Kubernetes cluster in een lokale omgeving. Initieel werd de voorkeur gegeven aan een lokale omgeving omdat deze dichter aanleunt bij de manier hoe men in schoolverband een virtuele omgeving tot stand brengt, vaak met behulp van automatisatie.
+
+Ondanks het opzetten van een lokale omgeving inzicht bood in welke zaken nodig zijn om een Kubernetes cluster operationeel te krijgen bleek het ook een tijdrovende taak te zijn, door de vele manuele stappen die genomen moesten worden naast de alreeds gebruikte automatisatietools Vagrant en Ansible.
+
+Vandaar is besloten ook een cluster via Google Cloud op te zetten, om enerzijds te vergelijken als de setup vlotter verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.
+
+\subsection{Opzetten van een cluster via Google Cloud}
+
+Om een cluster op te zetten via Google Cloud doet men beroep op Google Kubernetes Engine (GKE). Nieuwe klanten kunnen GKE eerst uittesten door een account te creëeren waarbij een gratis krediet van driehonderd dollar gegeven wordt, geldig voor een periode van negentig dagen. Men zal bij de creatie van een account een kredietkaart of andere betalingswijze moeten opgeven, om een Cloud Billing account op te zetten en de identiteit te bevestigen. Indien het gratis krediet eerder op is of de negentig dagen zijn verstreken, dan zal men uitdrukkelijk moeten upgraden naar een betaalde Cloud Billing account om verder gebruik te kunnen maken van de diensten die GKE aanbiedt. \autocite{GoogleCloud2022} 
+
+Via volgende stappenplan kan men een account op GKE creëeren en een cluster opzetten: 
+\begin{enumerate}
+    \item Ga naar GKE via volgende URL: \url{https://cloud.google.com/kubernetes-engine}
+    \item Vul uw gegevens in + activeer uw account
+    \item Kies voor de optie {\bf Enable} bij de Kubernetes Engine API en wacht vervolgens één a twee minuten tot het startscherm van het Google Cloud Platform tevoorschijn komt. Bovenaan deze pagina zal u het huidige saldo en de resterende dagen steeds kunnen opvolgen.
+    \item Centraal op deze pagina ziet men {\bf Kubernetes Engine - Kubernetes Clusters}. Kies hier eerst voor de optie {\bf Create}, en vervolgens de optie {\bf GKE Standard} om verder te gaan. 
+    \item Het opzetten van een cluster met voldoende resources is cruciaal, aangezien men later zowel pods zal installeren toebehorend aan een chaos engineering tool als een demo-applicatie. 
+    \newline Er zijn enkele mogelijkheden onderzocht om resources toe te wijzen nl. het statisch toewijzen van resources door een {\bf Machine Type} te definiëren, en de meer dynamische toewijzing via {\bf Node Autoprovisioning}. Beide opties zijn complementair aan elkaar m.a.w. men kan als basis voor de nodes een bepaalde Machine Type configureren alsook via Node Autoprovisioning ervoor zorgen dat extra node pools kunnen gecreëerd worden om de tijdelijke vraag aan extra resources op te vangen indien nodig:  
+    \begin{enumerate}
+        \item {\bf Een Machine Type definiëren:} Ga in het linkermenu eerst naar {\bf Node pools} en vervolgens onder {\bf default-pool} naar het tabblad {\bf Nodes}. Een goede richtlijn is per node 2 vCPU en 4GB RAM toe te wijzen. Dit kan men bekomen door in de dropdownlist {\bf Machine Type} te kiezen voor {\bf e2-medium (2vCPU, 4 GB memory)}.
+        \item {\bf Node Autoprovisioning configureren:} Ga in het linkermenu onder {\bf Cluster} naar het tabblad {\bf Automation}. Activeer daar de optie Node Autoprovisioning, en stel vervolgens een minimum en maximum aan resources in (vb. minimum 6 CPU / 8 GB geheugen, maximum 12 CPU / 16 GB geheugen)
+        \item Klik onderaan op Create om de cluster te creëeren. Dit proces zal ongeveer één a twee minuten tijd nodig hebben om af te ronden. Eens de cluster operationeel is zal men naast de naam bij Status een groene vink zien staan.
+    \end{enumerate}    
+    \item Klik op de naam van de cluster om het overzicht te openen. Daar ziet men algemene configuraties van deze cluster.
+    \item Om verbinding te maken met de cluster kiest men rechtsbovenaan in de taakbalk voor de optie {\bf Connect}. Een nieuw scherm {\bf Connect to the cluster} zal hierdoor geopend worden.
+    \item Kies voor de optie {\bf Run in Cloud Shell}. Dit zal automatisch het bovenstaande commando meenemen naar een nieuwe terminalsessie. Daar kan men vervolgens het commando uitvoeren.
+    \item Een nieuw scherm {\bf Authorize Cloud Shell} wordt hierdoor geopend, waar men via de optie {\bf Authorize} de toegang krijgt tot de cluster.   
+\end{enumerate} 
+
+Op een identieke manier als bij het opzetten van de lokale Kubernetes clusters, kan men hier ook snel een eerste demo-applicatie lanceren om de verdeling van de pods over de nodes te controleren. Gebruik hiervoor commando 'kubectl create deploy nginx --image=nginx --replicas=3'.
+
+Uit de output van het commando 'kubectl get pods -o wide' kan men zien dat de drie applicatie-pods verdeeld zijn over de drie beschikbare nodes. Dit was eveneens het geval bij de laatste lokale cluster setup via Kubespray, maar met het fundamentele verschil dat in deze cloudomgeving de control-plane node beheerd wordt door Google zelf, waardoor bij de creatie van de cluster enkel worker nodes in de cluster pool aanwezig zijn. Gebruik commando 'kubectl cluster-info' om informatie omtrent de control plane node op te vragen. 
+
+Nota: De pods van de demo-applicatie, alsook enkele gemonitorde metrics, zal men ook kunnen zien bij {\bf Workloads} in het linkermenu van het clusteroverzicht in het Google Cloud Platform. 
+
+\subsection{GKE monitoring}
+
+Eén van de features die Google Kubernetes Engine (GKE) heeft is de aanwezigheid van een monitoring platform. Wanneer men in het Google Cloud Platform in het overzicht van de cluster staat gaat men in tabblad {\bf Details} naar sectie {\bf Features}. In deze lijst ziet men {\bf Cloud Monitoring } en kan men naar de monitoring verder gaan door te klikken op de link {\bf View GKE Dashboard}.
+
+In de Monitoring pagina die geopend wordt kan men heel wat functionaliteit opmerken. In het linkermenu ziet men {\bf Metrics Explorer}. Via deze kan men verschillende metrics opvragen van de nodes in de cluster. Dit zal later van pas komen in het chaos engineering experiment waarbij node resources zoals geheugen/CPU belast worden.
+
+Voor het opvolgen van andere experimenten zal de terminal-gebaseerde UI {\bf k9s} gebruikt worden, waarvan de setup besproken zal worden bij het opzetten van de verschillende chaos engineering tools. 
+  
+\subsection{Conclusie GKE cluster}
+
+Het opzetten van een cluster via Google Cloud verloopt snel en eenvoudig. Men kan genieten van een gratis krediet gedurende negentig dagen, waardoor dit een goede optie is om eveneens te gebruiken voor educatieve doeleinden. Het enige nadeel om een account te bekomen is dat een betaalwijze moet meegegeven worden, ondanks men wel uitdrukkelijk verduidelijkt dat géén bedrag zal gefactureerd worden zonder men eerst aangeeft over te gaan naar een betalend abonnement. 
+
+Google Cloud biedt veel functionaliteit, waaronder het configureren van zaken zoals autoscaling en node provisioning, toegang via de browser tot verschillende pods/nodes, een monitoring platform ... Men moet echter wel de nodige tijd investeren om wegwijs te raken in dit grote aanbod.  

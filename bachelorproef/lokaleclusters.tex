@@ -492,7 +492,7 @@ nginx-85b98978db-78gcd   1/1     Running   10.233.90.5   node1
 nginx-85b98978db-n9tb2   1/1     Running   10.233.92.1   node3
 \end{lstlisting}
 
-De default configuratie van Kubespray heeft een cluster opgezet waarbij de control-plane node applicatie-pods kan toegewezen krijgen. Om de resources van de control-plane node onder controle te houden, maar ook eveneens om veiligheidsredenen, is het echter afgeraden dit in een cluster in productie toe te passen. Meer info over dit onderwerp kan men in de bron raadplegen. \autocite{Bailey2016}
+De default configuratie van Kubespray heeft een cluster opgezet waarbij de Scheduler applicatie-pods kan onderbrengen op de control-plane node. Om de resources van de control-plane node onder controle te houden, maar ook eveneens om veiligheidsredenen, is het echter afgeraden dit in een cluster in productie toe te passen. Meer info over dit onderwerp kan men in de bron raadplegen. \autocite{Bailey2016}
 
 Optioneel: Men kan nodes vrijwaren om pods toegewezen te krijgen via taints en tolerations. Alhoewel er sprake is in de Kubespray documentatie dat men dit via Ansible kan configureren lijkt het onduidelijk hoe dit precies te bekomen. \autocite{Kubespray2022b}
 Een snelle oplossing hier is om dit manueel te configureren op de master node en nadien te controleren m.b.v. volgende commando's: 
