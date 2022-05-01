@@ -5,8 +5,177 @@
 \chapter{\IfLanguageName{dutch}{Chaos Engineering Tools}{Chaos Engineering Tools}}
 \label{ch:chaostools}
 
+Het toepassen van chaos engineering is relatief nieuw, maar er zijn ondertussen al heel wat tools op de markt verschenen om chaos experimenten te kunnen uitvoeren. De Cloud Native Computing Foundation (CNCF), een Linux Foundation project gestart in 2015, is de thuisbasis van heel wat open source projecten die vandaag het landschap definiëren in de IT-sector. CNCF projecten kunnen drie niveaus van maturiteit hebben nl. sandbox, incubating en graduated. Deze niveau's geven aan hoe ver een project geëvolueerd is. \autocite{CNCF2022a}
+\newline Men kan een overzicht van deze projecten, gerangschikt per categorie, terugvinden in het CNCF Cloud Native Interactive Landscape. Eén van deze categorieën is chaos engineering, waar men  een lijst kan terugvinden van chaos engineering tools. \autocite{CloudNativeLandscape2022}
+
+Pavlos Ratis, Site Reliability Engineer bij RedHat OpenShift, onderhoudt een Github repository  waar men heel wat zaken omtrent chaos engineering kan terugvinden. In deze repository vindt men in de sectie 'Notable Tools' een lijst van chaos engineering tools die bruikbaar zijn voor verschillende doeleinden. Deze lijst werd eveneens geraadpleegd in de zoektocht naar een geschikte tool om chaos engineering experimenten toe te passen op een Kubernetes cluster. \autocite{Ratis2022}.
+
+De eerste tool die onderzocht werd is Chaos Toolkit, via een cursus op het online leerplatform Udemy. Nadien kwamen uit de eerder vernoemde bronnen nog twee andere tools naar boven genaamd ChaosMesh en Litmus.  
+
 \section{Chaos Toolkit}
 
 \section{Chaos Mesh}
 
 \section{Litmus}
+
+In de zoektocht naar een chaos engineering tool die net zoals voorgaande tool ChaosMesh zowel experimenten kon uitvoeren vanuit de terminal als via de browser, werd de keuze gemaakt om Litmus te onderzoeken.  
+
+Het Litmus project startte in 2017 met als doel om simpele chaos experimenten op te zetten in een Kubernetes cluster. Het werd een Cloud Native Computing Foundation (CNCF) sandbox project in 2020, en wordt vandaag onderhouden door vijf verschillende organisaties. Sinds begin 2022 is het project geëvolueerd naar een CNCF incubating project. \autocite{CNCF2022}
+
+\subsection {Vereisten}
+\label{sec:vereisten}
+
+Om Litmus te kunnen installeren moeten twee zaken aanwezig zijn \autocite{Litmus2022}: 
+\begin{itemize}
+    \item Kubernetes versie 1.17 of recenter
+    \item Een Persistent Volume van 1GB waar Litmus de chaos configuratie en chaos-metrics zal opslaan. Standaard zal Litmus gebruik maken van de default storage class om deze Persistent Volume toe te wijzen.
+    \item Helm versie 3 of kubectl 
+\end{itemize}
+
+Nota: De installatie van Litmus is enkel toegepast in GKE waar een default storage class aanwezig is. Dit is echter niet het geval bij de lokale clusters eerder opgezet via Kubeadm en Kubespray. Verder onderzoek als deze tool kan geïnstalleerd worden in een lokale omgeving is hierdoor nog vereist. 
+
+\subsection{Installatie}
+
+De installatie van Litmus verloopt in volgend beschreven stappenplan via Helm. Alternatief kan men ook de installatieprocedure via de kubectl commandline tool uitvoeren. Raadpleeg hiervoor de bron in \ref{sec:vereisten}.   
+
+De installatie kan men opsplitsen in twee delen. Eerst zullen de benodigde pods geïnstalleerd worden om Litmus op het systeem te krijgen. Nadien zal via de browser de toegang geconfigureerd worden tot het Litmus ChaosCenter, vanwaar men later eveneens experimenten zal kunnen uitvoeren. 
+
+Voer volgende stappen uit om Litmus op het systeem te installeren:
+\begin{lstlisting}[language=bash]
+# Voeg de Litmus helm repository toe 
+$ helm repo add litmuschaos https://litmuschaos.github.io/litmus-helm/
+
+# Optioneel: controleer als repo toegevoegd is op het systeem
+$ helm repo list -A
+
+# Maak een namespace aan waaronder Litmus toegevoegd wordt
+$ kubectl create ns litmus
+
+# Installeer Litmus in de namespace litmus
+$ helm install chaos litmuschaos/litmus --namespace=litmus
+
+# Optioneel: verifieer de installatie
+# Pods frontend, database (mongo) en server zouden aanwezig moeten zijn.
+$ kubectl get pods -n litmus
+\end{lstlisting}
+
+\subsubsection{Firewall regels configureren}
+
+Vooraleer men via de browser connectie kan maken met het Litmus ChaosCenter zullen eerst de nodige firewall regels moeten geconfigureerd worden. Om te weten te komen welke poorten open gezet moeten worden voert men commando {\bf kubectl get svc -n litmus} uit. \newline Dit toont alle actieve services in de litmus namespace. Daar ziet men o.a. dat voor de eerder vernoemde frontend- en server pod een Nodeport service is geconfigureerd. Deze laten toe om de pod van buitenaf te betreden. 
+
+Voer o.b.v. info uit de output van vorig commando volgende stappen uit om de firewall te configureren. Hierbij is vooral het poortnummer in kolom Ports van belang. Deze poorten variëren echter bij elke installatie:  
+\begin{lstlisting}[language=bash]
+# Gebruik het poortnummer (na de dubbelpunt) van de frontend service
+# om een firewall regel te creëeren die verkeer op deze poort toelaat.
+$ gcloud compute firewall-rules create frontend-service-rule --allow tcp:[port]
+
+# Gebruik één van de poortnummers (na de dubbelpunt) van de server service
+# om een firewall regel te creëeren die verkeer op deze poort toelaat. 
+$ gcloud compute firewall-rules create server-service-rule --allow tcp:[port]
+\end{lstlisting}
+
+Bij elk van bovenstaande commando's zal men bij een succesvolle uitvoer de regels 'Creating firewall...working..Created' en 'Creating firewall...done' te zien krijgen. 
+
+\subsubsection{Toegang configureren tot Litmus ChaosCenter}
+
+Om via de browser naar het Litmus ChaosCenter te gaan kan men gebruik maken van één van de externe IP-adressen van de nodes. Deze kan men bekomen door in de terminal het commando {\bf kubectl get nodes -o wide} uit te voeren. Ook zal men het poortnummer nodig hebben van de frontend service, waar eerder een firewall regel voor geconfigureerd is. Gebruik {\bf http://[node IP-adres]:[frontend service poort]} in de browser om toegang te krijgen tot Litmus ChaosCenter. 
+
+Wanneer men voor het eerst connecteert met het Litmus ChaosCenter kan men gebruik maken van de hieronder vermelde default credentials. Vervolgens zal men direct een nieuw wachtwoord moeten configureren alvorens de toegang te verkrijgen tot het Litmus ChaosCenter.
+\begin{itemize}
+    \item user = admin
+    \item wachtwoord = litmus
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.5]{img/chaoscenter-login.png}
+    \caption{login Litmus ChaosCenter}
+\end{figure}
+
+Nu de accountactivatie afgerond is zal men heel wat extra pods terugvinden in de namespace litmus. Dit kan men controleren door in de terminal het commando {\bf kubectl get pods -n litmus} uit te voeren. Een eerder gecreëerde cluster waarbij de resources per node te beperkt waren zorgde hier echter voor een falende pod genaamd 'event-tracker-[...]'. Deze pod bleef de status Pending behouden en door de pod te beschrijven via commando {\bf kubectl describe pod event-tracker-[...] -n litmus} kon onderaan bij Events te zien zijn dat onvoldoende CPU de oorzaak was. (zie onderstaande output)
+ 
+\begin{lstlisting}[language=bash]
+-- voorgaande output weggelaten --
+-- volgende output ingekort     --
+Events:
+Type     Reason       From        Message
+----     ------       ----        -------
+Warning  Failed...    scheduler   0/3 nodes are available
+                                  : 3 Insufficient cpu.
+\end{lstlisting}
+ 
+Vandaar bij voorgaand hoofdstuk in sectie \ref {sec:cloudclustersetup} het nodige belang gegeven werd aan voldoende resources toe te wijzen aan de nodes in de cluster. 
+
+\subsection{Demo-applicaties opzetten}
+
+Vooraleer men experimenten kan beginnen uitvoeren heeft men eerst een demo-applicatie nodig. Aangezien dit onderzoek gericht is om experimenten uit te voeren voor educatieve doeleinden, is gekozen om eerst enkele experimenten uit te voeren op Nginx en Apache webserver pods. Door twee aparte Deployments en Services op te zetten kon de onderlinge communicatie tussen beiden aangetoond en getest worden. Dit was praktisch om experimenten uit te voeren waarbij de communicatie verstoord werd tussen verschillende Services, of experimenten enkel te richten op specifieke pods in een namespace. 
+
+Het visuele aspect ontbrak hierbij echter om de impact van een experiment te verduidelijken op de applicatie in een browser. Vandaar is gekozen om enkele experimenten te herhalen op een tweede demo-applicatie genaamd PodTato-Head, een applicatie die een aardappelmannetje toont en waarbij de lichaamsdelen bestaan uit verschillende pods, opgezet via afzonderlijke Deployments en Services.   Met behulp van deze applicatie kon o.a. aangetoond worden dat een applicatie nog steeds bereikbaar kan zijn desondanks bepaalde pods getroffen worden.
+
+\subsubsection{Demo-applicatie 1:Nginx/Apache webserver pods}
+
+De eerste demo applicatie kan men onderbrengen in een aparte namespace genaamd demoapp1. Op deze manier kan men de impact van de experimenten (= de blast radius) beperken en voorkomen dat andere pods ongewenst mee betrokken worden in een experiment. Om de eerste demo-applicatie tot stand te brengen voert men volgende commando's uit: 
+\begin{lstlisting}[language=bash]
+# Creëer een nieuwe namespace voor de experimenten
+$ kubectl create ns demoapp1
+
+# Creëer een Deployment met 3 Apache pods
+# in de namespace litmusexperiments
+$ kubectl create deploy apache --image=bitnami/apache \
+--replicas=3 -n demoapp1
+
+# Creëer een Deployment met 3 Nginx pods 
+# in de namespace litmusexperiments
+$ kubectl create deploy nginx --image=nginx \
+--replicas=3 -n demoapp1
+
+# Creëer een Service voor de Nginx pods
+$ kubectl expose deploy nginx --port=80 \
+-n demoapp1
+
+# Creëer een Service voor de Apache pods
+# Apache luistert in container op poort 8080
+$ kubectl expose deploy apache --port=80 \
+--target-port=8080 -n demoapp1           
+\end{lstlisting} 
+
+\subsubsection{Demo-applicatie 2: PodTato-Head}
+
+De tweede demo applicatie PodTato-Head kan men onderbrengen in een aparte namespace genaamd demoapp2. De manier hoe deze geïnstalleerd wordt is opnieuw via het eerder gebruikte Helm, alhoewel men ook o.a. kubectl kan gebruiken om deze te installeren. \autocite{Gavant2022}
+
+Men voert volgende commando's uit om de applicatie op het systeem te installeren:
+\begin{lstlisting}[language=bash]
+# Creëer de namespace demoapp2
+$ kubectl create ns demoapp2
+
+# Maak een nieuwe directory litmusexperiments aan 
+$ mkdir litmus-experiments
+
+# Ga naar de nieuwe directory 
+$ cd litmus-experiments/
+
+# Kloon de podtato-head Git repo op het systeem
+$ git clone https://github.com/podtato-head/podtato-head.git
+
+# Ga verder naar de podtato-head directory
+$ cd podtato-head/
+
+# Installeer de podtato-head app in namespace demoapp2
+$ helm install podtato-head ./delivery/chart -n demoapp2 
+
+# Verifieer als de app pods + services operationeel zijn
+$ kubectl get pods -n demoapp2
+$ kubectl get svc -n demoapp2
+\end{lstlisting} 
+
+Men kan de applicatie controleren in de browser door gebruik te maken van de info uit laatst vernoemde commando. Men kan zien dat bij de opgelijste Services 1 LoadBalancer geconfigureerd is, die de toegang van buitenaf tot de applicatie mogelijk maakt. Men kan in de browser het externe IP-adres van de LoadBalancer service gebruiken in combinatie met de poort 9000 waarop de applicatie actief is: {\bf http://[Loadbalancer-IP]:9000}. \newline Zie figuur \ref{img:podtato-head} als voorbeeld hoe de applicatie er in de browser uitziet. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.5]{img/podtatohead-app.png}
+    \caption{Podtato-Head applicatie}
+    \label{img:podtato-head}
+\end{figure}
+
+Nota: Bovenstaande output bevat een LoadBalancer Service, maar in geval de applicatie in een lokale omgeving geïnstalleerd wordt zal hier een NodePort of ClusterIP te zien zijn. In dat geval zal men andere stappen moeten ondernemen om de toegang tot de applicatie in de browser te bekomen. 
+Zie sectie {\bf Test the API Endpoint} in de bron die aan het begin van dit hoofdstuk vermeld wordt die de nodige acties omschrijft die ondernomen kunnen worden in deze situatie.  

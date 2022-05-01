@@ -14,6 +14,7 @@ Ondanks het opzetten van een lokale omgeving inzicht bood in welke zaken nodig z
 Vandaar is besloten ook een cluster via Google Cloud op te zetten, om enerzijds te vergelijken als de setup vlotter verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.
 
 \subsection{Opzetten van een cluster via Google Cloud}
+\label{sec:cloudclustersetup}
 
 Om een cluster op te zetten via Google Cloud doet men beroep op Google Kubernetes Engine (GKE). Nieuwe klanten kunnen GKE eerst uittesten door een account te creëeren waarbij een gratis krediet van driehonderd dollar gegeven wordt, geldig voor een periode van negentig dagen. Men zal bij de creatie van een account een kredietkaart of andere betalingswijze moeten opgeven, om een Cloud Billing account op te zetten en de identiteit te bevestigen. Indien het gratis krediet eerder op is of de negentig dagen zijn verstreken, dan zal men uitdrukkelijk moeten upgraden naar een betaalde Cloud Billing account om verder gebruik te kunnen maken van de diensten die GKE aanbiedt. \autocite{GoogleCloud2022} 
 
@@ -38,9 +39,9 @@ Via volgende stappenplan kan men een account op GKE creëeren en een cluster opz
 
 Op een identieke manier als bij het opzetten van de lokale Kubernetes clusters, kan men hier ook snel een eerste demo-applicatie lanceren om de verdeling van de pods over de nodes te controleren. Gebruik hiervoor commando 'kubectl create deploy nginx --image=nginx --replicas=3'.
 
-Uit de output van het commando 'kubectl get pods -o wide' kan men zien dat de drie applicatie-pods verdeeld zijn over de drie beschikbare nodes. Dit was eveneens het geval bij de laatste lokale cluster setup via Kubespray, maar met het fundamentele verschil dat in deze cloudomgeving de control-plane node beheerd wordt door Google zelf, waardoor bij de creatie van de cluster enkel worker nodes in de cluster pool aanwezig zijn. Gebruik commando 'kubectl cluster-info' om informatie omtrent de control plane node op te vragen. 
+Uit de output van het commando 'kubectl get pods -o wide' kan men zien dat de drie applicatie-pods verdeeld zijn over de drie beschikbare nodes. Dit was eveneens het geval bij de laatste lokale cluster setup via Kubespray, maar met het fundamentele verschil dat in deze cloudomgeving de control-plane node beheerd wordt door Google zelf, waardoor bij de creatie van de cluster enkel worker nodes in de node pool aanwezig zijn. Men kan via commando 'kubectl cluster-info' informatie omtrent de control plane node opvragen. 
 
-Nota: De pods van de demo-applicatie, alsook enkele gemonitorde metrics, zal men ook kunnen zien bij {\bf Workloads} in het linkermenu van het clusteroverzicht in het Google Cloud Platform. 
+Nota: De pods van de demo-applicatie, alsook enkele gemonitorde metrics zoals CPU- en geheugengebruik, zal men ook kunnen zien in het Google Cloud Platform bij {\bf Workloads} in het linkermenu van het clusteroverzicht. 
 
 \subsection{GKE monitoring}
 
