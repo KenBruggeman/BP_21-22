@@ -289,4 +289,11 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   url    = {https://github.com/podtato-head/podtato-head/tree/main/delivery/chart},
 }
 
+@Online{LitmusChaos.io2022,
+  author = {LitmusChaos.io},
+  date   = {2022-04-01},
+  title  = {One Stop for your Chaos Engineering Experiments},
+  url    = {https://hub.litmuschaos.io/},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}
