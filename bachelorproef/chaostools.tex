@@ -26,28 +26,30 @@ Het visuele aspect ontbrak hierbij echter om de impact van een experiment te ver
 
 De eerste demo applicatie kan men onderbrengen in een aparte namespace genaamd demoapp1. Op deze manier kan men de impact van de experimenten (= de blast radius) beperken en voorkomen dat andere pods ongewenst mee betrokken worden in een experiment. Om de eerste demo-applicatie tot stand te brengen voert men volgende commando's uit: 
 \begin{lstlisting}[language=bash]
-    # Creëer een nieuwe namespace voor de experimenten
-    $ kubectl create ns demoapp1
-    
-    # Creëer een Deployment met 3 Apache pods
-    # in de namespace litmusexperiments
-    $ kubectl create deploy apache --image=bitnami/apache \
-    --replicas=3 -n demoapp1
-    
-    # Creëer een Deployment met 3 Nginx pods 
-    # in de namespace demoapp1
-    $ kubectl create deploy nginx --image=nginx \
-    --replicas=3 -n demoapp1
-    
-    # Creëer een Service voor de Nginx pods
-    $ kubectl expose deploy nginx --port=80 \
-    -n demoapp1
-    
-    # Creëer een Service voor de Apache pods
-    # Apache luistert in container op poort 8080
-    $ kubectl expose deploy apache --port=80 \
-    --target-port=8080 -n demoapp1           
+# Creëer een nieuwe namespace voor de experimenten
+$ kubectl create ns demoapp1
+
+# Creëer een Deployment met 3 Apache pods
+# in de namespace litmusexperiments
+$ kubectl create deploy apache --image=bitnami/apache \
+--replicas=3 -n demoapp1
+
+# Creëer een Service voor de Apache pods
+# Apache luistert in container op poort 8080
+$ kubectl expose deploy apache --port=80 \
+--target-port=8080 -n demoapp1
+
+# Creëer een Deployment met 3 Nginx pods 
+# in de namespace demoapp1
+$ kubectl create deploy nginx --image=nginx \
+--replicas=3 -n demoapp1
+
+# Creëer een LoadBalancer Service voor de Nginx pods
+$ kubectl expose deploy nginx --port=80 --type=LoadBalancer \
+-n demoapp1
 \end{lstlisting} 
+
+Wanneer men vervolgens via commando {\bf kubectl get svc -n demoapp1} de Services opvraagt zal men zien dat een extern IP-adres bij de Nginx LoadBalancer Service te zien is. Via de browser kan men nu surfen naar dit IP-adres en zal men de nginx default webpagina te zien krijgen. 
 
 \subsection{Demo-applicatie 2: PodTato-Head}
 
@@ -260,9 +262,13 @@ $ kubectl describe chaosresult [chaosresult] -n demoapp[1 of 2]
 
 \subsection{Experiment 1: Nginx pod delete}
 
-Bovenstaande theoretische benadering hoe men m.b.v. Litmus een experiment kan opzetten via de terminal zal in dit hoofdstuk omgezet worden naar de praktijk. Het eerste experiment die aan bod komt is het vernietigen van een Nginx pod in de namespace demoapp1. In deze namespace is ook een Deployment met Apache pods actief, die gevrijwaard zal blijven van de impact van dit experiment door dit zorgvuldig te configureren in de ChaosEngine definitie. 
+Bovenstaande theoretische benadering hoe men m.b.v. Litmus een experiment kan opzetten via de terminal zal in dit hoofdstuk omgezet worden naar de praktijk. De ChaosEngine van dit experiment, inclusief volgende experimenten kan men ook raadplegen in de Git repository: \url{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/}
 
-De bedoeling van dit experiment is aantonen dat een pod vernietigen in Kubernetes opgevangen wordt door de ReplicaSet die bij een Deployment hoort. Deze zal er steeds voor zorgen dat het gewenste aantal pods van een Deployment verzekerd wordt.    
+Het eerste experiment die aan bod komt is het vernietigen van een Nginx pod in de namespace demoapp1. In deze namespace is ook een Deployment met Apache pods actief, die gevrijwaard zal blijven van de impact van dit experiment door dit zorgvuldig te configureren in de ChaosEngine definitie. 
+
+Nota: Experiment 2 en 3 zijn uitbreidingen op dit experiment en zullen dus gebruik maken van de alreeds geconfigureerde permissies onder subdirectory litmus-experiments/serviceaccounts/ van experiment 1. Dit kan men eveneens zien in de ChaosEngine definitie, waar de naam onder parameter 'experiments' steeds pod-delete zal zijn. 
+
+De bedoeling van dit experiment is aantonen dat een pod vernietigen in Kubernetes opgevangen wordt door de ReplicaSet die bij een Deployment hoort. Deze zal er steeds voor zorgen dat het gewenste aantal pods van een Deployment verzekerd wordt. Bij creatie van de Nginx Deployment in demoapp1 werd in het commando aangegeven dat drie replicas moesten bestaan. Dit experiment zal slechts 1 willekeurige Nginx pod vernietigen.  
 
 De nodige experimenten, geïnstalleerd in \ref{subsec:experimenteninstalleren} zijn alreeds aanwezig zowel in de namespace demoapp1 als demoapp2.
   
@@ -271,7 +277,7 @@ Via volgend stappenplan stelt men de permissies van het eerste pod-delete experi
     \item Open volgende link via de browser: \url{https://litmuschaos.github.io/litmus/experiments/categories/contents/} 
     \item Ga in het linkermenu via de dropdownlist Kubernetes - Generic - Pod Chaos naar het experiment {\bf Pod Delete}. Daar vindt men de beschrijving en configuratie van dit experiment.
     \item Kopieer de YAML-definitie in sectie {\bf Minimal RBAC configuration}
-    \item Ga naar de subdirectory /litmus-experiments/servicaccounts/
+    \item Ga via de Cloud Shell terminal naar de subdirectory /litmus-experiments/servicaccounts/
     \item Maak een nieuwe file pod-delete-sa.yaml aan en kleef de inhoud uit voorgaande stap hierin
     \item Verander bij elke parameter 'namespace:' de waarde default naar demoapp1, en sla vervolgens op.
     \item Voer het bestand uit via commando {\bf kubectl apply -f pod-delete-sa.yaml}. Dit zal volgende output genereren:
@@ -287,3 +293,48 @@ rolebinding.rbac.authorization.k8s.io/pod-delete-sa created
     \item Volg het experiment op via k9s of via commando's uit subsectie \ref{subsec:experimentuitvoeren}: Een experiment uitvoeren.
 \end{enumerate}
 
+Dit experiment toonde de werking van de ReplicaSet die binnen enkele seconden na het vernietigen van een willekeurige Nginx pod alreeds een nieuwe pod heeft gecreëerd.
+
+\subsection{Experiment 2: Nginx pod delete met iteratie}
+
+In dit experiment wordt een parameter toegevoegd aan de bestaande ChaosEngine uit voorgaand experiment die ervoor zorgt dat de uitvoer elke tien seconden herhaald zal worden. 
+
+Open het YAML-bestand nginx-pod-kill.yaml en voeg onderaan bij 'env' de parameter {\bf CHAOS\textunderscore INTERVAL} met als waarde '10' toe. Pas eveneens de duurtijd van het experiment aan bij parameter {\bf TOTAL\textunderscore CHAOS\textunderscore DURATION} naar zestig seconden. Sla vervolgens op en start het experiment op dezelfde manier als voordien via {\bf kubectl apply -f nginx-pod-kill.yaml}. 
+
+Men kan bij de uitvoer van het experiment zien via k9s dat elke tien seconden één willekeurige pod vernietigd wordt gedurende één minuut waardoor de ReplicaSet meermaals getriggerd zal worden om een nieuwe pod te creëeren.
+
+Om te zien als dit een impact heeft op de bereikbaarheid van de Nginx pods zal in volgend experiment een http-probe toegevoegd worden aan de ChaosEngine definitie. 
+
+\subsection{Experiment 3: Nginx pod delete met iteratie en probe}
+
+In dit experiment controleert men via een {\bf http-probe} als de applicatie bereikbaar is gedurende de uitvoer van het experiment. Via een http-probe wordt een GET-request gestuurd naar een opgegeven IP-adres, in dit geval het extern IP-adres van de LoadBalancer (of NodePort) service van de Nginx pods. Door eveneens een HTTP-response code op te geven die men verwacht terug te krijgen zal kunnen gecontroleerd worden als de applicatie tijdig bereikbaar is. 
+
+Er zijn vier verschillende probes beschikbaar in Litmus, waarvan men een vooraf geconfigureerde YAML-definitie kan terugvinden en toepassen in een ChaosEngine. Deze vindt men hier terug: \url{https://docs.litmuschaos.io/docs/concepts/probes/} 
+
+Men kan een http-probe configureren via verschillende parameters die o.a. bepalen:
+\begin{itemize}
+    \item hoe snel men de response verwacht
+    \item hoeveel keer deze probe moet uitgevoerd worden
+    \item hoeveel keer opnieuw mag geprobeerd worden wanneer de probe faalt
+    \item ...
+\end{itemize}
+
+Men kan een alreeds geconfigureerde ChaosEngine-definitie raadplegen om dit experiment uit te voeren in de Git repository \url{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill-probed.yaml}
+    
+Kopieer de inhoud van dit bestand en sla dit lokaal op via de Cloud Shell terminal in een nieuw YAML-bestand genaamd nginx-pod-kill-probed.yaml. Voer het experiment vervolgens uit via commando {\bf kubectl apply -f nginx-pod-kill-probed.yaml} en volg opnieuw op via k9s. 
+
+Men kan de status van de http-probe nadien controleren door het resultaat van het experiment op te vragen die bewaard wordt in een ChaosResult object. Om de exacte naam van dit object te weten te komen gebruikt men commando {\bf kubectl get chaosresults -n appdemo1}. \newline Eens men de naam kent kan via commando {\bf kubectl describe chaosresult [chaosresult-naam] -n appdemo1} het resultaat opgevraagd worden.
+
+Een deel van de output, waarin aangetoond wordt dat de probe geslaagd is en de nginx website nog bereikbaar is wanneer nginx pods vernietigd worden, kan men hieronder zien: 
+\begin{lstlisting}
+--vorige output weggelaten--    
+Probe Status:
+    Name:  check-frontend-access-url
+    Status:
+        Continuous:  Passed 👍   
+    Type:          httpProbe
+\end{lstlisting}
+
+Dit experiment is handig om de responsetijd van een website te controleren wanneer deze te kampen krijgt met pods die plots vernietigd worden. 
+
+(Optioneel) Door de parameter {\bf PODS\textunderscore AFFECTED\textunderscore PERC} toe te voegen bij sectie 'env' kan men een hoger percentage instellen van pods die getroffen worden door het experiment.
