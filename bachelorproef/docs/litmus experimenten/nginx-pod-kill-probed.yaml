@@ -1,0 +1,40 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: nginx-pod-kill-probed
+  namespace: litmusexperiments
+spec:
+  appinfo:
+    applabel: 'app=nginx'
+    appkind: 'deployment'
+  engineState: 'active'
+  auxiliaryAppInfo: ''
+  chaosServiceAccount: pod-delete-sa
+  jobCleanUpPolicy: 'delete'
+  monitoring: false
+  experiments:
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+            - name: CHAOS_INTERVAL
+              value: '10'
+        probe:
+          - name: 'check-frontend-access-url'
+            type: 'httpProbe'
+            httpProbe/inputs:
+              url: # = LoadBalancer Service nginx extern IP
+              insecureSkipVerify: false
+              responseTimeout: 300 # tijd uitgedrukt in milliseconden voor response te krijgen 
+              method:
+                get:
+                  criteria: ==
+                  responseCode: '200'
+            mode: 'Continuous'
+            runProperties:
+              probeTimeout: 5
+              interval: 5
+              retry: 1
+              probePollingInterval: 5
