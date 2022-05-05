@@ -12,6 +12,7 @@ spec:
   engineState: 'active'
   auxiliaryAppInfo: ''
   chaosServiceAccount: pod-delete-sa
+  jobCleanUpPolicy: 'delete'
   monitoring: false
   experiments:
     - name: pod-delete

@@ -11,6 +11,7 @@ spec:
     applabel: "app=nginx"
     appkind: "deployment"
   chaosServiceAccount: pod-memory-hog-sa
+  jobCleanUpPolicy: 'delete'
   experiments:
   - name: pod-memory-hog
     spec:
