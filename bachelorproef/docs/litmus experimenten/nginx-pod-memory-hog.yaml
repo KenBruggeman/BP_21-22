@@ -1,0 +1,27 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: nginx-pod-memory-hog
+  namespace: demoapp1
+spec:
+  engineState: "active"
+  annotationCheck: "false"
+  appinfo:
+    appns: "demoapp1"
+    applabel: "app=nginx"
+    appkind: "deployment"
+  chaosServiceAccount: pod-memory-hog-sa
+  experiments:
+  - name: pod-memory-hog
+    spec:
+      components:
+        env:
+        # geheugenverbruik experiment in MB
+        - name: MEMORY_CONSUMPTION
+          value: '200' 
+        - name: TOTAL_CHAOS_DURATION
+          value: '120'
+        - name: CONTAINER_RUNTIME
+          value: 'containerd'
+        - name: SOCKET_PATH
+          value: '/run/containerd/containerd.sock'
