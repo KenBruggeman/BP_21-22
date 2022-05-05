@@ -289,11 +289,46 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   url    = {https://github.com/podtato-head/podtato-head/tree/main/delivery/chart},
 }
 
-@Online{LitmusChaos.io2022,
-  author = {LitmusChaos.io},
+@Online{ChaosHub2022,
+  author = {ChaosHub},
   date   = {2022-04-01},
   title  = {One Stop for your Chaos Engineering Experiments},
   url    = {https://hub.litmuschaos.io/},
+}
+
+@Online{Litmus2022a,
+  author = {Litmus-docs},
+  date   = {2022-04-01},
+  title  = {Concepts overview},
+  url    = {https://docs.litmuschaos.io/docs/concepts/overview},
+}
+
+@Online{Experiments2022,
+  author = {Litmus Experiments},
+  date   = {2022-04-01},
+  title  = {Pod Delete},
+  url    = {https://litmuschaos.github.io/litmus/experiments/categories/pods/pod-delete/#experiment-examples},
+}
+
+@Online{Tatiyana2020,
+  author = {Tatiyana S},
+  date   = {2020-01-27},
+  title  = {KUBERNETES: WHY IS IT SO IMPORTANT TO SET UP SYSTEM RESOURCE MANAGEMENT?},
+  url    = {https://systemadminspro.com/kubernetes-why-is-it-so-important-to-set-up-system-resource-management/},
+}
+
+@Online{Kubernetes2022c,
+  author = {Kubernetes},
+  date   = {2022-04-18},
+  title  = {Resource Management for Pods and Containers},
+  url    = {https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/},
+}
+
+@Online{Alletto2021,
+  author = {Josh Alletto},
+  date   = {2021-10-23},
+  title  = {OOMKilled: Troubleshooting Kubernetes Memory Requests and Limits},
+  url    = {https://www.containiq.com/post/oomkilled-troubleshooting-kubernetes-memory-requests-and-limits},
 }
 
 @Comment{jabref-meta: databaseType:biblatex;}

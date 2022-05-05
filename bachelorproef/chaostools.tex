@@ -262,7 +262,7 @@ $ kubectl describe chaosresult [chaosresult] -n demoapp[1 of 2]
 
 \subsection{Experiment 1: Nginx pod delete}
 
-Bovenstaande theoretische benadering hoe men m.b.v. Litmus een experiment kan opzetten via de terminal zal in dit hoofdstuk omgezet worden naar de praktijk. De ChaosEngine van dit experiment, inclusief volgende experimenten kan men ook raadplegen in de Git repository: \url{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/}
+Bovenstaande theoretische benadering hoe men m.b.v. Litmus een experiment kan opzetten via de terminal zal in dit hoofdstuk omgezet worden naar de praktijk. De ChaosEngine van dit experiment, inclusief volgende experimenten kan men eveneens raadplegen via volgende link naar Git repository: \url{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/}
 
 Het eerste experiment die aan bod komt is het vernietigen van een Nginx pod in de namespace demoapp1. In deze namespace is ook een Deployment met Apache pods actief, die gevrijwaard zal blijven van de impact van dit experiment door dit zorgvuldig te configureren in de ChaosEngine definitie. 
 
@@ -297,15 +297,27 @@ Dit experiment toonde de werking van de ReplicaSet die binnen enkele seconden na
 
 \subsection{Experiment 2: Nginx pod delete met iteratie}
 
+Link naar het Git repository bestand ChaosEngine-definitie \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill.yaml}{Experiment 2: nginx-pod-kill.yaml}
+
 In dit experiment wordt een parameter toegevoegd aan de bestaande ChaosEngine uit voorgaand experiment die ervoor zorgt dat de uitvoer elke tien seconden herhaald zal worden. 
 
-Open het YAML-bestand nginx-pod-kill.yaml en voeg onderaan bij 'env' de parameter {\bf CHAOS\textunderscore INTERVAL} met als waarde '10' toe. Pas eveneens de duurtijd van het experiment aan bij parameter {\bf TOTAL\textunderscore CHAOS\textunderscore DURATION} naar zestig seconden. Sla vervolgens op en start het experiment op dezelfde manier als voordien via {\bf kubectl apply -f nginx-pod-kill.yaml}. 
+Open het YAML-bestand nginx-pod-kill.yaml, ga naar sectie 'env' en verleng de tijd van het experiment naar zestig seconden. Voeg eveneens een extra parameter 'CHAOS\textunderscore INTERVAL' toe om de iteratie in te stellen. Zie onderstaand vb.:
+\begin{lstlisting}
+- name: TOTAL_CHAOS_DURATION
+  value: '60'
+- name: CHAOS_INTERVAL
+  value: '10'
+\end{lstlisting}
+
+Sla vervolgens op en start het experiment op dezelfde manier als voordien via {\bf kubectl apply -f nginx-pod-kill.yaml}. 
 
 Men kan bij de uitvoer van het experiment zien via k9s dat elke tien seconden één willekeurige pod vernietigd wordt gedurende één minuut waardoor de ReplicaSet meermaals getriggerd zal worden om een nieuwe pod te creëeren.
 
 Om te zien als dit een impact heeft op de bereikbaarheid van de Nginx pods zal in volgend experiment een http-probe toegevoegd worden aan de ChaosEngine definitie. 
 
 \subsection{Experiment 3: Nginx pod delete met iteratie en probe}
+
+Link naar het Git repository bestand ChaosEngine-definitie \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill-probed.yaml}{Experiment  3: nginx-pod-kill-probed.yaml}
 
 In dit experiment controleert men via een {\bf http-probe} als de applicatie bereikbaar is gedurende de uitvoer van het experiment. Via een http-probe wordt een GET-request gestuurd naar een opgegeven IP-adres, in dit geval het extern IP-adres van de LoadBalancer (of NodePort) service van de Nginx pods. Door eveneens een HTTP-response code op te geven die men verwacht terug te krijgen zal kunnen gecontroleerd worden als de applicatie tijdig bereikbaar is. 
 
@@ -318,8 +330,6 @@ Men kan een http-probe configureren via verschillende parameters die o.a. bepale
     \item hoeveel keer opnieuw mag geprobeerd worden wanneer de probe faalt
     \item ...
 \end{itemize}
-
-Men kan een alreeds geconfigureerde ChaosEngine-definitie raadplegen om dit experiment uit te voeren in de Git repository \url{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill-probed.yaml}
     
 Kopieer de inhoud van dit bestand en sla dit lokaal op via de Cloud Shell terminal in een nieuw YAML-bestand genaamd nginx-pod-kill-probed.yaml. Voer het experiment vervolgens uit via commando {\bf kubectl apply -f nginx-pod-kill-probed.yaml} en volg opnieuw op via k9s. 
 
@@ -337,4 +347,55 @@ Probe Status:
 
 Dit experiment is handig om de responsetijd van een website te controleren wanneer deze te kampen krijgt met pods die plots vernietigd worden. 
 
-(Optioneel) Door de parameter {\bf PODS\textunderscore AFFECTED\textunderscore PERC} toe te voegen bij sectie 'env' kan men een hoger percentage instellen van pods die getroffen worden door het experiment.
+(Optioneel) Door onderaan in de ChaosEngine-definitie bij sectie 'env' de parameter 'PODS\textunderscore AFFECTED\textunderscore PERC' toe te voegen kan men een hoger percentage instellen van pods die getroffen worden door het experiment.
+
+\subsection{Experiment 4: Geheugen belasten van nginx pods}
+
+In dit experiment zal het geheugen belast worden van de nginx pods in de demo-applicatie in namespace demoapp1. Applicaties in een productieomgeving kunnen te maken krijgen met pieken in resourcegebruik, dit door verwachte maar eveneens onverwachte redenen. Vandaar het belangrijk is te testen hoe een applicatie reageert in deze omstandigheden, en welke manieren er in Kubernetes bestaan om hulp te bieden in zulke situaties. 
+
+Bij de demo-applicatie in demoapp1 is een kanttekening te maken aangezien deze momenteel opgezet is zonder een limiet op de resources die het mag gebruiken. Hierdoor zou een applicatie alle resources van een node kunnen aanspreken, maar dit is geen ideaal scenario. Zo is een pod ingesteld volgens 3 QoS klasses. Pods zonder geconfigureerde resource management vallen onder de klasse 'best effort' en komen hierdoor als eerste in aanmerking om vernietigd te worden wanneer de node resources beperkt worden. \autocite{Tatiyana2020}
+
+Om de pods in de demoapp1 namespace te configureren zodanig deze maximum 200 mCPU en 256MB gebruiken voert men volgende twee commando's uit \autocite{Kubernetes2022c}: 
+\begin{lstlisting}
+$ kubectl set resources deployment nginx -n demoapp1 \
+--limits=cpu=200m,memory=256Mi
+
+$ kubectl set resources deployment apache -n demoapp1 \
+--limits=cpu=200m,memory=256Mi
+\end{lstlisting}
+
+Link naar het Git repository bestand ChaosEngine-definitie \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-memory-hog.yaml}{Experiment 4: nginx-pod-memory-hog.yaml}
+
+Men kan de inhoud uit bovenstaande link kopiëren en plaatsen in een nieuwe ChaosEngine in directory litmus-experiments met als naam 'nginx-pod-memory-hog.yaml'.
+
+Dit experiment zal een nieuwe RBAC-configuratie vereisen, aangezien een ander ChaosExperiment nl. 'pod-memory-hog' wordt aangeroepen in de ChaosEngine. Alle benodigde configuratie kan men raadplegen via volgende link:
+\url{https://litmuschaos.github.io/litmus/experiments/categories/pods/pod-memory-hog/}
+
+Men kan op een identieke manier zoals bij experiment 1 te werk gaan door een bestand 'pod-memory-hog-sa.yaml' in de subdirectory /litmus-experiments/serviceaccounts/ te creëeren, de inhoud uit bovenstaande link in dit bestand te plaatsen en overal de namespace parameter aan te passen. Vervolgens voert men het bestand uit om de serviceaccounts en RBAC-configuratie te activeren.  
+
+\newline {\bf Let op:} In deze ChaosEngine moet men parameters configureren om de Container Runtime en het socket path te definiëren. Hier dient men op te geven de Container Runtime 'containerd' te gebruiken met verwijzing naar het socket path. Indien men dit niet zou doen dan faalt het experiment doordat één van de helper pods niet kan opstarten.  
+
+Voer het experiment uit via commando {\bf kubectl apply -f nginx-pod-memory-hog.yaml}. Men kan dit experiment opvolgen via de Metrics Explorer in Google Cloud, waar men als metric kiest voor 'Memory usage' en groepeert op pods in de namespace demoapp1. Zo zal men de pieken zien verschijnen van zodra het experiment start. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.7]{img/memory_spikes.png}
+    \caption{Geheugen belasting nginx pods tot 200 MB}
+\end{figure}
+ 
+{\bf Resultaat:} Wanneer pods zwaar belast worden qua geheugen (of CPU) dan zal dit een negatieve impact hebben op de goede werking van een applicatie. Een te zware belasting waarbij een pod meer resources verbruikt dan toegelaten zal zelf resulteren in het beëindigen van de pod door de kernel Out-Of-Memory killer (OOMkill). Dit proces zal Kubernetes helpen om het geheugen te beheren wanneer pods aan nodes toegewezen worden en zal eveneens beslissingen nemen welke pods te vernietigen wanneer resources op de node in gevaar komen. \autocite{Alletto2021} 
+
+Een antwoord bieden om dit risico te helpen vermijden is het gebruiken van het Kubernetes object {\bf HorizontalPodAutoscaler}. Dit object zal ervoor zorgen dat extra pods gegenereerd worden wanneer een geconfigureerde resources threshold overschreden wordt.  
+Een vooraf gedefinieerde YAML-definitie kan men raadplegen in volgend Git repository bestand  \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/hpa.yaml}{Experiment 4 oplossing: hpa.yaml}
+    
+Kopieer de inhoud van dit bestand en sla op onder een nieuw bestand 'hpa.yaml' in de directory litmus-experiments. In dit bestand kan men zien dat de threshold ingesteld is op 100 MB dus van zodra deze overschreden wordt zullen nieuwe pods gecreëerd worden. Activeer de HorizontalPodAutoscaler m.b.v. commando {\bf kubectl apply -f hpa.yaml}. 
+\newline Herhaal nu het experiment nogmaals via {\bf kubectl apply -f nginx-pod-memory-hog.yaml} en aanschouw in k9s hoe drie nieuwe pods gecreëerd worden om de belasting mee te helpen opvangen.
+Deze nieuwe nginx pods zullen gevrijwaard blijven van de geheugenbelasting die het lopende experiment veroorzaakt en dus niet belast worden zoals de vooraf bestaande nginx pods.  
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.9]{img/hpa_effect.png}
+    \caption{HorizontalPodAutoscaler creëert drie nieuwe nginx pods}
+\end{figure}
+
+ 
