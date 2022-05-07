@@ -331,4 +331,18 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   url    = {https://www.containiq.com/post/oomkilled-troubleshooting-kubernetes-memory-requests-and-limits},
 }
 
+@Online{Mensink2022,
+  author = {Merel Mensink},
+  date   = {2022-01-18},
+  title  = {Wat is Time To First Byte (TTFB) en hoe verbeter je deze?},
+  url    = {https://www.hypernode.nl/blog/time-to-first-byte-ttfb/},
+}
+
+@Online{Dinesh2018a,
+  author = {Sandeep Dinesh},
+  date   = {2018-05-18},
+  title  = {Kubernetes best practices: terminating with grace},
+  url    = {https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-terminating-with-grace},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}

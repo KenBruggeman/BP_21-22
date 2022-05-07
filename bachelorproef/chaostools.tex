@@ -22,6 +22,8 @@ Daarna komt de installatie van de verschillende chaos engineering tools en het u
 
 Het visuele aspect ontbrak hierbij echter om de impact van een experiment te verduidelijken op de applicatie in een browser. Vandaar is gekozen om enkele experimenten te herhalen op een tweede demo-applicatie genaamd PodTato-Head, een applicatie die een aardappelmannetje toont en waarbij de lichaamsdelen bestaan uit verschillende pods, opgezet via afzonderlijke Deployments en Services.   Met behulp van deze applicatie kon o.a. aangetoond worden dat een applicatie nog steeds bereikbaar kan zijn desondanks bepaalde pods getroffen worden.
 
+Men kan alle experimenten die hieronder beschreven staan ook toepassen op de PodTato-Head applicatie door simpelweg de namespace aan te passen waar nodig naar 'demoapp2'.
+
 \subsubsection{Demo-applicatie 1:Nginx/Apache webserver pods}
 
 De eerste demo applicatie kan men onderbrengen in een aparte namespace genaamd demoapp1. Op deze manier kan men de impact van de experimenten (= de blast radius) beperken en voorkomen dat andere pods ongewenst mee betrokken worden in een experiment. Om de eerste demo-applicatie tot stand te brengen voert men volgende commando's uit: 
@@ -155,6 +157,7 @@ $ gcloud compute firewall-rules create server-service-rule \
 Bij elk van bovenstaande commando's zal men bij een succesvolle uitvoer de regels 'Creating firewall...working..Created' en 'Creating firewall...done' te zien krijgen. 
 
 \subsubsection{Toegang configureren tot Litmus ChaosCenter}
+\label{subsec:chaoscenter}
 
 Om via de browser naar het Litmus ChaosCenter te gaan kan men gebruik maken van één van de externe IP-adressen van de nodes. Deze kan men bekomen door in de terminal het commando {\bf kubectl get nodes -o wide} uit te voeren. Ook zal men het poortnummer nodig hebben van de frontend service, waar eerder een firewall regel voor geconfigureerd is. Gebruik {\bf http://[node IP-adres]:[frontend service poort]} in de browser om toegang te krijgen tot Litmus ChaosCenter. 
 
@@ -170,7 +173,9 @@ Wanneer men voor het eerst connecteert met het Litmus ChaosCenter kan men gebrui
     \caption{login Litmus ChaosCenter}
 \end{figure}
 
-Nu de accountactivatie afgerond is zal men heel wat extra pods terugvinden in de namespace litmus. Dit kan men controleren door in de terminal het commando {\bf kubectl get pods -n litmus} uit te voeren. Een eerder gecreëerde cluster waarbij de resources per node te beperkt waren zorgde hier echter voor een falende pod genaamd 'event-tracker-[...]'. Deze pod bleef de status Pending behouden en door de pod te beschrijven via commando {\bf kubectl describe pod event-tracker-[...] -n litmus} kon onderaan bij Events te zien zijn dat onvoldoende CPU de oorzaak was. (zie onderstaande output)
+Later in dit onderzoek, vanaf hoofdstuk \ref{subsec:expchaoscenter}, zal omschreven worden hoe een experiment op te zetten via deze GUI. 
+ 
+Nu de accountactivatie in Litmus ChaosCenter afgerond is zal men heel wat extra pods terugvinden in de namespace litmus. Dit kan men controleren door in de terminal het commando {\bf kubectl get pods -n litmus} uit te voeren. Een eerder gecreëerde cluster waarbij de resources per node te beperkt waren zorgde hier echter voor een falende pod genaamd 'event-tracker-[...]'. Deze pod bleef de status Pending behouden en door de pod te beschrijven via commando {\bf kubectl describe pod event-tracker-[...] -n litmus} kon onderaan bij Events te zien zijn dat onvoldoende CPU de oorzaak was. (zie onderstaande output)
  
 \begin{lstlisting}[language=bash]
 -- voorgaande output weggelaten --
@@ -382,20 +387,114 @@ Voer het experiment uit via commando {\bf kubectl apply -f nginx-pod-memory-hog.
     \includegraphics[scale=.7]{img/memory_spikes.png}
     \caption{Geheugen belasting nginx pods tot 200 MB}
 \end{figure}
- 
-{\bf Resultaat:} Wanneer pods zwaar belast worden qua geheugen (of CPU) dan zal dit een negatieve impact hebben op de goede werking van een applicatie. Een te zware belasting waarbij een pod meer resources verbruikt dan toegelaten zal zelf resulteren in het beëindigen van de pod door de kernel Out-Of-Memory killer (OOMkill). Dit proces zal Kubernetes helpen om het geheugen te beheren wanneer pods aan nodes toegewezen worden en zal eveneens beslissingen nemen welke pods te vernietigen wanneer resources op de node in gevaar komen. \autocite{Alletto2021} 
+
+\subsubsection{Kubernetes object: HorizontalPodAutoscaler}
+
+Wanneer pods zwaar belast worden qua geheugen (of CPU) dan zal dit een negatieve impact hebben op de goede werking van een applicatie. Een te zware belasting waarbij een pod meer resources verbruikt dan toegelaten zal zelf resulteren in het beëindigen van de pod door de kernel Out-Of-Memory killer (OOMkill). Dit proces zal Kubernetes helpen om het geheugen te beheren wanneer pods aan nodes toegewezen worden en zal eveneens beslissingen nemen welke pods te vernietigen wanneer resources op de node in gevaar komen. \autocite{Alletto2021} 
 
 Een antwoord bieden om dit risico te helpen vermijden is het gebruiken van het Kubernetes object {\bf HorizontalPodAutoscaler}. Dit object zal ervoor zorgen dat extra pods gegenereerd worden wanneer een geconfigureerde resources threshold overschreden wordt.  
+
 Een vooraf gedefinieerde YAML-definitie kan men raadplegen in volgend Git repository bestand  \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/hpa.yaml}{Experiment 4 oplossing: hpa.yaml}
-    
-Kopieer de inhoud van dit bestand en sla op onder een nieuw bestand 'hpa.yaml' in de directory litmus-experiments. In dit bestand kan men zien dat de threshold ingesteld is op 100 MB dus van zodra deze overschreden wordt zullen nieuwe pods gecreëerd worden. Activeer de HorizontalPodAutoscaler m.b.v. commando {\bf kubectl apply -f hpa.yaml}. 
-\newline Herhaal nu het experiment nogmaals via {\bf kubectl apply -f nginx-pod-memory-hog.yaml} en aanschouw in k9s hoe drie nieuwe pods gecreëerd worden om de belasting mee te helpen opvangen.
+
+Gebruik volgend stappenplan om de HorizontalPodAutoscaler toe te passen:
+\begin{enumerate}
+    \item Plaats de inhoud van de YAML-definitie 'hpa.yaml' uit bovenstaande link in een nieuw bestand genaamd 'hpa.yaml' in de directory litmus-experiments. In dit bestand kan men zien dat de threshold ingesteld is op 100 MB en dat er mag geschaald worden tot zes pods indien nodig. Zodra de threshold overschreden wordt zullen nieuwe pods gecreëerd worden. Zie \ref{img:threshold} ter verduidelijking.
+    \item Activeer de HorizontalPodAutoscaler m.b.v. commando {\bf kubectl apply -f hpa.yaml}.
+    \item Herhaal experiment 4 via {\bf kubectl apply -f nginx-pod-memory-hog.yaml}.
+\end{enumerate}    
+  
+Via k9s ziet men hoe drie nieuwe pods gecreëerd worden om de belasting mee te helpen opvangen.
 Deze nieuwe nginx pods zullen gevrijwaard blijven van de geheugenbelasting die het lopende experiment veroorzaakt en dus niet belast worden zoals de vooraf bestaande nginx pods.  
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=.9]{img/hpa_effect.png}
     \caption{HorizontalPodAutoscaler creëert drie nieuwe nginx pods}
+    \label{img:threshold}
 \end{figure}
 
+\subsection{Experimenten uitvoeren via Litmus ChaosCenter}
+\label{subsec:expchaoscenter}
+
+Bovenstaande experimenten zijn allemaal tot nu toe uitgevoerd via de terminal. Hierdoor moet men echter verschillende manuele stappen doorlopen alvorens te kunnen overgaan tot de uitvoer van een experiment. Via de browser kan men deze experimenten ook uitvoeren in het Litmus ChaosCenter, die in een voorgaand hoofdstuk \ref{subsec:chaoscenter} alreeds werd opgezet. 
+
+Ga via de browser naar Litmus ChaosCenter en vul de credentials in om toegang te krijgen. Gebruik volgend stappenplan om experiment 3 (= herhalende pod vernietiging met probe) te herhalen via deze GUI:
+\begin{enumerate}
+    \item Ga in het linkermenu naar {\bf Litmus Workflows} en klik vervolgens op 'Schedule a workflow'
+    \item In tabblad {\bf Choose Agent}: selecteer de (enige) Self-Agent die hier aanwezig is en klik op Next. Een self-agent is een benaming voor de cluster waarop we het experiment willen uitvoeren.
+    \item In tabblad {\bf Choose a workflow}: kies voor `Create a new workflow using the experiments from ChaosHubs` en klik op Next.
+    \item In tabblad {\bf Workflow Settings}: Geef de workflow een naam naar wens (vb. iterated-podtato-head-pod-kill) en klik op Next.
+    \item In tabblad {\bf Tune workflow}: kies rechtsboven voor `Add a new experiment`. Kies in de lijst die vervolgens getoond wordt voor `generic/pod-delete` en bevestig via Done.
+    \item Men ziet de naam van het experiment in de workflow verschijnen. Rechts naast de naam klikt men het potlood aan om de nodige aanpassingen in te stellen.
+    \item In sectie {\bf General}: verander niks en klik op Next.
+    \item In sectie {\bf Target Application}:
+        \begin{enumerate}
+            \item open de dropdownlist `appns` (app namespace) en selecteer de namespace `demoapp2`, waar de podtato-head applicatie actief is.
+            \item open de dropdownlist `applabel` en kies voor `app.kubernetes.io/name=podtato-head`.
+            \item Ga verder door op Next te klikken.
+        \end{enumerate}
+    \item In sectie {\bf Define the steady state}:
+        \begin{enumerate}
+            \item kies voor `Add a new probe`.
+            \item geef de probe een naam naar wens vb. application-access
+            \item kies als probe type `http` m.a.w. bereikbaarheid van URL controleren
+            \item kies als probe mode `Continuous` m.a.w. gedurende heel het experiment
+            \item stel de {\bf Probe Properties} in m.a.w. hoe vaak gecontroleerd moet worden als de opgegeven URL bereikbaar is a.d.h.v. verschillende parameters.
+            
+            De Podtato-Head applicatie bevat meerdere pods waarvan één pod nl. 'podtato-head-entry' de toegang tot de applicatie voorziet via de Service LoadBalancer (of NodePort). Wanneer het experiment deze pod zou vernietigen kan de http-probe hierdoor falen aangezien de applicatie tijdelijk onbereikbaar wordt. Vandaar moet men rekening houden dat voldoende tijd ingesteld wordt bij 'interval' om de kans op slagen tijdens het opnieuw proberen van de probe te verhogen.  
+            
+            \item stel de {\bf Probe Details} in m.a.w. de URL van de PodTato-Head applicatie, hoe deze getest wordt nl. via een GET-request, hoelang het mag duren om de response te krijgen op deze request en welke HTTP status code terug verwacht wordt, in dit geval code 200 (OK).
+            
+            Een metric om de laadsnelheid van een pagina te volgen is de {\bf TTFB of time to first byte}. Men kan dit vooraf controleren door naar de applicatie te surfen, de Developer Tools (F12) te openen en naar tabblad Network te gaan. Daar voert men een reload uit via CTRL + F5 en kan men zien hoelang het duurt van request tot eerste byte van de response. \autocite{Mensink2022}
+            
+            \item Bevestig alle configuraties onderaan via Done.  
+        \end{enumerate}
+    \item In sectie {\bf Tune Experiment}:
+        \begin{enumerate}
+            \item stel 'Total chaos duration' in op 120 seconden m.a.w. experiment duurt 2 minuten
+            \item stel 'Chaos interval' in op 10 m.a.w. elke 10 seconden wordt een pod verwijderd
+            \item stel 'Force' in op false m.a.w. graceful termination \autocite{Dinesh2018a}
+            \item Bevestig configuratie door op 'Finish' te klikken.
+        \end{enumerate}  
+    \item In sectie {\bf Advanced options to tune workflow}: activeer `Cleanup Chaos Workflow Pods` zodat na het uitvoeren van het experiment, de nodige helper pods ook terug verwijderd worden.
+    Bevestig vervolgens via 'Save Changes'.
+    \item Klik rechtsonderaan op Next om alle configuraties te bevestigen en naar het volgende tabblad te gaan.
+    \item In tabblad {\bf Reliability Score}: staat standaard op 10, is niet van belang voor de uitvoer van experimenten. Klik op Next om door te gaan.
+    \item In tabblad {\bf Choose a chaos schedule}: kies voor `Schedule now` en klik op Next. Men kan hier ook opteren een 'Recurring Schedule' te creëeren die het experiment op vaste tijdstippen vb. elk uur, elke dag, elke maand ... zal uitvoeren.
+    \item In tabbled {\bf Summary}: Bevestig de configuratie rechtsonderaan via Finish. Bevestig nogmaals via `Go to workflow`.  
+\end{enumerate}
+
+De workflow start nu op waarvan het experiment slechts één specifiek onderdeel is. In de workflow zal men eerst het experiment (m.a.w. het object ChaosExperiment uit de ChaosHub) installeren alvorens de ChaosEngine (= de configuratie van het experiment) uit te voeren. Na de uitvoer van het experiment start het laatste onderdeel van de workflow nl. de toegebrachte chaos ongedaan maken.
+
+Tijdens de uitvoer van het experiment kan men via de tool k9s zien dat er regelmatig pods van de podtato-head applicatie in de namespace litmusexperiments verwijderd worden. Doordat deze pods via een Deployment opgezet zijn zal de ReplicaSet er voor zorgen dat het gewenste aantal pods in de configuratie steeds gerespecteerd blijft. De http-probe zal controleren als de applicatie bereikbaar blijft gedurende het experiment.
  
+\subsubsection{Workflow herhalen/aanpassen}
+
+Wanneer men de configuratie van een uitgevoerde workflow wil aanpassen, of de workflow opnieuw wil uitvoeren, dan gaat men in het linkermenu bij Litmus Workflows naar het tabblad Scheduled.
+
+Door uiterst rechts naast de workflow het menu te openen ziet men de optie **Rerun Schedule** om de workflow opnieuw uit te voeren.
+
+Via de optie 'Save Template' kan men een wijziging aanbrengen aan de configuratie van de workflow. Hierbij wordt gevraagd een nieuwe workflow naam op te geven. Men kan een aanpassing namelijk NIET rechtstreeks uitvoeren in de bestaande workflow! De nieuwe aangepaste workflow zal men vervolgens aanspreken via optie 'Schedule a workflow'. In het tabblad {\bf Choose a workflow} kan men vervolgens kiezen voor 'Create a new workflow by cloning an existing workflow'. Daar zal de aangepaste versie van de bestaande workflow terug te vinden zijn. Aangezien alle configuraties alreeds opgenomen zijn in deze kan men direct doorgaan tot het uitvoeren van de aangepaste workflow. 
+
+\subsubsection{Extra functionaliteit in Litmus ChaosCenter}
+
+Andere Litmus experimenten die alreeds uitgevoerd werden in de terminal kunnen op soortgelijke manier via een workflow opgezet worden. Men kan zelfs verschillende experimenten gelijktijdig uitvoeren in een workflow via de knop {\bf Edit Sequence} in tabblad {\bf Tune Workflow} (zie stap 5 in bovenstaand stappenplan). 
+
+In het linkermenu kan men bij {\bf Observability} o.a. statistieken raadplegen van alreeds uitgevoerde experimenten, een monitoring dashboard toevoegen in de GUI ...
+
+Deze extra opties zijn niet verder onderzocht doordat meerdere experimenten gelijktijdig uitvoeren geen meerwaarde biedt in deze context, en een monitoring dashboard alreeds beschikbaar is via het Google Cloud Platform. 
+
+\subsection{Conclusie Litmus}
+
+Het installeren van Litmus verliep vlot via de package manager Helm. De documentatie mocht wel duidelijker zijn omtrent de minimum vereisten qua CPU en geheugen per node. Zo werd na eerste installatiepogingen duidelijk dat de Litmus pods vrij veel resources nodig hadden om operationeel te kunnen zijn.   
+
+De verschillende objecten die Litmus gebruikt om een experiment op te zetten nl. ChaosExperiment, ChaosEngine, ServiceAccount, RBAC-regels ... maken deze chaos engineering tool vrij ingewikkeld om aan te leren. Ook is de documentatie die hulp kan bieden bij de experimenten soms moeilijk te vinden. 
+
+Litmus experimenten opzetten via de terminal is vrij omslachtig. Men moet manueel de nodige experimenten vooraf installeren, de nodige permissies configureren, de ChaosEngine manueel opzetten ...
+Ook wanneer een experiment niet naar wens verloopt en men dit vervolgens wil troubleshooten, moet men verschillende objecten analyseren vb. helper pods onderzoeken, uitvoer van chaosengine object bestuderen ... 
+
+Bovenstaand proces wordt makkelijker wanneer experimenten opgezet worden via het Litmus ChaosCenter. Experimenten worden bij de start van een workflow steeds geïnstalleerd, men hoeft geen YAML-definitie op te stellen maar gewoon parameters te configureren, men kan indien nodig logs raadplegen na afloop van een experiment om troubleshooting eenvoudiger te maken ...
+
+Wat gezegd kan worden van Litmus is dat beide opties weldegelijk werken. Zo is bewezen dat men zowel via de terminal als via de GUI Litmus ChaosCenter succesvol experimenten kan uitvoeren. Dit kon niet gezegd worden van vorige tool ChaosMesh, waar de GUI te veel fouten toonde in de Developer Tools om operationeel te kunnen zijn.
+
+Litmus is dus een waardige tool om chaos experimenten uit te voeren op applicaties in een Kubernetes cluster, maar heeft een steile leercurve vooraleer men er daadwerkelijk mee aan de slag kan. 
