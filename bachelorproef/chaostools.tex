@@ -94,6 +94,123 @@ Zie sectie {\bf Test the API Endpoint} in de bron die aan het begin van dit hoof
 
 \section{Chaos Mesh}
 
+Het Chaos Mesh project bestaat sinds begin 2020 en was oorspronkelijk bedoeld als testplatform voor de open-source NewSQL-database TiDB. Chaos Mesh is een veelzijdig chaos engineering platform om chaos experimenten uit te voeren in Kubernetes omgevingen. Het project werd in juli 2020 geaccepteerd als Cloud Native Computing Foundation (CNCF) Sandbox project en is sinds begin 2022 geëvolueerd naar een CNCF Incubating project. \autocite{CNCF2022b}
+
+
+De algemene documentatie op de Chaos Mesh website toont aan dat voor volgende lokale omgevingen een oneliner script kan toegepast worden om deze tool te installeren \autocite{ChaosMesh2022}: 
+\begin{itemize}
+    \item Minikube
+    \item KinD
+    \item K3s
+    \item Microk8s
+\end{itemize}
+
+Bij de start van dit onderzoek werd de installatie van Chaos Mesh oorspronkelijk uitgevoerd op een single-node minikube cluster. Hierin werden enkele experimenten succesvol uitgevoerd via de terminal en de Chaos Mesh GUI genaamd Chaos Dashboard.
+
+Later werd gekozen om deze installatie te herhalen op een multi-node cluster, opgezet via KinD. Dit resulteerde echter in een instabiele omgeving doordat na een reboot van de virtuele machine de cluster plots ontoegankelijk was. Troubleshooting bracht geen oplossing en hierdoor is besloten de installatie van KinD in dit onderzoek niet te beschrijven.
+
+De installatie van ChaosMesh is succesvol verlopen in de lokale multi-node Kubespray omgeving. Enkele experimenten via de terminal konden in deze omgeving ook uitgevoerd worden. Het Chaos Dashboard was echter ontoegankelijk via de browser, hoogstwaarschijnlijk door het ontbreken van het Kubernetes object Ingress die verkeer van buitenaf tot de Services van de cluster toelaat.  
+
+Aangezien alreeds enkele lokale setups uitgeprobeerd waren is besloten de installatie van Chaos Mesh uit te voeren in een cluster die opgezet is via het Google Cloud Platform, om te kijken als de GUI Chaos Dashboard hier wel makkelijker opgestart kan worden. Volgende beschrijving hoe men Chaos Mesh kan installeren m.b.v. de package manager Helm en hoe experimenten vervolgens uitgevoerd kunnen worden, zal zich specifiek op deze Google Cloud omgeving richten. \autocite{ChaosMesh2022a}
+
+\subsection {Vereisten}
+
+Om Chaos Mesh via de package manager {\bf Helm} te kunnen installeren moet Helm vooraf geïnstalleerd worden op het systeem. In volgende link kan men verschillende manieren terugvinden om Helm te installeren: \url{https://helm.sh/docs/intro/install/}
+
+\subsection{Installatie Chaos Mesh}
+
+Pas volgend stappenplan toe om ChaosMesh te installeren:
+\begin{enumerate}
+    \item Voeg Chaos Mesh toe aan de helm repositories via volgend commando {\bf helm repo add chaos-mesh https://charts.chaos-mesh.org}.
+    \item Bekijk welke versie van Chaos Mesh in de helm repositories beschikbaar is via commando {\bf helm search repo chaos-mesh}. Deze info zal men in stap 4 nodig hebben.
+    \item Creëer de namespace `chaos-testing` via commando {\bf kubectl create namespace chaos-testing}.
+    \item Installeer de nodige Chaos Mesh componenten in de chaos-testing namespace. {\bf Let op:} GKE maakt gebruik van de container runtime containerd en NIET van Docker. Daardoor moet men dit specifiëren in het installatiecommando om errors in de toekomst te vermijden. Om de Chaos Mesh componenten te installeren gebruikt men onderstaand commando:
+\begin{lstlisting}
+$ helm install chaos-mesh chaos-mesh/chaos-mesh \
+ -n=chaos-testing --set chaosDaemon.runtime=containerd --set \
+ chaosDaemon.socketPath=/run/k3s/containerd/containerd.sock \
+ --version 2.2.0    
+\end{lstlisting}
+    \item Controleer als Chaos Mesh componenten in de namespace zijn geïnstalleerd via commando {\bf kubectl get pods -n chaos-testing}. Een correcte installatie in GKE zou volgende output moeten tonen: 
+\begin{lstlisting}  
+kubectl get pods -n chaos-testing
+NAME                                        READY   STATUS   
+chaos-controller-manager-7dc9bf54c6-4bp7q   1/1     Running
+chaos-controller-manager-7dc9bf54c6-srgbw   1/1     Running
+chaos-controller-manager-7dc9bf54c6-vwv5l   1/1     Running
+chaos-daemon-bvpgd                          1/1     Running
+chaos-daemon-k6pz5                          1/1     Running
+chaos-daemon-stqvk                          1/1     Running
+chaos-dashboard-7f7bc7cdfb-pbj52            1/1     Running   
+\end{lstlisting}  
+\end{enumerate}
+
+\subsection{Toegang voorzien tot het Chaos Dashboard}
+
+Na installatie van Chaos Mesh is alreeds een NodePort service opgezet voor het Dashboard. Bevestig dit via commando {\bf kubectl get svc -n chaos-testing}: 
+\begin{lstlisting}
+$ kubectl get svc -n chaos-testing
+NAME                    TYPE        PORT(S)                                
+chaos-daemon            ClusterIP   31767/TCP,31766/TCP                     
+chaos-dashboard         NodePort    2333:30061/TCP,2334:30554/TCP          
+chaos-mesh-controller   ClusterIP   443/TCP,10081/TCP,10082/TCP
+\end{lstlisting}
+
+Met behulp van volgende stappen kan men via de browser connectie maken met het Chaos Dashboard:
+\begin{enumerate}
+    \item Men zal eerst een firewall regel moeten toevoegen in de Google Cloud Shell die verkeer toelaat op de poort verbonden aan de Nodeport service van het Chaos Dashboard die in vorig commando opgevraagd is. Gebruik één van de poorten NA de dubbelpunt en creëer een firewall regel via volgend commando:\newline {\bf gcloud compute firewall-rules create chaos-dashboard-rule --allow tcp:30061}
+    \item Men kan vervolgens het extern IP-adres van één van de nodes gebruiken in combinatie met de poort die in vorige stap gebruikt werd om via de browser naar het Chaos Dashboard te gaan.\newline Tip: om het extern IP-adres van een node te bekomen gebruikt men commando {\bf kubectl get nodes -o wide}.
+\end{enumerate}
+
+Wanneer men voor het eerst gebruik maakt van het Chaos Mesh Dashboard zal men een pop up venster zien waarin een token moet ingegeven worden. Kies voor `Click here to generate` om een nieuwe token te maken. De bedoeling van deze token is om een RBAC autorisatie in te stellen waarmee men definieert wat de rechten zijn van een gebruiker van het Chaos Dashboard ten opzichte van de Kubernetes cluster. In volgende stappen wordt stapsgewijs de procedure uitgelegd om deze token te creëren:
+\begin{enumerate}
+    \item Vink bovenaan de checkbox `Cluster scoped` aan om de scope van de experimenten over heel de Kubernetes cluster mogelijk te maken.
+    \item Kies vervolgens in de dropdownlist voor `Manager` om uzelf alle rechten te geven omtrent het maken, updaten, uitvoeren en vernietigen van Chaos experimenten.
+    \item De configuratie wordt dynamisch aangepast ten opzichte van de keuzes uit stap 5 en 6. Kies rechtsbovenaan voor `Copy` om deze configuratie te kopiëren.
+    \item Ga naar de Cloud shell terminal en maak een nieuwe directory 'chaosmesh-experiments'. 
+    \item Maak in deze directory een nieuwe YAML-definitie genaamd 'rbac.yaml'. Open dit bestand en kleef de inhoud van de configuratie uit voorgaande stappen hierin en sla vervolgens op.
+    \item Voer dit bestand uit via commando {\bf kubectl apply -f rbac.yaml}. Dit zal o.a. een Service Account aanmaken en de RBAC autorisatie op de cluster instellen.
+    \item Haal de token op via het commando beschreven in het oorspronkelijke pop-up venster. Kopieer de token in de output van dit commando en plaats deze in het tekstkader van het pop-up venster.
+    \item Geef een betekenisvolle naam aan deze token vb. 'token-fullscope-manager' en klik op Submit. De toegang tot het Dashboard is nu afgehandeld.    
+\end{enumerate}
+
+\subsection{Een experiment opzetten via het Chaos Dashboard}
+
+Volgende stappen omschrijven hoe men een eerste 'pod-kill' experiment kan opzetten via het Chaos Dashboard \autocite{ChaosMesh2022b}
+\begin{enumerate}
+    \item Kies in de Dashboards pagina (= default startpagina) voor New Experiment. Dit experiment zal één nginx pod uit de demo applicatie in demoapp1 vernietigen.
+    \item In tabblad {\bf Experiment Type} kiest men bovenaan voor 'Kubernetes' en vervolgens in de lijst voor 'Pod Fault'. 
+    \item Men krijgt als reactie op voorgaande keuze drie nieuwe keuzes te zien van experimenten die onder 'Pod Fault' beschikbaar zijn. Kies voor 'Pod Kill' en klik vervolgens op Submit om de keuze te bevestigen.
+    \item In tabblad {\bf Experiment Info} configureert men vervolgens het experiment. Gebruik volgende configuraties om het Pod Kill experiment toe te passen op de nginx pods uit de demo applicatie:
+        \begin{itemize}
+            \item {\bf Scope}: Bij namespace stelt men in dat het PodChaos experiment in 'demoapp1' mag geplaatst worden.
+            \item {\bf Metadata}: Geef zelf een naam aan het experiment.
+            \item {\bf Label Selectors}: specifieer welke pods getroffen moeten worden o.b.v. de label, in dit geval 'app=nginx'.
+            \item {\bf Mode}: Hier configureert men hoeveel pods getroffen moeten worden. Het experiment is gericht op één pod dus men kiest men 'Random One'. Alternatieve keuzes zijn een vast aantal, percentueel, allemaal ...
+            \item {\bf Preview of Pods to be injected}: (Optioneel) Dit toont een lijst o.b.v. voorgaand gemaakte keuzes waarin men kan zien welke pods getroffen zullen worden door het experiment. Hier kan men eventueel nog pods de-selecteren die niet door het experiment getroffen mogen worden.
+            \item Klik op Submit om de configuraties te bevestigen.
+        \end{itemize}
+    \item Wanneer zowel het Experiment Type als de Experiment Info via Submit bevestigd zijn zal nog een derde keer bevestigd moeten worden via Submit om het experiment daadwerkelijk te starten.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.7]{img/experiment-info.png}
+    \caption{Configureren van experiment in Chaos Dashboard}
+    \label{img:config-in-dashboard}
+\end{figure}
+
+Na de bevestiging ziet men het experiment verschijnen in het menu Experiments met als status 'Injecting'. Wanneer men op dit experiment klikt zal extra info weergegeven worden waaronder de configuratie, Events en de YAML-definitie van het experiment. 
+
+Men kan dit experiment ook opvolgen via k9s. Gebruik hiervoor het commando {\bf ./k9s -n demoapp1} om specifiek de pods in de namespace van de demo-applicatie te openen. Direct na het bevestigen van het experiment zal hier alreeds te zien zijn dat één willekeurige nginx pod uit de demo-applicatie vernietigd is.
+In de kolom 'Age' zal te zien zijn dat één van de nginx pods nog maar enkele seconden actief is. 
+
+In bovenstaand stappenplan werd elke parameter van het experiment geconfigureerd in de GUI. In figuur \ref{img:config-in-dashboard} ziet men ook nog twee andere tabbladen nl.:
+\begin{itemize}
+    \item {\bf Load from:} bedoeld om configuratie van een alreeds uitgevoerd experiment te herladen en aan te passen. Let op: men moet de naam van het experiment wijzigen aangezien anders een foutmelding op het scherm zal verschijnen die zal aangeven dat het experiment alreeds bestaat.
+    \item {\bf By YAML:} bedoeld om zelf een YAML-definitie te schrijven of een alreeds bestaande vanop het systeem in te laden.
+\end{itemize} 
+
 \section{Litmus}
 
 In de zoektocht naar een chaos engineering tool die net zoals voorgaande tool ChaosMesh zowel experimenten kon uitvoeren vanuit de terminal als via de browser, werd de keuze gemaakt om Litmus te onderzoeken. 
@@ -101,9 +218,9 @@ In de zoektocht naar een chaos engineering tool die net zoals voorgaande tool Ch
 Het Litmus project startte in 2017 met als doel om simpele chaos experimenten op te zetten in een Kubernetes cluster. Het werd een Cloud Native Computing Foundation (CNCF) sandbox project in 2020, en wordt vandaag onderhouden door vijf verschillende organisaties. Sinds begin 2022 is het project geëvolueerd naar een CNCF incubating project. \autocite{CNCF2022}
 
 \subsection {Vereisten}
-\label{sec:vereisten}
+\label{sec:litmusvereisten}
 
-Om Litmus te kunnen installeren moeten twee zaken aanwezig zijn \autocite{Litmus2022}: 
+Om Litmus te kunnen installeren moeten drie zaken aanwezig zijn \autocite{Litmus2022}: 
 \begin{itemize}
     \item Kubernetes versie 1.17 of recenter
     \item Een Persistent Volume van 1GB waar Litmus de chaos configuratie en chaos-metrics zal opslaan. Standaard zal Litmus gebruik maken van de default storage class om deze Persistent Volume toe te wijzen.
@@ -114,7 +231,7 @@ De installatie van Litmus is enkel toegepast in GKE waar een default storage cla
 
 \subsection{Installatie}
 
-De installatie van Litmus verloopt in volgend beschreven stappenplan via Helm. Alternatief kan men ook de installatieprocedure via de kubectl commandline tool uitvoeren. Raadpleeg hiervoor de bron in \ref{sec:vereisten}.   
+De installatie van Litmus verloopt in volgend beschreven stappenplan via Helm. Alternatief kan men ook de installatieprocedure via de kubectl commandline tool uitvoeren. Raadpleeg hiervoor de bron in \ref{sec:litmusvereisten}.   
 
 De installatie kan men opsplitsen in twee delen. Eerst zullen de benodigde pods geïnstalleerd worden om Litmus op het systeem te krijgen. Nadien zal via de browser de toegang geconfigureerd worden tot het Litmus ChaosCenter, vanwaar men later eveneens experimenten zal kunnen uitvoeren. 
 
@@ -495,6 +612,4 @@ Ook wanneer een experiment niet naar wens verloopt en men dit vervolgens wil tro
 
 Bovenstaand proces wordt makkelijker wanneer experimenten opgezet worden via het Litmus ChaosCenter. Experimenten worden bij de start van een workflow steeds geïnstalleerd, men hoeft geen YAML-definitie op te stellen maar gewoon parameters te configureren, men kan indien nodig logs raadplegen na afloop van een experiment om troubleshooting eenvoudiger te maken ...
 
-Wat gezegd kan worden van Litmus is dat beide opties weldegelijk werken. Zo is bewezen dat men zowel via de terminal als via de GUI Litmus ChaosCenter succesvol experimenten kan uitvoeren. Dit kon niet gezegd worden van vorige tool ChaosMesh, waar de GUI te veel fouten toonde in de Developer Tools om operationeel te kunnen zijn.
-
-Litmus is dus een waardige tool om chaos experimenten uit te voeren op applicaties in een Kubernetes cluster, maar heeft een steile leercurve vooraleer men er daadwerkelijk mee aan de slag kan. 
+Litmus is een waardige tool om chaos experimenten uit te voeren op applicaties in een Kubernetes cluster, maar heeft een steile leercurve vooraleer men er daadwerkelijk mee aan de slag kan. De documentatie omtrent de installatie en het opzetten van experimenten is er wel, maar is te wijd verspreid wat de leercurve bemoeilijkt. Ook het hoge aantal resources die de Litmus pods nodig hebben in vergelijking met voorgaand onderzochte tool ChaosMesh kan als nadelig aanschouwd worden.   

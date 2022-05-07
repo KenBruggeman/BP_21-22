@@ -345,4 +345,18 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   url    = {https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-terminating-with-grace},
 }
 
+@Online{CNCF2022b,
+  author = {CNCF},
+  date   = {2022-02-16},
+  title  = {Chaos Mesh moves to the CNCF Incubator},
+  url    = {https://www.cncf.io/blog/2022/02/16/chaos-mesh-moves-to-the-cncf-incubator/},
+}
+
+@Online{ChaosMesh2022,
+  author = {ChaosMesh-documentation},
+  date   = {2022-04-01},
+  title  = {Environment preparation},
+  url    = {https://chaos-mesh.org/docs/quick-start/},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}
