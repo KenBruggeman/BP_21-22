@@ -1,0 +1,13 @@
+  GNU nano 5.4                                                                             pod-failure.yaml                                                                                      
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: pod-failure-example
+  namespace: demoapp2
+spec:
+  action: pod-failure
+  mode: all
+  duration: '30s'
+  selector:
+    namespaces:
+      - demoapp2
