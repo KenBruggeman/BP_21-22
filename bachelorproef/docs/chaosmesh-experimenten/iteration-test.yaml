@@ -1,0 +1,72 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  namespace: demoapp2
+  name: iteration-test
+spec:
+  entry: entry
+  templates:
+    - name: entry
+      templateType: Serial
+      deadline: 120s
+      children:
+        - iterated-test
+    - name: iteration1
+      templateType: PodChaos
+      deadline: 20s
+      podChaos:
+        selector:
+          namespaces:
+            - demoapp2
+        mode: one
+        action: pod-kill
+        gracePeriod: 0
+    - name: iteration2
+      templateType: PodChaos
+      deadline: 20s
+      podChaos:
+        selector:
+          namespaces:
+            - demoapp2
+        mode: one
+        action: pod-kill
+        gracePeriod: 0
+    - name: iteration3
+      templateType: PodChaos
+      deadline: 20s
+      podChaos:
+        selector:
+          namespaces:
+            - demoapp2
+        mode: one
+        action: pod-kill
+        gracePeriod: 0
+    - name: iteration4
+      templateType: PodChaos
+      deadline: 20s
+      podChaos:
+        selector:
+          namespaces:
+            - demoapp2
+        mode: one
+        action: pod-kill
+        gracePeriod: 0
+    - name: iteration5
+      templateType: PodChaos
+      deadline: 20s
+      podChaos:
+        selector:
+          namespaces:
+            - demoapp2
+        mode: one
+        action: pod-kill
+        gracePeriod: 0
+    - name: iterated-test
+      templateType: Serial
+      deadline: 120s
+      children:
+        - iteration1
+        - iteration2
+        - iteration3
+        - iteration4
+        - iteration5
