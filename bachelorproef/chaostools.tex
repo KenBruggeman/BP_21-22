@@ -54,6 +54,7 @@ $ kubectl expose deploy nginx --port=80 --type=LoadBalancer \
 Wanneer men vervolgens via commando {\bf kubectl get svc -n demoapp1} de Services opvraagt zal men zien dat een extern IP-adres bij de Nginx LoadBalancer Service te zien is. Via de browser kan men nu surfen naar dit IP-adres en zal men de nginx default webpagina te zien krijgen. 
 
 \subsection{Demo-applicatie 2: PodTato-Head}
+\label{subsec:podtato-setup}
 
 De tweede demo applicatie PodTato-Head kan men onderbrengen in een aparte namespace genaamd demoapp2. De manier hoe deze geïnstalleerd wordt is opnieuw via het eerder gebruikte Helm, alhoewel men ook o.a. kubectl kan gebruiken om deze te installeren. \autocite{Gavant2022}
 
@@ -78,7 +79,7 @@ Men voert volgende commando's uit in de nieuwe directory om de applicatie te ins
     $ kubectl get svc -n demoapp2
 \end{lstlisting} 
 
-Men kan de applicatie controleren in de browser door gebruik te maken van de info uit laatst vernoemde commando. Men kan zien dat bij de opgelijste Services 1 LoadBalancer geconfigureerd is, die de toegang van buitenaf tot de applicatie mogelijk maakt. Men kan in de browser het externe IP-adres van de LoadBalancer service gebruiken in combinatie met de poort 9000 waarop de applicatie actief is: {\bf http://[Loadbalancer-IP]:9000}. \newline Zie figuur \ref{img:podtato-head} als voorbeeld hoe de applicatie er in de browser uitziet. 
+Via de output van het 'helm install ...' commando ziet men enkele commando's hoe de URL verkregen kan worden om toegang tot de applicatie te bekomen via de browser.  \newline Zie figuur \ref{img:podtato-head} als voorbeeld hoe de applicatie er in de browser uitziet. 
 
 \begin{figure}[h]
     \centering
@@ -109,9 +110,9 @@ Bij de start van dit onderzoek werd de installatie van Chaos Mesh oorspronkelijk
 
 Later werd gekozen om deze installatie te herhalen op een multi-node cluster, opgezet via KinD. Dit resulteerde echter in een instabiele omgeving doordat na een reboot van de virtuele machine de cluster plots ontoegankelijk was. Troubleshooting bracht geen oplossing en hierdoor is besloten de installatie van KinD in dit onderzoek niet te beschrijven.
 
-De installatie van ChaosMesh is succesvol verlopen in de lokale multi-node Kubespray omgeving. Enkele experimenten via de terminal konden in deze omgeving ook uitgevoerd worden. Het Chaos Dashboard was echter ontoegankelijk via de browser, hoogstwaarschijnlijk door het ontbreken van het Kubernetes object Ingress die verkeer van buitenaf tot de Services van de cluster toelaat.  
+De installatie van ChaosMesh is succesvol verlopen in de lokale multi-node Kubespray omgeving. Enkele experimenten via de terminal konden in deze omgeving ook uitgevoerd worden. Het Chaos Dashboard was echter ontoegankelijk via de browser.  
 
-Aangezien alreeds enkele lokale setups uitgeprobeerd waren is besloten de installatie van Chaos Mesh uit te voeren in een cluster die opgezet is via het Google Cloud Platform, om te kijken als de GUI Chaos Dashboard hier wel makkelijker opgestart kan worden. Volgende beschrijving hoe men Chaos Mesh kan installeren m.b.v. de package manager Helm en hoe experimenten vervolgens uitgevoerd kunnen worden, zal zich specifiek op deze Google Cloud omgeving richten. \autocite{ChaosMesh2022a}
+Aangezien alreeds enkele lokale setups uitgeprobeerd waren is besloten de installatie van Chaos Mesh uit te voeren in een cluster die opgezet is via het Google Cloud Platform, waar het Chaos Dashboard  wel opgestart kon worden. Volgende beschrijving hoe men Chaos Mesh kan installeren m.b.v. de package manager Helm en hoe experimenten vervolgens uitgevoerd kunnen worden, zal zich specifiek op deze Google Cloud omgeving richten. \autocite{ChaosMesh2022a}
 
 \subsection {Vereisten}
 
@@ -146,6 +147,7 @@ chaos-dashboard-7f7bc7cdfb-pbj52            1/1     Running
 \end{enumerate}
 
 \subsection{Toegang voorzien tot het Chaos Dashboard}
+\label{subsec: toegangdashboard}
 
 Na installatie van Chaos Mesh is alreeds een NodePort service opgezet voor het Dashboard. Bevestig dit via commando {\bf kubectl get svc -n chaos-testing}: 
 \begin{lstlisting}
@@ -162,7 +164,7 @@ Met behulp van volgende stappen kan men via de browser connectie maken met het C
     \item Men kan vervolgens het extern IP-adres van één van de nodes gebruiken in combinatie met de poort die in vorige stap gebruikt werd om via de browser naar het Chaos Dashboard te gaan.\newline Tip: om het extern IP-adres van een node te bekomen gebruikt men commando {\bf kubectl get nodes -o wide}.
 \end{enumerate}
 
-Wanneer men voor het eerst gebruik maakt van het Chaos Mesh Dashboard zal men een pop up venster zien waarin een token moet ingegeven worden. Kies voor `Click here to generate` om een nieuwe token te maken. De bedoeling van deze token is om een RBAC autorisatie in te stellen waarmee men definieert wat de rechten zijn van een gebruiker van het Chaos Dashboard ten opzichte van de Kubernetes cluster. In volgende stappen wordt stapsgewijs de procedure uitgelegd om deze token te creëren:
+Wanneer men voor het eerst gebruik maakt van het Chaos Mesh Dashboard zal men een pop up venster zien waarin een token moet ingegeven worden. Kies voor `Click here to generate` om een nieuwe token te maken. De bedoeling van deze token is om een RBAC autorisatie in te stellen waarmee men definieert wat de rechten zijn van een gebruiker van het Chaos Dashboard ten opzichte van de Kubernetes cluster. \autocite{ChaosMesh2022b} \newline In volgende stappen wordt stapsgewijs de procedure uitgelegd om deze token te creëren:
 \begin{enumerate}
     \item Vink bovenaan de checkbox `Cluster scoped` aan om de scope van de experimenten over heel de Kubernetes cluster mogelijk te maken.
     \item Kies vervolgens in de dropdownlist voor `Manager` om uzelf alle rechten te geven omtrent het maken, updaten, uitvoeren en vernietigen van Chaos experimenten.
@@ -174,11 +176,31 @@ Wanneer men voor het eerst gebruik maakt van het Chaos Mesh Dashboard zal men ee
     \item Geef een betekenisvolle naam aan deze token vb. 'token-fullscope-manager' en klik op Submit. De toegang tot het Dashboard is nu afgehandeld.    
 \end{enumerate}
 
-\subsection{Een experiment opzetten via het Chaos Dashboard}
+\subsection{Overzicht van het Chaos Dashboard}
 
-Volgende stappen omschrijven hoe men een eerste 'pod-kill' experiment kan opzetten via het Chaos Dashboard \autocite{ChaosMesh2022b}
+Via de beschrijving in vorig hoofdstuk \ref{subsec: toegangdashboard} kon men alreeds de toegang bekomen tot het Chaos Dashboard. Men komt hierdoor terecht op de default startpagina in het Dashboard menu. In dit overzicht ziet men verschillende mogelijkheden om een experiment op te zetten, waaronder: 
+\begin{itemize}
+    \item {\bf New Experiment:} Link naar het Experiments menu waar men een experiment kan opzetten voor eenmalige uitvoer.
+    \item {\bf New Workflow:} Link naar het Workflows menu waar men meerdere experimenten in sequentie kan opzetten (= workflow). 
+    \item {\bf New Schedule:} Link naar het Schedules menu waar men experimenten kan opzetten die herhaald worden op vaste tijdstippen. 
+\end{itemize}
+
+\subsubsection{Aanbod van experimenten}
+
+Wanneer men via 'New Experiment' een experiment wil opzetten zal eerst een keuze moeten gemaakt worden uit twee groepen nl. Kubernetes of Hosts. Afhankelijk van de keuze zal men daaronder een lijst experimenten te zien krijgen. Deze opties zijn gegroepeerde experimenten, d.w.z. dat elke optie in de lijst een aantal specifiekere experimenten bevat. Zie onderstaand voorbeeld in figuur \ref{img:chaosmeshexperimenten} waarbij men de groep 'Pod Fault' selecteert en vervolgens drie keuzes onderaan de lijst krijgt qua experimenten die uitgevoerd kunnen worden. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.7]{img/chaosmesh-experimenten.png}
+    \caption{Chaos Mesh Experimenten per groep}
+    \label{img:chaosmeshexperimenten}
+\end{figure}
+
+\subsubsection{Een eerste pod kill experiment opzetten via New Experiment} 
+
+Het eerste experiment zal één willekeurige nginx pod uit de demo applicatie in namespace demoapp1 vernietigen. Volgende stappen omschrijven hoe men dit kan opzetten in het Chaos Dashboard: 
 \begin{enumerate}
-    \item Kies in de Dashboards pagina (= default startpagina) voor New Experiment. Dit experiment zal één nginx pod uit de demo applicatie in demoapp1 vernietigen.
+    \item Kies in de Dashboards pagina voor New Experiment. 
     \item In tabblad {\bf Experiment Type} kiest men bovenaan voor 'Kubernetes' en vervolgens in de lijst voor 'Pod Fault'. 
     \item Men krijgt als reactie op voorgaande keuze drie nieuwe keuzes te zien van experimenten die onder 'Pod Fault' beschikbaar zijn. Kies voor 'Pod Kill' en klik vervolgens op Submit om de keuze te bevestigen.
     \item In tabblad {\bf Experiment Info} configureert men vervolgens het experiment. Gebruik volgende configuraties om het Pod Kill experiment toe te passen op de nginx pods uit de demo applicatie:
@@ -200,9 +222,9 @@ Volgende stappen omschrijven hoe men een eerste 'pod-kill' experiment kan opzett
     \label{img:config-in-dashboard}
 \end{figure}
 
-Na de bevestiging ziet men het experiment verschijnen in het menu Experiments met als status 'Injecting'. Wanneer men op dit experiment klikt zal extra info weergegeven worden waaronder de configuratie, Events en de YAML-definitie van het experiment. 
+Na de bevestiging ziet men het experiment verschijnen in het menu Experiments met als status 'Injecting'. Wanneer men hierop klikt zal extra info weergegeven worden waaronder de configuratie, de Events (die de fases van het experiment beschrijven) en de YAML-definitie van het experiment. 
 
-Men kan dit experiment ook opvolgen via k9s. Gebruik hiervoor het commando {\bf ./k9s -n demoapp1} om specifiek de pods in de namespace van de demo-applicatie te openen. Direct na het bevestigen van het experiment zal hier alreeds te zien zijn dat één willekeurige nginx pod uit de demo-applicatie vernietigd is.
+Men kan een (statisch) overzicht van de pods opvragen in de Cloud Shell terminal m.b.v. commando {\bf kubectl get pods -n demoapp1}, maar nog een betere optie is om dit experiment op te volgen via k9s. Gebruik hiervoor het commando {\bf ./k9s -n demoapp1} om specifiek de pods in de namespace van de demo-applicatie te openen. Op deze manier kan men live volgen hoe na het bevestigen van het experiment één willekeurige nginx pod uit de demo-applicatie vernietigd wordt.
 In de kolom 'Age' zal te zien zijn dat één van de nginx pods nog maar enkele seconden actief is. 
 
 In bovenstaand stappenplan werd elke parameter van het experiment geconfigureerd in de GUI. In figuur \ref{img:config-in-dashboard} ziet men ook nog twee andere tabbladen nl.:
@@ -211,6 +233,130 @@ In bovenstaand stappenplan werd elke parameter van het experiment geconfigureerd
     \item {\bf By YAML:} bedoeld om zelf een YAML-definitie te schrijven of een alreeds bestaande vanop het systeem in te laden.
 \end{itemize} 
 
+\subsubsection{Een experiment plannen via New schedule}
+
+In vorige subsectie werd beschreven hoe een enkelvoudig experiment opgezet werd. Een meer praktische benadering van chaos engineering zou zijn om een experiment meerdere malen te herhalen om de applicatie op verschillende tijdstippen te testen. In het Chaos Dashboard kan men dit bekomen via de optie 'New schedule' in het Dashboard menu, of door direct naar het 'Schedules' menu te gaan. 
+
+Op een gelijkaardige manier als voordien zal men het experiment kunnen configureren. Enkele extra parameters zullen hier ook geconfigureerd moeten worden nl.:
+\begin{itemize}
+    \item {\bf newS.basic.historyLimit:} het aantal logbestanden (records) er moeten bewaard worden.
+    \item {\bf newS.basic.concurrencyPolicy:} toestaan dat het experiment gelijktijdig met andere experimenten wordt uitgevoerd.
+    \item {\bf Schedule:} via een cron schedule aangeven op welke tijdstippen het experiment moet uitgevoerd worden. Een link naar de website \url{https://crontab.guru/} wordt meegegeven om deze parameter op een correcte manier te configureren.
+\end{itemize}
+
+Op een gelijkaardige manier als voordien zal nu een nieuw experiment opgezet worden genaamd 'kill-random-three' waarbij drie willekeurige pods in de demo applicatie vernietigd zullen worden elk uur op minuut 45. Deze keer zal geen gebruik gemaakt worden van een label dus zowel Apache als Nginx pods komen hierdoor in aanmerking.
+De cron schedule die gebruikt wordt is 45 * * * *  (minuut / uur / dag / maand / dag v.d. week).
+
+Geplande experimenten kunnen opgevolgd worden in het 'Schedules' menu. Hier zal men zien dat het experiment de status 'Running' krijgt. Deze status zal behouden worden tot wanneer men zelf beslist dit te stoppen door het experiment te archiveren. 
+
+\subsubsection{Meerdere experimenten opzetten via New workflow}
+
+Wanneer men meerdere experimenten wil uitvoeren in serie, parallel, in combinatie met een taak ... dan doet men dit d.m.v. een workflow te creëeren. In het Chaos Dashboard kan men dit bekomen via de optie 'New workflow' in het Dashboard menu, of door direct naar het 'Workflows' menu te gaan.
+
+Een praktische benadering in een workflow zou zijn om parallel een experiment uit te voeren waarbij  willekeurige pods van een applicatie getroffen worden en ondertussen ook de bereikbaarheid van de applicatie herhaaldelijk te controleren gedurende de tijdspanne van het experiment. Dit zou men kunnen doen door een GET-request uit te sturen en te controleren als een HTTP-response met code 200 terugkeert, wat wil zeggen dat de request succesvol was. \autocite{MDN2022} 
+
+Jammer genoeg is het opzetten van dit scenario in een workflow op het eerste zicht niet mogelijk. Men kan wel opteren voor één HTTP-request uit te sturen via de task type 'HTTP Request'. Na onderzoek bleek deze functionaliteit zich nog in een experimentele fase te bevinden. \autocite{ChaosMesh2022c}  
+\newline Ook op de Chaos Mesh Q\&A pagina kan men lezen dat 'probe support' nog niet gepland staat om toegevoegd te worden aan de functionaliteiten van Chaos Mesh. \autocite{ChaosMesh2021}
+
+Het iteratief herhalen van een experiment is wel mogelijk via een workflow, maar is vrij omslachtig. Men moet hierbij hetzelfde experiment meerdere malen configureren zodat dit achtereenvolgens uitgevoerd kan worden. Een voorbeeld van de YAML-definitie die ontstaan is bij het testen van het iteratief vernietigen van een willekeurige pod van de applicatie in namespace demoapp2 kan men in volgende link terugvinden: \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/iteration-test.yaml}{iteration-test.yaml}. \newline Een betere manier zou zijn om een iteratie als parameter mee te geven bij het opzetten van een enkelvoudig experiment. 
+
+\subsection{Experimenten opzetten via de terminal}
+
+Op de Chaos Mesh website vindt men heel wat voorbeeld YAML-definities van experimenten terug. Open volgende link naar de website en ga in het linkermenu naar 'Types of Chaos Experiments': \url{https://chaos-mesh.org/docs/}.
+
+Hieronder krijgt men opnieuw de keuze tussen 'Kubernetes' en 'Physical Nodes' te zien. Als men verder gaat in optie Kubernetes ziet men dezelfde oplijsting als voordien in het Chaos Dashboard. In de documentatie van elk experiment ziet men o.a. hoe men via het Chaos Dashboard dit kan opzetten, maar ook een voorbeeld YAML-definitie die men via de terminal kan uitproberen.
+
+\subsubsection{Experiment 1: pod-failure}
+
+Een eerste experiment om via de terminal uit te proberen is het pod-failure experiment. Hierbij zal over een periode van dertig seconden één willekeurige pod van de PodTato-Head applicatie uit de namespace demoapp2 falen. 
+
+Een alreeds aangepaste YAML-definitie van het hieronder beschreven pod-failure experiment kan men vinden via volgende link: \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/pod-failure.yaml}{pod-failure.yaml} 
+
+Om manueel het pod-failure experiment te configureren gebruikt men volgend stappenplan. Hierbij wordt gebruik gemaakt van de voorbeeld YAML-definitie op de Chaos Mesh website.
+\begin{enumerate}
+    \item Ga op de Chaos Mesh website in het linkermenu naar Types of Chaos Experiments. Kies voor Kubernetes en vervolgens voor 'Simulate Pod Faults'.
+    \item Kopieer de inhoud van de YAML-definitie in sectie 'pod-failure example'.
+    \item Ga naar de Cloud Shell terminal en maak een nieuw bestand aan die `pod-failure.yaml` noemt in de directory 'chaosmesh-experiments'.
+    \item Plaats de inhoud van het experiment in dit bestand en pas volgende zaken aan:
+    \begin{itemize}
+        \item wijzig de waarde bij parameter namespace (onder metadata) naar 'demoapp2'. 
+        \item verwijder onder selector de parameter labelSelector en de toegewezen waarde.
+        \item voeg onder selector een parameter 'namespaces' toe met de waarde 'demoapp2'. Als voorbeeld kan men kijken naar de configuratie van het pod-kill.yaml bestand verderop in de documentatie.
+        \end{itemize} 
+    \item Sla de wijzigingen op.
+    \item Voer het experiment uit via commando {\bf kubectl apply -f pod-failure.yaml}. Men zal hierbij volgende melding te zien krijgen: 'podchaos.chaos-mesh.org/pod-failure-example created' 
+\end{enumerate}
+
+Nota: Indien men hier de foutmelding 'Admission webhook "vauth.kb.io" denied the request' te zien krijgt kan men een workaround toepassen via volgend commando uit te voeren en nadien het experiment te herhalen:\newline {\bf kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io validate-auth} \autocite{Keao2021} 
+  
+Men kan bij het uitvoeren van het pod-failure experiment zien via k9s dat een restart afgedwongen wordt bij één van de pods in de Podtato-Head applicatie. Wanneer men via k9s op de getroffen pod staat kan men de beschrijving openen door op 'D' te duwen. Onderaan deze pagina in sectie Events zal men zien hoe de pod gedwongen wordt om te herstarten doordat de definitie van de container gewijzigd is door de foutinjectie.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.7]{img/k9s-pod-described.png}
+    \caption{opvragen van Events van getroffen pod via k9s}
+\end{figure}
+
+Het starten van het pod-failure experiment creëerde een 'podchaos' object in de demoapp2 namespace. Dit kan men controleren via commando {\bf kubectl get podchaos -n demoapp2}. Indien men Events wil opvragen van het bovenstaand experiment dan spreekt men het 'podchaos' object aan via commando {\bf kubectl describe podchaos pod-failure-example -n demoapp2}.
+
+Nota: Afhankelijk van het type experiment zal dit object variëren vb. bij een later experiment waarbij CPU-belasting zal opgewekt worden noemt dit object 'stresschaos'. Deze info kan men afleiden uit de parameter 'kind' in de YAML-definitie van het experiment. 
+
+Men zal eveneens zien dat dit experiment toegevoegd is in het Experiments menu van het Chaos Dashboard.
+
+\subsubsection{Een experiment herhalen via de terminal}
+
+Wanneer men het pod-failure experiment zou willen herhalen in de terminal, dan is dit niet mogelijk door gewoon opnieuw het {\bf kubectl apply -f pod-failure.yaml} commando uit te voeren. Dit zal namelijk volgende melding genereren: 'podchaos.chaos-mesh.org/pod-failure-example unchanged'. 
+
+Men moet steeds eerst het bestaande podchaos object verwijderen via commando {\bf kubectl delete podchaos pod-failure-example -n demoapp2} alvorens een experiment opnieuw te kunnen uitvoeren. 
+
+\subsubsection{Experiment 2: NetworkChaos experiment}
+
+In dit experiment zal gedurende zestig seconden een communicatiestoring uitgelokt worden tussen de Apache en Nginx pods van de demo-applicatie in namespace demoapp1. Vooraf kan men al testen als de communicatie tussen beiden succesvol is. Dit doen men op volgende manier: 
+\begin{lstlisting}
+# Bewaar eerste Apache pod in environment variabele
+$ pod=$(kubectl get pods -n demoapp1 -l app=apache \
+ -o jsonpath='{.items[0].metadata.name}')
+
+# Open een shell in de container binnenin de Apache POD
+# en controleer als nginx pods bereikt kunnen worden
+$ kubectl exec $pod -n demoapp1 -it -- /bin/sh \
+ -c "curl nginx"
+ 
+# Bewaar eerste Nginx pod in environment variabele
+$ pod2=$(kubectl get pods -n demoapp1 -l app=nginx \
+-o jsonpath='{.items[0].metadata.name}')
+
+# Open een shell in de container binnenin de Nginx POD
+# en controleer als Apache pods bereikt kunnen worden
+$ kubectl exec $pod2 -n demoapp1 -it -- /bin/sh \
+-c "curl apache"
+\end{lstlisting}
+
+Beide controles tonen de output van de Apache of Nginx website waardoor bevestigd is dat de communicatie tussen deze pods/services correct verloopt. 
+
+Het toepassen van dit experiment verloopt opnieuw door de YAML-definitie van de officiële Chaos Mesh website te raadplegen en dit op het systeem over te brengen in een nieuw bestand genaamd 'network-partition.yaml'.
+\newline Men kan alreeds een voorgedefinieerde YAML-definitie van dit NetworkChaos experiment via volgende link terugvinden: \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/network-partition.yaml}{network-partition.yaml}
+
+Voer het experiment vervolgens uit via {\bf kubectl apply -f network-partition.yaml}. 
+
+Door nu opnieuw de commando's toe te passen waarmee men de bereikbaarheid van de nginx en Apache pods kon testen zal men nu gedurende de duurtijd van het experiment geen output meer te zien krijgen. 
+
+Nota: Later bij het documenteren en herproberen van alle experimenten mislukte het NetworkChaos experiment met de melding 'Failed to apply chaos: PodNetworkChaos.chaos-mesh.org is invalid: spec.ipsets.cidrs: Required value'. \newline Een reden hiervoor kon echter niet gevonden worden en bij online troubleshooting kon deze foutmelding geen enkele concrete oplossing tonen.  
+
+\subsubsection{Experiment 3: Stresschaos experiment}
+
+In dit experiment zal een belasting gegenereerd worden op het CPU-verbruik van de pods in de demo-applicatie in namespace demo-app1. 
+
+TO DO
+
+\subsection{Conclusie Chaos Mesh}
+
+De installatie van Chaos Mesh verloopt snel en eenvoudig, zowel met het onliner script in een lokale omgeving als via de package manager Helm in de cloud omgeving. Het opzetten van het Chaos Dashboard daarentegen ging enkele keren mis waardoor dit onbruikbaar was. Controle in de browser via de Developer Tools (F12) gaven hierbij een resem fouten aan. Pas na enkele pogingen kon een correcte werking bekomen worden, maar de oorzaak waardoor het in de eerste plaats fout ging is nooit achterhaald.
+
+Het Chaos Dashboard is gebruiksvriendelijk opgesteld en vereist weinig kennis om direct aan de slag te kunnen. Experimenten opzetten is eenvoudig, maar de extra functionaliteit tijdens de uitvoer van een experiment ontbreekt jammer genoeg. Zo is het bv. niet mogelijk om een experiment op te zetten waarbij doorlopende controle van de bereikbaarheid van een applicatie getest wordt, kan men geen logs raadplegen van uitgevoerde experimenten ... Ook zou het praktisch zijn om in de configuratie van een experiment aan te geven dat dit iteratief uitgevoerd dient te worden bv. elke twintig seconden herhalen gedurende een periode van vijf minuten. Dit kan men enkel bekomen door een workflow te configureren waarbij enkelvoudige experimenten in serie herhaald worden, maar dit is vrij omslachtig aangezien telkens dezelfde configuratie gewoonweg herhaald wordt.
+
+Experimenten opzetten via de terminal is mogelijk, maar biedt geen meerwaarde t.o.v. het uitvoeren van experimenten via het Chaos Dashboard. Meeste experimenten in Chaos Mesh werden wel toegepast in de terminal doordat het Chaos Dashboard bij eerdere installaties onbruikbaar was. Er kwamen ook enkele foutmeldingen bij het opzetten en uitvoeren van de experimenten via de terminal die moeilijk te troubleshooten waren door een gebrek aan documentatie.  
+ 
 \section{Litmus}
 
 In de zoektocht naar een chaos engineering tool die net zoals voorgaande tool ChaosMesh zowel experimenten kon uitvoeren vanuit de terminal als via de browser, werd de keuze gemaakt om Litmus te onderzoeken. 
