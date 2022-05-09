@@ -1,0 +1,22 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-partition
+  namespace: demoapp1
+spec:
+  action: partition
+  mode: all
+  selector:
+    namespaces:
+      - demoapp1
+    labelSelectors:
+      app: apache
+  direction: to
+  target:
+    selector:
+      namespaces:
+        - demoapp1
+      labelSelectors:
+        app: nginx
+    mode: all
+  duration: 60s
