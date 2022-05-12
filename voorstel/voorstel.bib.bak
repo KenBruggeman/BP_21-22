@@ -359,4 +359,25 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   url    = {https://chaos-mesh.org/docs/quick-start/},
 }
 
+@Online{ChaosMesh2022a,
+  author = {ChaosMesh-documentation},
+  date   = {2022-04-08},
+  title  = {Install Chaos Mesh using Helm},
+  url    = {https://chaos-mesh.org/docs/production-installation-using-helm/#install-chaos-mesh-using-helm},
+}
+
+@Online{ChaosMesh2022b,
+  author = {ChaosMesh},
+  date   = {2022-03-28},
+  title  = {Manage User Permissions},
+  url    = {https://chaos-mesh.org/docs/manage-user-permissions/},
+}
+
+@Online{MDN2022,
+  author = {MDN},
+  date   = {2022-04-28},
+  title  = {HTTP response status codes},
+  url    = {https://developer.mozilla.org/en-US/docs/Web/HTTP/Status},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}

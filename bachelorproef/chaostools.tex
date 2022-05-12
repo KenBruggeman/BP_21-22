@@ -91,7 +91,13 @@ Via de output van het 'helm install ...' commando ziet men enkele commando's hoe
 Nota: Bovenstaande output bevat een LoadBalancer Service, maar in geval de applicatie in een lokale omgeving geïnstalleerd wordt zal hier een NodePort of ClusterIP te zien zijn. In dat geval zal men andere stappen moeten ondernemen om de toegang tot de applicatie in de browser te bekomen. 
 Zie sectie {\bf Test the API Endpoint} in de bron die aan het begin van dit hoofdstuk vermeld wordt, waar de nodige acties omschreven worden om toe te passen in deze verschillende situaties.  
 
+\section{k9s monitoring tool}
+
+TO DO
+
 \section{Chaos Toolkit}
+
+TO DO 
 
 \section{Chaos Mesh}
 
@@ -345,17 +351,55 @@ Nota: Later bij het documenteren en herproberen van alle experimenten mislukte h
 
 \subsubsection{Experiment 3: Stresschaos experiment}
 
-In dit experiment zal een belasting gegenereerd worden op het CPU-verbruik van de pods in de demo-applicatie in namespace demo-app1. 
+In dit experiment zal over een periode van twee minuten een belasting van ongeveer 200 MB geheugenverbruik gegenereerd worden op de nginx pods in de demo-applicatie in namespace demoapp1. Vervolgens zal het nut aangetoond worden van het Kubernetes object {\bf HorizontalPodAutoscaler (HPA)}, die extra pods zal creëeren wanneer een geconfigureerde CPU- of geheugenlimiet overschreden wordt.
 
-TO DO
+Bij de demo-applicatie in demoapp1 is een kanttekening te maken aangezien deze oorspronkelijk opgezet is zonder een limiet op de resources die het mag gebruiken. Hierdoor zou een applicatie alle resources van een node kunnen aanspreken, maar dit is geen ideaal scenario. Zo is een pod ingesteld volgens 3 QoS klasses. Pods zonder geconfigureerde resource management vallen onder de klasse 'best effort' en komen hierdoor als eerste in aanmerking om vernietigd te worden wanneer de node resources beperkt worden. \autocite{Tatiyana2020}
 
+Om de pods in de demoapp1 namespace te configureren zodanig deze maximum 200 mCPU en 256MB gebruiken voert men volgende twee commando's uit \autocite{Kubernetes2022c}: 
+\begin{lstlisting}
+    $ kubectl set resources deployment nginx -n demoapp1 \
+    --limits=cpu=200m,memory=256Mi
+    
+    $ kubectl set resources deployment apache -n demoapp1 \
+    --limits=cpu=200m,memory=256Mi
+\end{lstlisting}
+
+De officiële documentatie voor een StressChaos experiment op te zetten kan men hier terugvinden: \url{https://chaos-mesh.org/docs/simulate-heavy-stress-on-kubernetes/}
+
+Men kan ook gebruik maken van de alreeds geconfigureerde YAML-definitie voor dit specifieke experiment via volgende link: \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/memory-stress.yaml}{Experiment 3: memory-stress.yaml}
+
+Maak een nieuw bestand aan genaamd 'memory-stress.yaml' in de directory chaosmesh-experiments en plaats de inhoud hierin. Start vervolgens het experiment op via commando {\bf kubectl apply -f memory-stress.yaml}
+
+Tijdens de uitvoer van het experiment kan men via het Google Cloud Platform de geheugenbelasting van de nginx pods opvolgen. Open het dropdownmenu in de linkerbovenhoek en kies in deze lijst {\bf Kubernetes Engine} en vervolgens {\bf Workloads} om naar de pods in de demoapp1 namespace te gaan. Wanneer men hier op nginx klikt zal een overzicht geopend worden waarin drie metrics opgevolgd worden nl. CPU, geheugen en diskverbruik.
+
+Optioneel: Men kan bij elk van deze metrics in de rechterbovenhoek het menu openen en verder gaan naar de {\bf Metrics Explorer}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics{img/nginx-memorystress.png}
+    \caption{GKE workloads: belasten van geheugen nginx pods}
+\end{figure}
+
+\subsubsection{Kubernetes object: HorizontalPodAutoscaler}
+\label{subsec: HPA}
+Wanneer pods zwaar belast worden qua geheugen (of CPU) dan zal dit een negatieve impact hebben op de goede werking van een applicatie. Een te zware belasting waarbij een pod meer resources verbruikt dan toegelaten zal zelf resulteren in het beëindigen van de pod door de kernel Out-Of-Memory killer (OOMkill). Dit proces zal Kubernetes helpen om het geheugen te beheren wanneer pods aan nodes toegewezen worden en zal eveneens beslissingen nemen welke pods te vernietigen wanneer resources op de node in gevaar komen. \autocite{Alletto2021} 
+
+Een antwoord bieden om dit risico te helpen vermijden is het gebruiken van het Kubernetes object {\bf HorizontalPodAutoscaler}. Dit object zal ervoor zorgen dat extra pods gegenereerd worden wanneer een geconfigureerde resources threshold overschreden wordt.
+
+Een voorgeconfigureerde YAML-definitie voor het creëeren van een HPA kan men hier terugvinden: 
+\href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/hpa.yaml}{HorizontalPodAutoscaler definitie: hpa.yaml} 
+
+Creëer een nieuwe YAML-definitie op het systeem genaamd 'hpa.yaml' en voer dit vervolgens uit via commando {\bf kubectl apply -f hpa.yaml}. 
+
+Men kan nu niet zomaar het experiment herhalen maar zal eerst het bestaande experiment moeten verwijderen. Dit doet men via commando {\bf kubectl delete stresschaos memory-stress-example -n demoapp1}. Nu kan men opnieuw de YAML-definitie van het experiment oproepen via commando {\bf kubectl apply -f memory-stress.yaml}. Via k9s kan men vervolgens opvolgen hoe drie extra pods aangemaakt worden tijdens de belasting van het geheugen.
+ 
 \subsection{Conclusie Chaos Mesh}
 
 De installatie van Chaos Mesh verloopt snel en eenvoudig, zowel met het onliner script in een lokale omgeving als via de package manager Helm in de cloud omgeving. Het opzetten van het Chaos Dashboard daarentegen ging enkele keren mis waardoor dit onbruikbaar was. Controle in de browser via de Developer Tools (F12) gaven hierbij een resem fouten aan. Pas na enkele pogingen kon een correcte werking bekomen worden, maar de oorzaak waardoor het in de eerste plaats fout ging is nooit achterhaald.
 
 Het Chaos Dashboard is gebruiksvriendelijk opgesteld en vereist weinig kennis om direct aan de slag te kunnen. Experimenten opzetten is eenvoudig, maar de extra functionaliteit tijdens de uitvoer van een experiment ontbreekt jammer genoeg. Zo is het bv. niet mogelijk om een experiment op te zetten waarbij doorlopende controle van de bereikbaarheid van een applicatie getest wordt, kan men geen logs raadplegen van uitgevoerde experimenten ... Ook zou het praktisch zijn om in de configuratie van een experiment aan te geven dat dit iteratief uitgevoerd dient te worden bv. elke twintig seconden herhalen gedurende een periode van vijf minuten. Dit kan men enkel bekomen door een workflow te configureren waarbij enkelvoudige experimenten in serie herhaald worden, maar dit is vrij omslachtig aangezien telkens dezelfde configuratie gewoonweg herhaald wordt.
 
-Experimenten opzetten via de terminal is mogelijk, maar biedt geen meerwaarde t.o.v. het uitvoeren van experimenten via het Chaos Dashboard. Meeste experimenten in Chaos Mesh werden wel toegepast in de terminal doordat het Chaos Dashboard bij eerdere installaties onbruikbaar was. Er kwamen ook enkele foutmeldingen bij het opzetten en uitvoeren van de experimenten via de terminal die moeilijk te troubleshooten waren door een gebrek aan documentatie.  
+Experimenten opzetten via de terminal is mogelijk, maar biedt geen meerwaarde t.o.v. het uitvoeren van experimenten via het Chaos Dashboard. Meeste experimenten in Chaos Mesh werden wel toegepast in de terminal doordat het Chaos Dashboard bij eerdere installaties onbruikbaar was. Het is ook jammer dat een experiment niet gewoon kan herhaald worden zonder dat eerst het origineel gewist moet worden. Er kwamen ook enkele foutmeldingen bij het opzetten en uitvoeren van de experimenten via de terminal die moeilijk te troubleshooten waren door een gebrek aan documentatie.  
  
 \section{Litmus}
 
@@ -621,7 +665,7 @@ Dit experiment is handig om de responsetijd van een website te controleren wanne
 
 In dit experiment zal het geheugen belast worden van de nginx pods in de demo-applicatie in namespace demoapp1. Applicaties in een productieomgeving kunnen te maken krijgen met pieken in resourcegebruik, dit door verwachte maar eveneens onverwachte redenen. Vandaar het belangrijk is te testen hoe een applicatie reageert in deze omstandigheden, en welke manieren er in Kubernetes bestaan om hulp te bieden in zulke situaties. 
 
-Bij de demo-applicatie in demoapp1 is een kanttekening te maken aangezien deze momenteel opgezet is zonder een limiet op de resources die het mag gebruiken. Hierdoor zou een applicatie alle resources van een node kunnen aanspreken, maar dit is geen ideaal scenario. Zo is een pod ingesteld volgens 3 QoS klasses. Pods zonder geconfigureerde resource management vallen onder de klasse 'best effort' en komen hierdoor als eerste in aanmerking om vernietigd te worden wanneer de node resources beperkt worden. \autocite{Tatiyana2020}
+Bij de demo-applicatie in demoapp1 is een kanttekening te maken aangezien deze oorspronkelijk opgezet is zonder een limiet op de resources die het mag gebruiken. Hierdoor zou een applicatie alle resources van een node kunnen aanspreken, maar dit is geen ideaal scenario. Zo is een pod ingesteld volgens 3 QoS klasses. Pods zonder geconfigureerde resource management vallen onder de klasse 'best effort' en komen hierdoor als eerste in aanmerking om vernietigd te worden wanneer de node resources beperkt worden. \autocite{Tatiyana2020}
 
 Om de pods in de demoapp1 namespace te configureren zodanig deze maximum 200 mCPU en 256MB gebruiken voert men volgende twee commando's uit \autocite{Kubernetes2022c}: 
 \begin{lstlisting}
@@ -651,11 +695,7 @@ Voer het experiment uit via commando {\bf kubectl apply -f nginx-pod-memory-hog.
     \caption{Geheugen belasting nginx pods tot 200 MB}
 \end{figure}
 
-\subsubsection{Kubernetes object: HorizontalPodAutoscaler}
-
-Wanneer pods zwaar belast worden qua geheugen (of CPU) dan zal dit een negatieve impact hebben op de goede werking van een applicatie. Een te zware belasting waarbij een pod meer resources verbruikt dan toegelaten zal zelf resulteren in het beëindigen van de pod door de kernel Out-Of-Memory killer (OOMkill). Dit proces zal Kubernetes helpen om het geheugen te beheren wanneer pods aan nodes toegewezen worden en zal eveneens beslissingen nemen welke pods te vernietigen wanneer resources op de node in gevaar komen. \autocite{Alletto2021} 
-
-Een antwoord bieden om dit risico te helpen vermijden is het gebruiken van het Kubernetes object {\bf HorizontalPodAutoscaler}. Dit object zal ervoor zorgen dat extra pods gegenereerd worden wanneer een geconfigureerde resources threshold overschreden wordt.  
+In vorig besproken chaos engineering tool Chaos Mesh kwam het Kubernetes object HorizontalPodAutoscaler alreeds aan bod in een soortgelijk experiment. Uitleg over wat een HPA doet kan men in subsectie \ref{subsec: HPA} terugvinden.   
 
 Een vooraf gedefinieerde YAML-definitie kan men raadplegen in volgend Git repository bestand  \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/hpa.yaml}{Experiment 4 oplossing: hpa.yaml}
 
