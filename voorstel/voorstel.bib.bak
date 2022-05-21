@@ -401,4 +401,32 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   url    = {https://github.com/chaos-mesh/chaos-mesh/issues/2187},
 }
 
+@Online{ChaosToolkit2022,
+  author = {ChaosToolkit},
+  date   = {2022-05-17},
+  title  = {chaostoolkit-kubernetes plugin},
+  url    = {https://github.com/chaostoolkit/chaostoolkit-kubernetes},
+}
+
+@Online{ChaosToolkit2022a,
+  author = {ChaosToolkit},
+  date   = {2022-05-19},
+  title  = {Chaos Engineering Concepts in the Chaos Toolkit},
+  url    = {https://chaostoolkit.org/reference/concepts/},
+}
+
+@Online{ChaosToolkit2022b,
+  author = {ChaosToolkit},
+  date   = {2022-05-18},
+  title  = {How to Install the Chaos Toolkit},
+  url    = {https://chaostoolkit.org/reference/usage/install/},
+}
+
+@Online{UniMinnesota2022,
+  author = {University_of_Minnesota},
+  date   = {2022-05-17},
+  title  = {Python Virtual Environments in Linux},
+  url    = {https://latisresearch.umn.edu/python-virtual-environments-in-linux},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}

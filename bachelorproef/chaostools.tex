@@ -104,8 +104,8 @@ releases/download/v0.25.18/k9s_Linux_x86_64.tar.gz
 # Uitpakken .gz archiefbestand
 $ tar -xvf k9s_Linux_x86_64.tar.gz
 
-# k9s binary verplaatsen naar /usr/local/bin
-$ sudo mv k9s /usr/local/bin/
+# k9s binary verplaatsen naar /usr/bin
+$ sudo mv k9s /usr/bin/
 
 # Verwijder het gedownloade .gz archiefbestand
 $ rm k9s_Linux_x86_64.tar.gz
@@ -116,7 +116,17 @@ $  k9s -n [namespace]
 
 \section{Chaos Toolkit}
 
+De eerst besproken chaos engineering tool in dit onderzoek is Chaos Toolkit. Deze tool kwam aan bod in de Udemy cursus 'Kubernetes Chaos Engineering With Chaos Toolkit and Istio' en was volgens \textcite{Viktor Farcic}, de lesgever en auteur van het gelijkaardig genaamd boek, de beste chaos engineering tool op dat moment (maart 2020) beschikbaar. 
+
+Er zullen in dit onderzoek enkele eenvoudige experimenten aan bod komen, zowel uitgevoerd op de applicatie in namespace demoapp1 als demoapp2, die de verschillende componenten van Chaos Toolkit en de algemene werking ervan zullen omschrijven. Vooraleer hiermee van start te gaan zal eerst beschreven worden hoe deze tool geïnstalleerd wordt.    
+
 \subsection{Installatie Chaos Toolkit}
+
+De enige vereiste wanneer men ChaosToolkit wil installeren is dat Python op het systeem nodig is. \autocite{ChaosToolkit2022b}
+
+Voor een Linux Debian/Ubuntu distributie kan men volgend commando gebruiken om de nodige packages te installeren: {\bf sudo apt-get install python3 python3-venv}
+ 
+ChaosToolkit zal geïnstalleerd worden in een Python virtuele omgeving. Dit is een geïsoleerde omgeving die toelaat om afzonderlijke afhankelijkheden te beheren voor verschillende Python projecten. \autocite{UniMinnesota2022}
 
 Gebruik volgend stappenplan om Chaos Toolkit te installeren in de Google Cloud Shell. Dezelfde werkwijze kan men ook toepassen in een lokale omgeving.
 \begin{lstlisting}
@@ -133,9 +143,14 @@ $ pip install -U chaostoolkit
 $ chaos --version
 \end{lstlisting}
 
-Chaos Toolkit kan uitgebreid worden met verschillende plugins. Eén van de benodigde plugins voor het kunnen toepassen van chaos experimenten in een Kubernetes cluster is de {\bf kubernetes plugin}. \autocite{ChaosToolkit2022}. Via volgende stappen kan men eerst deze plugin installeren op het systeem en vervolgens de mogelijkheden oplijsten qua experimenten die deze plugin bevat.
+Chaos Toolkit is nu geïnstalleerd in de virtuele omgeving op het systeem. Dit kan men zien doordat links naast de username nu (chaostk) zal te zien zijn. 
+{\bf Let op:} Wanneer men de sessie beëindigd door de terminal te sluiten zal men eveneens deze virtuele omgeving verlaten. Wanneer men opnieuw richting deze omgeving wil gaan dient men het commando {\bf source  ~/.venvs/chaostk/bin/activate} nogmaals uit te voeren. Vergeet men dit echter te doen dan zal het 'chaos' commando niet gevonden worden wanneer men dit in de terminal probeert uit te voeren, aangezien dit commando enkel in de geïsoleerde virtuele omgeving bestaat.
+
+Chaos Toolkit bevat na installatie voorlopig weinig functionaliteit. Men kan namelijk op dit moment nog geen experimenten opzetten die toepasbaar zijn op een Kubernetes cluster. Om dit mogelijk te maken dient men de {\bf chaostoolkit-kubernetes} plugin te installeren. \autocite{ChaosToolkit2022}. 
+Via volgende stappen kan men eerst de chaostoolkit-kubernetes plugin installeren op het systeem en vervolgens de verschillende experimentconfiguraties opvragen die deze plugin bevat.
 \begin{lstlisting} 
-# Installeer kubernetes plugin
+# Installeer chaostoolkit-kubernetes plugin
+# Link: https://github.com/chaostoolkit/chaostoolkit-kubernetes
 $ pip install chaostoolkit-kubernetes
 
 # Creëer bestand 'discovery.json' met overzicht qua opties
@@ -145,42 +160,49 @@ $ chaos discover chaostoolkit-kubernetes
 $ cat discovery.json
 \end{lstlisting}
 
-Andere plugins kan men via volgende link raadplegen: \url{https://github.com/search?utf8=%E2%9C%93&q=topic%3Achaostoolkit-extension&type=Repositories} 
+Andere extensies/plugins waarmee men de functionaliteit van Chaos Toolkit verder kan uitbreiden om bv. experimenten op te zetten m.b.t. specifieke cloudarchitecturen en platformen, netwerkgerelateerde experimenten ... kan men via volgende link raadplegen: \url{https://github.com/search?utf8=%E2%9C%93&q=topic%3Achaostoolkit-extension&type=Repositories} 
 
 \subsection{Een experiment opzetten}
 
-Via commando {\bf chaos init} kan men een experiment opzetten. Een wizard zal hierbij de nodige begeleiding voorzien tijdens de setup. 
-
-Een ChaosToolkit experiment is opgebouwd uit drie elementen:
+Chaos Toolkit is CLI-gebaseerd, wat wil zeggen dat experimenten enkel via de terminal uitgevoerd kunnen worden. Voorgedefinieerde experimenten worden niet aangeboden bij deze tool, maar de bedoeling is om de experimenten modulair op te bouwen door de afzonderlijke componenten hieronder beschreven in een YAML- of JSON-bestand te definiëren \autocite{ChaosToolkit2022a}:
 \begin{enumerate}
-    \item (optioneel) een steady-state hypothese
-    \item een actie die uitgevoerd moet worden 
-    \item (optioneel) een rollback naar de normale staat
+    \item {\bf Beschrijving experiment}: versie, titel, tags.
+    \item {\bf De 'steady-state-hypothesis'}: De hypothese waarin men een controle (= probe) definieert om het normale gedrag (= de steady state) te valideren.
+    \item {\bf Een 'method'}: De activiteiten van een chaos experiment. Deze kunnen acties en probes bevatten die omschrijven hoe het experiment moet uitgevoerd worden.  
+    \item {\bf Een 'rollback'}: Het chaos experiment ongedaan maken en terugkeren naar een normale staat. Nota: Een Kubernetes cluster bevat alreeds enkele zelfhelende eigenschappen waardoor een rollback configureren hierbij soms onnodig is.
 \end{enumerate}
+    
+Men kan zelf kiezen om deze YAML- of JSON-definitie te creëeren, maar via commando {\bf chaos init} kan men ook een experiment opzetten waarbij de verschillende stappen in het proces met begeleiding van een wizard afgerond kunnen worden. 
+
+Experimenten die via de wizard opgezet worden leiden tot de creatie van een {\bf experiment.json} bestand. Wanneer men op dezelfde manier een nieuw experiment wil opzetten zal dit JSON-bestand overschreven worden. Men kan dit echter voorkomen door zelf een naam mee te geven in dit commando. Eveneens heeft men de optie om als output een YAML-bestand te bekomen. Zowel de naam van het experiment als de keuze qua configuratietaal bekomt men via commando {\bf chaos init --experiment-path [experiment naam].[json | yaml}.
+
+Er zal ook een {\bf journal.json} bestand gecreëerd worden na de uitvoer van een experiment opgezet via het 'chaos init' commando. Dit toont o.a. de definitie van het uitgevoerde experiment, welke pods getroffen zijn, wanneer en hoelang het experiment uitgevoerd is ...
+Alleen het laatst uitgevoerde experiment wordt bewaard in dit bestand m.a.w. ook dit wordt overschreven bij elke uitvoer van een nieuw experiment.   
+
+Zowel de setup m.b.v. de wizard via het 'chaos init' commando, alsook het zelf creëeren van experiment-definities zullen in komende experimenten beschreven worden. Vooraleer men van start gaat met het experimenteren maakt men een nieuwe directory waarin deze experimenten zullen bewaard worden genaamd 'chaostoolkit-experiments' m.b.v. commando {\bf mkdir chaostoolkit-experiments}. 
 
 \subsection{Experiment 1: Een random pod vernietigen}
 
-In dit experiment zal een willekeurige nginx pod van de demoapplicatie in namespace demoapp1 vernietigd worden. 
-De bedoeling is om te zien hoe het systeem zal reageren wanneer deze pod vernietigd wordt. Aangezien deze pods in de demoapp1 namespace zijn opgezet via een Deployment, zou het vernietigen van een pod steeds de ReplicaSet moeten triggeren om een nieuwe pod te creëeren.
+In dit experiment zal een willekeurige nginx pod van de demoapplicatie in namespace demoapp1 vernietigd worden. De bedoeling is om te zien hoe het systeem zal reageren wanneer een pod vernietigd wordt. Aangezien de pods in de demoapp1 namespace via een Deployment zijn opgezet, zou het vernietigen van een pod steeds de ReplicaSet moeten triggeren om een nieuwe pod te creëeren.
 
 Zet het experiment op volgende manier op:  
 \begin{enumerate}
-    \item Voer commando {\bf chaos init} uit.
-    \item Geef een naam aan het experiment vb. random-nginx-pod-kill.
+    \item Ga naar de chaostoolkit-experiments directory en voer commando {\bf chaos init} uit.
+    \item Geef een naam aan het experiment vb. random-pod-kill.
     \item Geef deze keer géén steady-state hypothese op. Dit zal in volgende experimenten aan bod komen.
     \item Antwoord met 'y' op de vraag 'Do you want to define an experimental method?' Dit zal een lijst weergeven met alle mogelijke acties die uitgevoerd kunnen worden. 
     \item Kies de actie 'terminate\textunderscore pods' in deze lijst (= optie 26) en bevestig de keuze met 'y'. 
     \item Vervolgens zal men enkele parameters moeten opgeven voor deze actie: 
     \begin{enumerate}
         \item {\bf label\textunderscore selector}: geef hier 'app=nginx' in om het experiment op de nginx te richten.
-        \item {\bf name\textunderscore pattern}: via enter kiest men de default.
-        \item {\bf all}: via enter kiest men de default 'False' om aan te geven dat niet alle pods moeten vernietigd worden.
+        \item {\bf name\textunderscore pattern}: via enter kiest men de defaultwaarde 'null'.
+        \item {\bf all}: via enter kiest men de defaultwaarde 'False' om aan te geven dat niet alle pods moeten vernietigd worden.
         \item {\bf rand}: geef 'True' in, om een willekeurige pod te selecteren.
-        \item {\bf mode}: via enter kiest men de default 'Fixed'
-        \item {\bf qty}: via enter kiest metn de default '1', wat neerkomt op het aantal pods die vernietigd moet worden.
-        \item {\bf grace\textunderscore period}: via enter kiest men de default '-1' wat overeenkomt met onmiddelijke vernietiging van de pod.
+        \item {\bf mode}: via enter kiest men de defaultwaarde 'Fixed'
+        \item {\bf qty}: via enter kiest men de defaultwaarde '1', wat neerkomt op het aantal pods die vernietigd moet worden.
+        \item {\bf grace\textunderscore period}: via enter kiest men de defaultwaarde '-1' wat overeenkomt met onmiddelijke vernietiging van de pod.
         \item {\bf ns}: geef hier de namespace 'demoapp1' op.
-        \item {\bf order}: via enter kiest men de default 'Alphabetic'.
+        \item {\bf order}: via enter kiest men de defaultwaarde 'Alphabetic'.
     \end{enumerate}
     \item Antwoord met 'N' op de vraag 'Do you want to select another activity?' om aan te geven dat geen extra acties meer ondernomen moeten worden in dit experiment.
 \end{enumerate} 
@@ -188,21 +210,29 @@ Zet het experiment op volgende manier op:
 De wizard is afgelopen en het bestand 'experiment.json' zal vervolgens gecreëerd worden in deze directory. Men kan dit experiment uitvoeren via commando {\bf chaos run experiment.json}
 De uitvoer van het experiment in onderstaande output toont aan dat dit succesvol verlopen is:
 \begin{lstlisting}
-    $ chaos run experiment.json
-    [INFO] Validating the experiment's syntax
-    [INFO] Experiment looks valid
-    [INFO] Running experiment: random-nginx-pod-kill
-    [INFO] Steady-state strategy: default
-    [INFO] Rollbacks strategy: default
-    [INFO] No steady state hypothesis defined. 
-    [INFO] Playing your experiment's method now...
-    [INFO] Action: terminate_pods
-    [INFO] Let's rollback...
-    [INFO] No declared rollbacks, let's move on.
-    [INFO] Experiment ended with status: completed
+$ chaos run experiment.json
+[INFO] Validating the experiment's syntax
+[INFO] Experiment looks valid
+[INFO] Running experiment: random-nginx-pod-kill
+[INFO] Steady-state strategy: default
+[INFO] Rollbacks strategy: default
+[INFO] No steady state hypothesis defined. 
+[INFO] Playing your experiment's method now...
+[INFO] Action: terminate_pods
+[INFO] Let's rollback...
+[INFO] No declared rollbacks, let's move on.
+[INFO] Experiment ended with status: completed
 \end{lstlisting}
 
 Tijdens de uitvoer van dit experiment kan men via commando {\bf k9s -n demoapp1} zien hoe één van de nginx pods in de namespace demoapp1 vernietigd wordt en hoe direct daarna een nieuwe pod gecreëerd wordt om terug tot drie actieve pods te komen. 
+
+Men hoeft de configuratie niet noodzakelijk te bekomen via het 'chaos init' commando maar kan een experiment ook opzetten via een vooraf gedefinieerd YAML-bestand. Creëer een nieuw bestand genaamd 'random-pod-kill.yaml' m.b.v. een teksteditor naar keuze. 
+
+In volgende link kan men een voorgedefinieerde YAML-definitie vinden die men in het bestand kan overnemen: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/random-pod-kill.yaml}{Experiment 1: random-pod-kill.yaml}
+
+Om het experiment te herhalen m.b.v. deze YAML-definitie voert men commando {\bf chaos run random-pod-kill.yaml} uit. 
+
+TO DO: figure van k9s uitvoer !!! 
 
 \section{Chaos Mesh}
 
