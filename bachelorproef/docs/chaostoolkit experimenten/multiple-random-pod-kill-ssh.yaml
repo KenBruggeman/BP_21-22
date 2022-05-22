@@ -1,5 +1,5 @@
 title: multiple-random-pod-kill-ssh
-description: Het experiment vernietigt willekeurige pod en de SSH controleert als alle pods voor en na deze actie status Running hebben. 
+description: Het experiment vernietigt willekeurige pods en de SSH controleert als alle pods voor en na deze actie status Running hebben. 
 steady-state-hypothesis:
   title: Alle pods hebben status Running
   probes:
