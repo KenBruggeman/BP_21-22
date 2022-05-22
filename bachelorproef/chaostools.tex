@@ -95,7 +95,8 @@ Zie sectie {\bf Test the API Endpoint} in de bron die aan het begin van dit hoof
 
 De tool {\bf k9s} is een terminal-gebaseerde UI waarmee men makkelijker de objecten in een Kubernetes cluster kan beheren en observeren. K9s kan gebruikt worden voor monitoring doeleinden aangezien het continu de Kubernetes cluster afspeurt voor wijzigingen. Met behulp van deze tool zullen enkele van de chaos engineering experimenten die later in dit onderzoek aan bod komen opgevolgd worden.
 
-Om k9s te installeren in de Google Cloud Shell voert men volgende stappen uit: 
+De k9s website biedt heel wat verschillende opties om de tool te installeren. \autocite{K9s2022}
+\newline In dit onderzoek is gekozen om k9s te installeren door een archiefbestand van de k9s binary in de Google Cloud Shell te downloaden en vervolgens uit te pakken. Om dit proces te herhalen kan men volgende stappenn uitvoeren: 
 \begin{lstlisting}
 # k9s binary downloaden in de terminal
 $ wget https://github.com/derailed/k9s/\
@@ -113,6 +114,8 @@ $ rm k9s_Linux_x86_64.tar.gz
 # Pods in een specifieke namespace weergeven
 $  k9s -n [namespace]
 \end{lstlisting} 
+
+Deze tool bevat heel wat functionaliteit die in dit onderzoek echter niet aan bod komt. Indien men deze tool verder wil ontdekken kan deze bron gebruikt worden: \url{https://medium.com/flant-com/k9s-terminal-ui-for-kubernetes-aeead8b0303f}
 
 \section{Chaos Toolkit}
 
@@ -150,7 +153,6 @@ Chaos Toolkit bevat na installatie voorlopig weinig functionaliteit. Men kan nam
 Via volgende stappen kan men eerst de chaostoolkit-kubernetes plugin installeren op het systeem en vervolgens de verschillende experimentconfiguraties opvragen die deze plugin bevat.
 \begin{lstlisting} 
 # Installeer chaostoolkit-kubernetes plugin
-# Link: https://github.com/chaostoolkit/chaostoolkit-kubernetes
 $ pip install chaostoolkit-kubernetes
 
 # Creëer bestand 'discovery.json' met overzicht qua opties
@@ -174,7 +176,7 @@ Chaos Toolkit is CLI-gebaseerd, wat wil zeggen dat experimenten enkel via de ter
     
 Men kan zelf kiezen om deze YAML- of JSON-definitie te creëeren, maar via commando {\bf chaos init} kan men ook een experiment opzetten waarbij de verschillende stappen in het proces met begeleiding van een wizard afgerond kunnen worden. 
 
-Experimenten die via de wizard opgezet worden leiden tot de creatie van een {\bf experiment.json} bestand. Wanneer men op dezelfde manier een nieuw experiment wil opzetten zal dit JSON-bestand overschreven worden. Men kan dit echter voorkomen door zelf een naam mee te geven in dit commando. Eveneens heeft men de optie om als output een YAML-bestand te bekomen. Zowel de naam van het experiment als de keuze qua configuratietaal bekomt men via commando {\bf chaos init --experiment-path [experiment naam].[json | yaml}.
+Experimenten die via de wizard opgezet worden leiden tot de creatie van een {\bf experiment.json} bestand. Wanneer men op dezelfde manier een nieuw experiment wil opzetten zal dit JSON-bestand overschreven worden. Men kan dit echter voorkomen door zelf een naam mee te geven in dit commando. Eveneens heeft men de optie om als output een YAML-bestand te bekomen. Zowel de naam van het experiment als de keuze qua configuratietaal bekomt men via commando {\bf chaos init --experiment-path [experiment naam].[json | yaml]}.
 
 Er zal ook een {\bf journal.json} bestand gecreëerd worden na de uitvoer van een experiment opgezet via het 'chaos init' commando. Dit toont o.a. de definitie van het uitgevoerde experiment, welke pods getroffen zijn, wanneer en hoelang het experiment uitgevoerd is ...
 Alleen het laatst uitgevoerde experiment wordt bewaard in dit bestand m.a.w. ook dit wordt overschreven bij elke uitvoer van een nieuw experiment.   
@@ -213,7 +215,7 @@ De uitvoer van het experiment in onderstaande output toont aan dat dit succesvol
 $ chaos run experiment.json
 [INFO] Validating the experiment's syntax
 [INFO] Experiment looks valid
-[INFO] Running experiment: random-nginx-pod-kill
+[INFO] Running experiment: random-pod-kill
 [INFO] Steady-state strategy: default
 [INFO] Rollbacks strategy: default
 [INFO] No steady state hypothesis defined. 
@@ -224,20 +226,238 @@ $ chaos run experiment.json
 [INFO] Experiment ended with status: completed
 \end{lstlisting}
 
-Tijdens de uitvoer van dit experiment kan men via commando {\bf k9s -n demoapp1} zien hoe één van de nginx pods in de namespace demoapp1 vernietigd wordt en hoe direct daarna een nieuwe pod gecreëerd wordt om terug tot drie actieve pods te komen. 
+Men ziet in de uitvoer dat dit experiment geen steady-state probeert te bevestigen of een rollback uitvoert, maar louter één actie 'terminate\textunderscore pods' doorloopt.
+Indien bovenstaande regels enkel groen gekleurd zijn kan men concluderen dat het experiment zonder fouten doorlopen is. De kleur van deze regels kan ook oranje of rood zijn bij afwijkingen tijdens de uitvoer van het experiment, maar dit zal vaker voorkomen bij het valideren van de steady state bv. door een probe die faalt.  
+ 
+Via het commando {\bf cat journal.json} kan men de details opvragen van het uitgevoerde experiment zoals de definitie van het experiment, de start- en eindtijd, de getroffen pod , de status ... 
 
-Men hoeft de configuratie niet noodzakelijk te bekomen via het 'chaos init' commando maar kan een experiment ook opzetten via een vooraf gedefinieerd YAML-bestand. Creëer een nieuw bestand genaamd 'random-pod-kill.yaml' m.b.v. een teksteditor naar keuze. 
+Tijdens de uitvoer van dit experiment kan men via commando {\bf k9s -n demoapp1} zien hoe één van de nginx pods in de namespace demoapp1 vernietigd wordt (zie kolom Status) en hoe direct daarna een nieuwe pod gecreëerd wordt om terug tot drie actieve pods te komen. 
 
-In volgende link kan men een voorgedefinieerde YAML-definitie vinden die men in het bestand kan overnemen: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/random-pod-kill.yaml}{Experiment 1: random-pod-kill.yaml}
+\begin{figure}[h]
+    \centering
+    \includegraphics{img/k9s-chaostoolkit-ex1.png}
+    \caption{k9s uitvoer van Chaos Toolkit experiment 1}
+    \label{img:chaostoolkitexperiment1}
+\end{figure}
 
-Om het experiment te herhalen m.b.v. deze YAML-definitie voert men commando {\bf chaos run random-pod-kill.yaml} uit. 
+Men hoeft de configuratie niet noodzakelijk te bekomen via het 'chaos init' commando maar kan een experiment ook opzetten via een vooraf gedefinieerd YAML-bestand. Via volgende stappen zet men dit op: 
+\begin{enumerate} 
+    \item Creëer een nieuw bestand genaamd 'random-pod-kill.yaml' m.b.v. een teksteditor naar keuze. 
+    \item Klik op volgende link naar de Github repository waar men een YAML-definitie voor dit experiment kan terugvinden: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/random-pod-kill.yaml}{Experiment 1: random-pod-kill.yaml}
+    \newline Men ziet in dit bestand eerst een beschrijving van het experiment, gevolgd door de configuratie van de 'method'. Ook hier ontbreekt dus de configuratie van andere componenten zoals een steady state of een rollback, die in volgende experimenten nog aan bod zullen komen.
+    \item Neem de inhoud van dit bestand over in het nieuw gecreëerde bestand random-pod-kill.yaml en sla op.
+    \item Herhaal het experiment m.b.v. deze YAML-definitie via commando {\bf chaos run random-pod-kill.yaml}.
+\end{enumerate}
 
-TO DO: figure van k9s uitvoer !!! 
+\subsection{Experiment 2: uitbreiding experiment 1 met steady state}
+
+In dit experiment zal experiment 1 aangevuld worden met een Steady State Hypothesis, die voor en na het verwijderen van een willekeurige nginx pod het aantal nginx pods zal controleren.
+
+Eerst zal men de stappen via de wizard nogmaals doorlopen om dit experiment op te zetten maar deze keer zal gevraagd worden een YAML-definitie als output te bekomen. Dit doet men via commando {\bf chaos init --experiment-path random-pod-kill-ssh.yaml} (ssh = steady state hypothesis)
+Start de setup van dit experiment via commando {\bf chaos init}. Configureer volgende zaken via de wizard:
+\begin{enumerate}
+    \item {\bf Experiment's title:} random-pod-kill-ssh
+    \item Antwoord met {\bf 'y'} op de vraag 'Do you want to define a steady state hypothesis now?'
+    \item {\bf Hypothesis's title:} Er zijn drie nginx pods aanwezig
+    \item {\bf Add an activity:} geef het nummer op van de optie 'count\textunderscore pods'.
+    \item Antwoord met {\bf 'y'} op de vraag 'Do you want to use this probe?'
+    \item {\bf What is the tolerance for this probe?:} 3 (= het aantal nginx pods in de applicatie)
+    \item {\bf label\textunderscore selector:} app=nginx
+    \item {\bf phase:} via enter kiest men de default [].
+    \item {\bf ns:} demoapp1
+    \item Antwoord met {\bf 'N'} op de vraag 'Do you want to select another activity?'. Hiermee vraagt men namelijk als nog een andere controle in een tweede 'steady state hypothesis' moet gecreëerd worden. 
+    \item Antwoord met {\bf 'y'} op de vraag Do you want to define an experimental method?'
+    \item Resterende configuratie vanaf {\bf label\textunderscore selector} is dezelfde als bij experiment 1.
+\end{enumerate}
+
+{\bf Let op:} Wanneer men de zopas gecreëerde 'random-pod-kill-ssh.yaml' gaat bekijken zal men zien dat onder de configuratie bij {\bf probes} bij de parameter {\bf tolerance} single quotes rond de waarde 3 zullen staan. De kans is groot dat hierdoor de uitvoer van het experiment zal falen dus verwijder deze quotes en sla het bestand terug op. Het experiment uitvoeren doet men vervolgens via commando {\bf chaos run random-pod-kill-ssh.yaml}.
+  
+In figuur \ref{img:chaostoolkitex2} ziet men dat zowel voor als na de Action 'terminate-pod' de probe uitgevoerd wordt. Wanneer men dit experiment reproduceert zal de probe hoogstwaarschijnlijk na de actie terug falen met de melding: 'Steady state probe 'count\textunderscore pods' is not in the given tolerance so failing this experiment'.
+\newline Dit komt omdat de probe direct na de actie uitgevoerd werd en er dus onvoldoende tijd werd gegeven aan Kubernetes om een nieuwe pod op te starten.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=.7]{img/chaostoolkit-ex2.png}
+    \caption{Probe faalt bij uitvoer Chaos Toolkit experiment 2}
+    \label{img:chaostoolkitex2}
+\end{figure}
+
+Als oplossing kan men een parameter {\bf pauses} aan de configuratie toevoegen zodat na de actie enkele seconden gewacht wordt vooraleer opnieuw de controle uit te voeren. Deze parameter pauses kan men echter niet configureren via de chaos init wizard maar zal manueel toegevoegd moeten worden.
+Men kan gebruik maken van volgend voorgedefinieerd YAML-bestand om de configuratie over te nemen en het experiment te herhalen: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/random-pod-kill-ssh.yaml}{Experiment 2: random-pod-kill-ssh.yaml}
+    
+\subsection{Experiment 3: uitbreiding vorige experimenten}
+
+Door de tekortkomingen die in vorig experiment bewezen werden bij de experimentconfiguratie via het 'chaos init' commando zal in volgende experimenten louter nog gebruik gemaakt worden van een voorgedefinieerd YAML-bestand. 
+
+De parameter {\bf qty} wordt in dit experiment geïntroduceerd waarmee men vorig experiment kan uitbreiden zodat meerdere pods in de namespace demoapp1 vernietigd kunnen worden. Eveneens zal gebruik gemaakt worden van een andere probe genaamd {\bf pods\textunderscore in\textunderscore phase} die de status van de pods zal controleren i.p.v. het aantal pods te tellen. De defaultwaarde van deze probe is ingesteld op 'Running' dus hoeft dit niet noodzakelijk in de configuratie opgenomen te worden. \autocite{ChaosToolkit2022c}
+
+Volgende stappen kan men toepassen om het experiment op te zetten en uit te voeren:
+\begin{enumerate}
+    \item Creëer een nieuw YAML-bestand genaamd 'multiple-random-pod-kill-ssh.yaml'. 
+    \item Kopieer de definitie van dit experiment die men kan terugvinden via volgende link: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/multiple-random-pod-kill-ssh.yaml}{Experiment 3: multiple-random-pod-kill-ssh.yaml}
+    \item Voer dit experiment uit m.b.v. commando {\bf chaos run multiple-random-pod-kill-ssh.yaml} 
+\end{enumerate}
+
+De YAML-definitie van dit experiment ontbreekt een waarde bij parameter {\bf label\textunderscore selector} waardoor nu alle pods in de namespace demoapp1 getroffen kunnen worden. Men ziet via de k9s tool dat bij het uitvoeren van dit experiment hierdoor nu ook de Apache pods getroffen worden. De slaagkans van de probe na de actie 'terminate\textunderscore pods' is afhankelijk van de snelheid waarmee Kubernetes de nieuwe pods kan creëeren.  
+
+\subsection{Experiment 4: bereikbaarheid van Podtato-Head applicatie testen}
+
+In dit experiment zal de demo-applicatie Podtato-Head in namespace demoapp2 gebruikt worden. Deze applicatie is alreeds opgezet in hoofdstuk \ref{subsec:podtato-setup} en men kon daar alreeds de URL te zien krijgen waarop de applicatie bereikbaar is. Deze URL zal men nodig hebben in de configuratie van het experiment.
+
+Dit experiment zal het gevolg testen van het vernietigen van pod 'podtato-head-entry', die verantwoordelijk is voor de toegang tot de applicatie. Voor en na de vernietiging van deze pod zal via een {\bf http probe} gecontroleerd worden als de applicatie terug bereikbaar is. \autocite{ChaosToolkit2022d}
+ 
+Men kan in deze probe een parameter {\bf timeout} configureren en een waarde meegeven hoelang het maximum mag duren om een antwoord op de GET-request te krijgen. Als antwoord wordt een HTTP-response status code 200 verwacht, wat wil zeggen dat de applicatie bereikbaar is. Alternatief kunnen ook twee waardes als JSON array geconfigureerd worden waarbij de eerste waarde de connection timeout weergeeft,
+en de tweede waarde de request timeout. Meer info over deze twee types timeout kan men in volgende link terugvinden: \href {https://stackoverflow.com/questions/49704708/what-is-a-connection-timeout-during-a-http-request}{what-is-a-connection-timeout-during-a-http-request}
+
+Gebruik volgend stappenplan om dit experiment op te zetten:
+\begin{enumerate}
+  \item Creëer een nieuw YAML-bestand genaamd 'podtato-entry-kill-httpprobe.yaml'.
+  \item Kopieer de definitie in volgende link om dit bestand op te vullen:
+  \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/podtato-entry-kill-httpprobe.yaml}{Experiment 4: podtato-entry-kill-httpprobe.yaml}
+  \item Pas de parameter {\bf url} aan naar deze die men bij de setup van de Podtato-Head applicatie in hoofdstuk \ref{subsec:podtato-setup} alreeds heeft bekomen.
+  \item Sla de wijzigingen op.
+  \item Voer het experiment uit via commando {\bf chaos run podtato-entry-kill-httpprobe.yaml}.
+\end{enumerate} 
+
+\\ \newline Het resultaat van dit experiment ziet men in figuur \ref{img:chaostoolkitex4}. Ondanks een pauze van tien seconden faalt de probe na de actie nog steeds. Op deze manier kan men zien dat de applicatie meer tijd nodig heeft vooraleer deze terug bereikbaar is.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=15cm, height=4cm]{img/chaostoolkit-ex4.png}
+    \caption{http probe faalt bij uitvoer Chaos Toolkit experiment 4}
+    \label{img:chaostoolkitex4}
+\end{figure}
+
+\\ {\bf Oplossing:} Een applicatie die onbereikbaar is wil men ten allen tijde vermijden. Wat men ziet in de Podtato-Head applicatie is dat elke pod slechts één keer voorkomt. In deze applicatie wordt elke pod voorzien door een aparte Deployment. Een voordeel van pods die opgezet worden via een Deployment is dat deze makkelijk te schalen zijn.
+Als oplossing op voorgaand gefaald experiment kan men dus de Deployment die verantwoordelijk is voor de podtato-head-entry pod schalen zodat deze steeds twee pods actief heeft. Als één pod in de problemen komt zal de andere de bereikbaarheid van de applicatie toch nog verzekeren. 
+Men kan dit controleren via commando {\bf kubectl get deploy -n demoapp2}. In de output van dit commando ziet men dat de Deployment eveneens podtato-head-entry noemt. Om deze te schalen zodat steeds twee pods actief zijn past men volgend commando toe: {\bf kubectl scale deploy podtato-head-entry --replicas=2 -n demoapp2}. Als gevolg kan men zien via de k9s tool dat een extra podtato-head-entry pod gecreëerd is in namespace demoapp2.
+
+Herhaal vervolgens het experiment en als resultaat zal men nu zien dat de applicatie bereikbaar blijft wanneer één van de podtato-head-entry pods getroffen wordt. Als test kan men de parameter pauses in commentaar plaatsen in de YAML-definitie, zodat de http probe rechtstreeks na de actie uitgevoerd wordt.  
+
+\subsection{Referenties toepassen in een experiment}
+
+Wanneer men een actie of probe opnieuw wil uitvoeren dan kan men via een referentie verwijzen naar de alreeds bestaande configuratie van die actie of probe. Zie als voorbeeld de onderstaande code uit de YAML-definitie van experiment 4 waarin een probe herhaald wordt door ernaar te refereren via parameter {\bf ref}:  
+
+\begin{lstlisting}[language=bash] 
+steady-state-hypothesis:
+  title: Applicatie is bereikbaar
+  probes:
+  - name: response-OK
+    type: probe
+    tolerance: 200
+    provider:
+      type: http
+      timeout: [1,2]
+      verify_tls: false
+      url: http://34.121.207.30:9000/
+  - type: probe 
+    tolerance: 200
+    ref: response-OK
+\end{lstlisting}
+
+Ter info: Men hoeft een probe niet noodzakelijk in een steady-state-hypothesis te definiëren. Wil men  een probe tijdens de actie van het experiment uitvoeren dan kan men dit in de 'method' definitie alreeds toepassen. Hou rekening dat deze controle dan direct na de actie uitgevoerd wordt waardoor deze vaak niet het gewenste resultaat zal geven.
+
+\subsection{Experiment 5: Een nodefaling simuleren}
+
+Pods blijven niet voor eeuwig op dezelfde node bestaan. Er zijn enkele redenen wanneer de locatie van een pod kan wijzigen o.a. wanneer autoscaling geactiveerd is en hierdoor nodes af- en opgebouwd worden, of men een onderhoud moet uitvoeren aan een bepaalde node in een Kubernetes cluster waardoor de aanwezige pods op deze node moeten verhuizen naar een andere node. 
+
+Dit proces noemt men {\bf node draining} en kan dus zowel automatisch door Kubernetes toegepast worden alsook manueel door een administrator. 
+
+In volgend experiment zullen de pods op één van de nodes verwijderd worden en verhuizen richting een andere node. Dit zal opgezet worden m.b.v. de actie {\bf drain\textunderscore nodes}. \autocite{ChaosToolkit2022e} 
+
+De nodes in de cluster kan men opvragen via commando {\bf kubectl get nodes}: 
+\begin{lstlisting}[language=bash]
+$ kubectl get nodes
+NAME                                       STATUS
+gke-cluster-1-default-pool-1a61ddf4-mcs9   Ready
+gke-cluster-1-default-pool-1a61ddf4-z4rx   Ready
+\end{lstlisting}
+
+In bovenstaande output ziet men dat er momenteel twee nodes actief zijn. Het experiment wordt toegepast op de pods van de Podtato-Head applicatie. Hoe de pods over deze twee nodes verdeeld zijn kan men bekijken via commando {\bf kubectl get pods -n demoapp2 -o wide}:
+\begin{lstlisting}[language=bash]
+$ kubectl get pods -n demoapp2 -o wide
+NAME                                      NODE                                       
+podtato-head-entry-678765f77f-7j8v4       gke-cluster-1-z4rx
+podtato-head-entry-678765f77f-r65c6       gke-cluster-1-mcs9
+podtato-head-hat-67454666b-znt9w          gke-cluster-1-mcs9
+podtato-head-left-arm-7df4878b79-dth4c    gke-cluster-1-z4rx
+podtato-head-left-leg-64b87585df-lmfbk    gke-cluster-1-mcs9
+podtato-head-right-arm-776cdbb8cd-7c5sx   gke-cluster-1-mcs9
+podtato-head-right-leg-54cd484dfb-kt5zr   gke-cluster-1-mcs9
+\end{lstlisting} 
+ 
+In de YAML-definitie van dit experiment zullen ook enkele argumenten opgenomen worden met als doel het experiment te richten op een node waarop specifiek pods van de demoapp2 namespace actief zijn (= {\bf node\textunderscore label}), alsook een node te kiezen waarop specifiek de pod 'podtato-head-entry' aanwezig is ({\bf = pod\textunderscore label\textunderscore selector}). \newline Nota: de output van bovenstaande commando's toonde alreeds aan dat deze argumenten geen meerwaarde zullen bieden in dit geval, aangezien beide nodes zullen beantwoorden aan de toegepaste filtering in deze argumenten.
+Bij het reproduceren van dit experiment kan het echter zijn dat een andere omgeving gebruikt wordt, waar eventueel meer nodes bestaan en waar niet elke node de 'podtato-head-entry' pod bevat.
+
+Om een waarde toe te kennen aan parameter {\bf node\textunderscore label} is de output van het commando {\bf kubectl describe nodes} nodig. Wanneer men naar de eerste regels van deze output gaat ziet men enkele labels gekoppeld aan de nodes in de cluster. Men heeft dus verschillende opties qua labels om te koppelen aan de parameter. Aangezien deze labels kunnen variëren op basis van de cluster die opgezet is (vb. andere cloud provider of lokale clusters) wordt buiten de YAML-definitie eerst een omgevingsvariabele gecreëerd op het systeem.
+\newline In het geval van de Google Cloud cluster is deze waarde 'beta.kubernetes.io/os=linux'. 
+
+Pas volgende stappen toe om dit experiment op te zetten: 
+\begin{enumerate}
+    \item Creëer de omgevingsvariabele via commando \newline {\bf export NODE\textunderscore LABEL="beta.kubernetes.io/os=linux"}
+    \item Creëer een nieuw YAML-bestand genaamd 'drain-node.yaml'.
+    \item Kopieer de experimentdefinitie in volgende link naar het nieuwe bestand: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/drain-node.yaml}{Experiment 5: drain-node.yaml}
+     \item Pas de parameter {\bf url} aan naar deze die men bij de setup van de Podtato-Head applicatie in hoofdstuk \ref{subsec:podtato-setup} alreeds heeft bekomen.
+     \item Sla de wijzigingen op.
+     \item Voer het experiment uit via commando {\bf chaos run drain-node.yaml}.
+\end{enumerate}
+
+Resultaat: Men kan via de k9s tool opvolgen dat alle pods van één van de nodes verhuizen richting een andere node. In de configuratie van het experiment kreeg het hiervoor 2 minuten tijd. Soms blijkt dit echter niet genoeg waardoor de uitvoer van het experiment toch nog foutmeldingen geeft. \newline Het experiment bevestigde eveneens m.b.v. een http probe dat de Podtato-Head applicatie ondertussen bereikbaar blijft. 
+
+Als men de nodes terug opvraagt via commando {\bf kubectl get nodes} zal men opmerken dat bij kolom {\bf Status} de term {\bf SchedulingDisabled} te zien is.
+
+\begin{lstlisting}
+$ kubectl get nodes
+NAME                                       STATUS    
+gke-cluster-1-default-pool-1a61ddf4-mcs9   Ready                      
+gke-cluster-1-default-pool-1a61ddf4-z4rx   Ready,SchedulingDisabled
+\end{lstlisting}
+
+Dit is het gevolg van de node drain actie en hierdoor zal de Kubernetes Scheduler deze node als onplanbaar zal zien m.a.w. er zullen geen nieuwe pods op deze node geplaatst worden. Aangezien dit geen gewenst scenario is zal men dit proces deze keer wel moeten terugdraaien via een {\bf rollback}. 
+Het proces waarbij de Status veranderd wordt richting 'SchedulingDisabled' en de node alsgevolg onplanbaar wordt noemt men {\bf node cordoning}. \autocite{DeFabia2022}
+
+\subsection{Experiment 6: Rollback toepassen op experiment 5}
+
+Het vorige experiment heeft een node onbruikbaar gemaakt. Dit proces kan via ChaosToolkit eveneens omgedraaid worden door het implementeren van de rollback {\uncordon\textunderscore node}. \autocite{Chaostoolkit2022f}
+
+Pas volgende stappen toe om de rollback toe te passen:
+\begin{enumerate}
+    \item Creëer een nieuw YAML-bestand genaamd 'drain-node-with-rollback.yaml'.
+    \item Kopieer de YAML-definitie uit volgende link naar dit nieuwe bestand: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/drain-node-with-rollback.yaml}{Experiment 6: drain-node-with-rollback.yaml}
+    \item Pas de parameter {\bf url} aan naar deze die men bij de setup van de Podtato-Head applicatie in hoofdstuk \ref{subsec:podtato-setup} alreeds heeft bekomen.
+    \item Sla de wijzigingen op.
+    \item Voer het experiment uit via commando {\bf chaos run drain-node-with-rollback.yaml}. 
+    \item Vraag de status van de nodes op via commando {\bf kubectl get nodes}.
+\end{enumerate}
+
+Resultaat: Men kan zien dat de Status van de nodes nu terug naar Ready veranderd is. Dit experiment is uitgevoerd in een Google Cloud cluster en het gevolg van deze experimenten was vaak dat eveneens een nieuwe node werd opgezet om het verlies van de getroffen node op te vangen. 
+
+\subsubsection{Google Cloud cluster resizing}
+
+Aangezien Google Cloud via het 'pay per node' principe werkt zullen de gratis credits dus sneller
+verbruikt worden indien meer nodes dan nodig actief zijn. Via volgend commando kan men de nodes in
+de cluster terugschalen naar een gewenst niveau: {\bf gcloud container clusters resize [cluster naam] --zone [cluster zone] --num-nodes=[aantal nodes]}. 
+
+Voorbeeld: gcloud container clusters resize cluster-1 --zone us-central1-c --num-nodes=2
+
+Nota: dit resizing proces zal ongeveer een minuut tijd in beslag nemen. 
+
+\subsection{Conclusie ChaosToolkit}
+
+ChaosToolkit is eenvoudig te installeren op het systeem. Men kan de functionaliteit van deze chaos engineering tool uitbreiden via verschillende plugins. Vooraf gedefinieerde experimenten worden niet aangeboden, maar afzonderlijke configuraties voor verschillende Kubernets objecten, probes, rollbacks ... kan men op de website \url{https://chaostoolkit.org/} terugvinden.
+\newline Op deze manier krijgt men de vrijheid zelf een experiment naar wens samen te stellen. Om de eerste experimenten op te zetten kan men via het {\bf chaos init} commando een wizard raadplegen. Zowel JSON als YAML-definities worden aanvaard als experimentconfiguratie. 
+
+Enkele nadelen aan Chaos Toolkit zijn:
+\begin{itemize}
+    \item  het ontbreken van een GUI waarmee via de browser experimenten opgezet kunnen worden.
+    \item  het ontbreken van de optie om experimenten in te plannen zodat deze periodiek uitgevoerd kunnen worden. 
+    \item het ontbreken van experimenten om het geheugen of CPU te belasten. Dit is nochtans een realistisch scenario waarmee applicaties te maken krijgen.  
+    \item  de moeilijkheidsgraad om netwerkgerelateerde experimenten uit te voeren. Hiervoor moeten extra plugins en packages geïnstalleerd worden zoals Istio, die op zich ook de nodige technische kennis vereisen.   
+\end{itemize}
 
 \section{Chaos Mesh}
 
 Het Chaos Mesh project bestaat sinds begin 2020 en was oorspronkelijk bedoeld als testplatform voor de open-source NewSQL-database TiDB. Chaos Mesh is een veelzijdig chaos engineering platform om chaos experimenten uit te voeren in Kubernetes omgevingen. Het project werd in juli 2020 geaccepteerd als Cloud Native Computing Foundation (CNCF) Sandbox project en is sinds begin 2022 geëvolueerd naar een CNCF Incubating project. \autocite{CNCF2022b}
-
 
 De algemene documentatie op de Chaos Mesh website toont aan dat voor volgende lokale omgevingen een oneliner script kan toegepast worden om deze tool te installeren \autocite{ChaosMesh2022}: 
 \begin{itemize}

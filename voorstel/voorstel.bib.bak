@@ -429,4 +429,46 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   url    = {https://latisresearch.umn.edu/python-virtual-environments-in-linux},
 }
 
+@Online{K9s2022,
+  author = {K9s},
+  date   = {2022-04-01},
+  title  = {K9s Installation},
+  url    = {https://k9scli.io/topics/install/},
+}
+
+@Online{ChaosToolkit2022c,
+  author = {ChaosToolkit},
+  date   = {2022-05-22},
+  title  = {Pods in phase},
+  url    = {https://chaostoolkit.org/drivers/kubernetes/#pods_in_phase},
+}
+
+@Online{ChaosToolkit2022d,
+  author = {ChaosToolkit},
+  date   = {2022-05-22},
+  title  = {Http provider},
+  url    = {https://chaostoolkit.org/reference/api/experiment/#http-provider},
+}
+
+@Online{ChaosToolkit2022e,
+  author = {ChaosToolkit},
+  date   = {2022-05-22},
+  title  = {Drain nodes},
+  url    = {https://chaostoolkit.org/drivers/kubernetes/#drain_nodes},
+}
+
+@Online{DeFabia2022,
+  author = {James DeFabia},
+  date   = {2022-05-22},
+  title  = {kubectl cordon},
+  url    = {https://jamesdefabia.github.io/docs/user-guide/kubectl/kubectl_cordon/},
+}
+
+@Online{Chaostoolkit2022f,
+  author = {Chaostoolkit},
+  date   = {2022-05-22},
+  title  = {Uncordon node},
+  url    = {https://chaostoolkit.org/drivers/kubernetes/#uncordon_node},
+}
+
 @Comment{jabref-meta: databaseType:biblatex;}
