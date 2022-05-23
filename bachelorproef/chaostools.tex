@@ -49,6 +49,7 @@ $ kubectl create deploy nginx --image=nginx \
 # Creëer een LoadBalancer Service voor de Nginx pods
 $ kubectl expose deploy nginx --port=80 --type=LoadBalancer \
 -n demoapp1
+
 \end{lstlisting} 
 
 Wanneer men vervolgens via commando {\bf kubectl get svc -n demoapp1} de Services opvraagt zal men zien dat een extern IP-adres bij de Nginx LoadBalancer Service te zien is. Via de browser kan men nu surfen naar dit IP-adres en zal men de nginx default webpagina te zien krijgen. 

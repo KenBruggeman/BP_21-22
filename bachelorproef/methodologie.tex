@@ -13,9 +13,9 @@
 
 Bij de start van dit onderzoek moest eerst een basiskennis Kubernetes verworven worden. Hiervoor is via het online leerplatform Udemy de cursus 'Kubernetes for the absolute beginners' geraadpleegd. \autocite{Mannambeth2021}  
 
-Vooraleer men van start kan gaan met het uitvoeren van chaos engineering experimenten is een Kubernetes cluster nodig waarin een demo-applicatie actief is. In schoolcontext werd steeds gebruik gemaakt van een type 2 hypervisor zoals VirtualBox om virtuele machines op te zetten, aangevuld met automatisatietools zoals Vagrant en Ansible. Hierdoor is eerst onderzocht welke mogelijkheden er waren om op soortgelijke manier een lokale Kubernetes cluster op te zetten. 
+Vooraleer men van start kan gaan met het uitvoeren van chaos engineering experimenten is een Kubernetes cluster nodig waarin een demo-applicatie actief is. In schoolcontext werd steeds gebruik gemaakt van een type 2 hypervisor zoals VirtualBox om virtuele machines op te zetten, aangevuld met automatisatietools zoals Vagrant en Ansible. 
 
-De volgende Kubernetes distributies zijn gebruikt om een lokale Kubernetes cluster op te zetten:
+Vanuit dit standpunt zijn volgende Kubernetes distributies eerst onderzocht om een lokale Kubernetes cluster op te zetten:
  
 \begin{itemize}
     \item {\bf Minikube}: een single-node Kubernetes cluster opgezet op een Ubuntu Linux VM. 
@@ -24,29 +24,21 @@ De volgende Kubernetes distributies zijn gebruikt om een lokale Kubernetes clust
     \item {\bf KinD}: een multi-node Kubernetes cluster opgezet op één Ubuntu Linux VM. Alle nodes bestaan in de vorm van Docker containers, waardoor men een multi-node cluster kan simuleren binnen 1 VM. Deze cluster bevat 1 control-plane en 2 worker nodes.
 \end{itemize}
 
+Door problemen met de bereikbaarheid van de Kubernetes cluster na de setup via KinD is besloten deze setup verder niet te beschrijven in dit onderzoek. 
+
 Om een basis te verwerven in chaos engineering is de online Udemy cursus 'Kubernetes Chaos Engineering With Chaos Toolkit And Istio' geraadpleegd. Deze cursus is gebaseerd op het 'boek The DevOps Toolkit: Kubernetes Chaos Engineering' en wordt gegeven door de auteur Victor Farcic.  \autocite{Farcic2020}
 
-De volgende chaos engineering tools zijn getest in een lokale Kubernetes cluster:
+Tijdens het opzetten van lokale clusters zoals Minikube en Kubeadm werden alreeds de eerste experimenten uitgevoerd met behulp van de Chaos Engineering tool Chaos Toolkit. Hierbij werd oorspronkelijk gebruik gemaakt van de demo-applicatie 'go-demo-8' die ook gebruikt werd in de Udemy cursus 'Kubernetes Chaos Engineering With Chaos Toolkit And Istio'. 
 
-\begin{itemize}
-    \item Chaos Toolkit
-    \item Chaos Mesh 
-\end{itemize}
+Het nadeel aan deze demo-applicatie is dat deze gebruik maakte van een achterliggende database die nood had aan het Kubernetes object 'PersistentVolume (PV)'. Dit opslag-gerelateerde object is gekoppeld aan andere gerelateerde Kubernetes objecten zoals een 'PersistentVolumeClaim (PVC)' en 'StorageClass (SC)'. 
+\newline Een single-node Minikube cluster heeft een default StorageClass die gebruikt kan worden door de 'go-demo-8' demo-applicatie, maar is tegelijkertijd als single-node te beperkt om een goed inzicht te krijgen in de werking van Kubernetes. 
+\newline Andere lokale multi-node setups zoals Kubeadm en Kubespray bevatten géén default StorageClass waardoor de 'go-demo-8' applicatie niet werkte. Hierdoor kwamen de eerste nadelen aan het licht van een lokale Kubernetes setup. Pogingen om de benodigde Kubernetes objecten achteraf te installeren bleken geen succes waardoor andere opties onderzocht werden.  
+   
+Eens het nodige onderzoek verricht werd hoe men lokale Kubernetes clusters kon opzetten, en welke nadelen dit met zich meebracht, is vervolgens onderzocht welke meerwaarde een cluster in de Google Cloud kon bieden. 
 
-Doordat een Kubernetes cluster in een lokale omgeving zijn beperkingen heeft is gekozen om ook een cluster op te zetten in een Google Cloud omgeving. In deze cloudomgeving zijn volgende chaos engineering tools getest: 
+Vanaf dit punt is gekozen om af te stappen van de 'go-demo-8' applicatie en onderzoek te verrichten naar een andere applicatie die geen nood had aan achterliggende Kubernetes objecten. De eenvoud van de applicatie alsook het visuele aspect was hierbij de belangrijkste drijfveer in de zoektocht naar een geschikte applicatie. Uiteindelijk werd gekozen voor twee demo-applicaties, waarvan de eerste applicatie simpelweg opgezet wordt door zelf twee Deployments te creëeren die resulteren in enkele Nginx en Apache pods inclusief Services. Anderzijds werd ook gekozen voor de applicatie Podtato-Head, die meer beantwoordt aan het visuele aspect doordat deze applicatie een aardappelmannetje voorstelt waarin elke ledemaat een pod is.    
 
-\begin{itemize}
-    \item Chaos Mesh
-    \item Litmus 
-\end{itemize}
+Rond deze tijd kwam ook de monitoring tool k9s ter sprake, die in het verder verloop van het onderzoek een meerwaarde bleek te zijn doordat de experimenten via deze tool live opgevolgd konden worden.
+Tergelijkertijd werd het onderzoek gestart naar de twee andere chaos engineering tools genaamd Chaos Mesh en Litmus. Deze tools bieden eveneens een grafische userinterface (GUI) aan waardoor men experimenten ook in de browser kan opzetten i.p.v. via de terminal. Om de werking van deze twee tools beter te begrijpen is gekozen om zowel experimenten uit te voeren via de GUI als via de terminal.
 
-
-
-
-
-
-\subsection{Chaos Toolkit}
-
-\subsection{Chaos Mesh}
-
-\subsection{Litmus}
+Alle bevindingen en experimenten uitgevoerd via deze drie verschillende tools werden gefilterd om enkel de relevante info en experimenten over te nemen in dit onderzoek.  

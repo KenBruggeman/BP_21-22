@@ -9,36 +9,54 @@ Moderne applicaties maken steeds meer gebruik van een microservices softwarearch
 
 Containervirtualisatie, een technologie waar Docker een bekend voorbeeld van is, biedt een oplossing om tegemoet te komen aan deze nieuwe vorm van applicatieontwikkeling. Hierbij wordt elke service in een aparte container opgebouwd, waarbij enkel de nodige resources voor deze service gebruikt worden. 
 
-Om deze containerapplicaties beter te kunnen schalen, en er onder andere voor te zorgen dat deze continu beschikbaar zijn, wordt containerorchestratie zoals Kubernetes toegepast. Orchestratie is kortweg het automatiseren van containermanagement. Containers van een applicatie kunnen onderverdeeld zijn op één of meerdere nodes (fysieke server/virtuele machine), die gegroepeerd worden in een Kubernetes cluster. 
+Om deze containerapplicaties beter te kunnen schalen, en er onder andere voor te zorgen dat deze continu beschikbaar zijn, wordt containerorkestratie zoals Kubernetes toegepast. Orkestratie is kortweg het automatiseren van containermanagement. Containers van een applicatie kunnen onderverdeeld zijn op één of meerdere nodes (fysieke server/virtuele machine), die gegroepeerd worden in een Kubernetes cluster. 
 
-Netflix was het eerste bedrijf die begon te experimenteren op deze clusters om de weerbaarheid ervan te testen. Zij ontwikkelden de tool Chaos Monkey, die foutinjecties van allerlei soorten kon simuleren, om zo te leren hoe ze proactief problemen konden aanpakken. Deze vorm van experimenteren werd later bekend als chaos engineering en wordt alreeds toegepast door enkele van de grootste bedrijven ter wereld, in verschillende sectoren.    
+Netflix was het eerste bedrijf die begon te experimenteren op deze clusters om de weerbaarheid ervan te testen. Zij ontwikkelden verschillende tools die foutinjecties van allerlei soorten konden simuleren, om zo te leren hoe ze proactief problemen konden aanpakken. Deze vorm van experimenteren werd later bekend als chaos engineering en wordt alreeds toegepast door enkele van de grootste bedrijven ter wereld.    
 
 \section{\IfLanguageName{dutch}{Probleemstelling}{Problem Statement}}
 \label{sec:probleemstelling}
 
-TO DO
-% Uit je probleemstelling moet duidelijk zijn dat je onderzoek een meerwaarde heeft voor een concrete doelgroep. De doelgroep moet goed gedefinieerd en afgelijnd zijn. Doelgroepen als ``bedrijven,'' ``KMO's,'' systeembeheerders, enz.~zijn nog te vaag. Als je een lijstje kan maken van de personen/organisaties die een meerwaarde zullen vinden in deze bachelorproef (dit is eigenlijk je steekproefkader), dan is dat een indicatie dat de doelgroep goed gedefinieerd is. Dit kan een enkel bedrijf zijn of zelfs één persoon (je co-promotor/opdrachtgever).
+Containerorkestratie, waarvan Kubernetes een bekend voorbeeld is, wint laatste jaren enorm aan populariteit. Deze nog relatief jonge technologie zal komende jaren ongetwijfeld zijn plaats krijgen in het curriculum van systeem-en netwerkbeheer. Het toepassen van chaos engineering experimenten kan tegelijkertijd een meerwaarde bieden in het leerproces van Kubernetes. 
+
+Dit onderzoek is zowel gericht op studenten als lectoren in systeem- en netwerkbeheer en biedt inzicht in welke kennis vereist is om met Kubernetes aan de slag te kunnen gaan. Hierbij zal eerst de nodige aandacht geschonken worden aan de setup van een Kubernetes cluster, zowel lokaal als in een cloudomgeving. 
+
+Chaos engineering experimenten toepassen op applicaties in een Kubernetes cluster stimuleert het begrip hoe Kubernetes acties onderneemt wanneer deze geconfronteerd wordt met realistische problemen die een applicatie in een productieomgeving kunnen treffen. Ook deze technologie staat echter nog in de kinderschoenen waardoor de juiste tool vinden in combinatie met de geschikte Kubernetes setup het nodige onderzoek vereist. 
 
 \section{\IfLanguageName{dutch}{Onderzoeksvraag}{Research question}}
 \label{sec:onderzoeksvraag}
 
-TO DO
+Via dit onderzoek werd een antwoord gezocht op meerdere vragen zoals:  
+\begin{enumerate}
+    \item Kan een Kubernetes cluster eenvoudig opgezet worden in een lokale omgeving m.b.v. automatisatietools zoals Vagrant en Ansible?
+    \item Welke voor- en nadelen zijn er verbonden aan een lokale Kubernetes setup? 
+    \item Biedt een lokale setup een meerwaarde tegenover een Kubernetes cluster in Google Cloud op te zetten? 
+    \item Welke chaos engineering tools zijn geschikt om toe te passen op een Kubernetes cluster? 
+    \item Welke chaos engineering experimenten zijn relevant om de werking van Kubernetes toe te lichten zodat dit een meerwaarde kan bieden in een curriculum systeem- en netwerkbeheer? 
+\end{enumerate} 
 
-% Wees zo concreet mogelijk bij het formuleren van je onderzoeksvraag. Een onderzoeksvraag is trouwens iets waar nog niemand op dit moment een antwoord heeft (voor zover je kan nagaan). Het opzoeken van bestaande informatie (bv. ``welke tools bestaan er voor deze toepassing?'') is dus geen onderzoeksvraag. Je kan de onderzoeksvraag verder specifiëren in deelvragen. Bv.~als je onderzoek gaat over performantiemetingen, dan 
+{\bf !! TO DO: Concrete onderzoeksvraag formuleren uit bovenstaande vragen ?????? }
 
 \section{\IfLanguageName{dutch}{Onderzoeksdoelstelling}{Research objective}}
 \label{sec:onderzoeksdoelstelling}
 
-TO DO
+Een eerste doelstelling in dit onderzoek is om meerdere proof-of-concepts te bekomen in het opzetten van een Kubernetes cluster, dit zowel lokaal als in de cloud. Qua lokale setups is gekozen om Minikube, Kubeadm en Kubespray te onderzoeken. Nadien is ook een cluster opgezet via Google Cloud. 
 
-% Wat is het beoogde resultaat van je bachelorproef? Wat zijn de criteria voor succes? Beschrijf die zo concreet mogelijk. Gaat het bv. om een proof-of-concept, een prototype, een verslag met aanbevelingen, een vergelijkende studie, enz.
+Met de kennis hoe deze lokale clusters opgezet worden tegenover een setup in de cloud kan nadien een vergelijking gemaakt worden welke manier best geschikt is om een Kubernetes cluster op te zetten.
+
+De tweede doelstelling is om eenvoudige applicaties en tools te vinden om de brug te maken tussen Kubernetes en Chaos Engineering. Extra aandacht wordt hierbij vooral geschonken aan de eenvoud van de demo-applicatie(s) en tools, zodat deze de leercurve niet negatief beïnvloeden.
+
+De derde doelstelling is om verschillende chaos engineering tools te testen in de Kubernetes setup die als beste optie uit doelstelling 1 naar boven kwam. Hierbij zal de nodige aandacht geschonken worden aan volgende factoren:
+\begin{enumerate}
+    \item de eenvoud om de tool op te zetten.
+    \item de documentatie die deze tool biedt.
+    \item de vereiste leercurve om met deze tool aan de slag te kunnen.
+    \item de eenvoud om experimenten op te zetten en uit te voeren. 
+\end{enumerate} 
+
+Deze drie doelstellingen zullen resulteren in een aanbeveling naar een geschikte Kubernetes setup en chaos engineering tool om experimenten uit te voeren met als ultieme doelstelling het begrip te vergroten in de algemene werking van Kubernetes.    
 
 \section{\IfLanguageName{dutch}{Opzet van deze bachelorproef}{Structure of this bachelor thesis}}
 \label{sec:opzet-bachelorproef}
-
-% Het is gebruikelijk aan het einde van de inleiding een overzicht te
-% geven van de opbouw van de rest van de tekst. Deze sectie bevat al een aanzet
-% die je kan aanvullen/aanpassen in functie van je eigen tekst.
 
 De rest van deze bachelorproef is als volgt opgebouwd:
 
@@ -46,6 +64,10 @@ In Hoofdstuk~\ref{ch:stand-van-zaken} wordt een overzicht gegeven van de stand v
 
 In Hoofdstuk~\ref{ch:methodologie} wordt de methodologie toegelicht en worden de gebruikte onderzoekstechnieken besproken om een antwoord te kunnen formuleren op de onderzoeksvragen.
 
-% TODO: Vul hier aan voor je eigen hoofstukken, één of twee zinnen per hoofdstuk
+In Hoofdstuk~\ref{ch:lokaleclusters} komt de setup aan bod van drie lokale Kubernetes clusters nl. Minikube, Kubeadm en Kubespray. Hierbij zal steeds een conclusie gevormd worden over elke setup.
+
+In Hoofdstuk~\ref{ch:cloudclusters} wordt de setup besproken van een Kubernetes cluster via Google Cloud en zal nadien ook een conclusie gevormd worden.
+
+In Hoofdstuk~\ref{ch:chaostools} zal eerst de nodige aandacht geschonken worden aan het opzetten van de twee demo-applicaties en de monitoring tool k9s. Vervolgens zullen drie verschillende chaos engineering tools genaamd Chaos Toolkit, Chaos Mesh en Litmus onderzocht worden. 
 
 In Hoofdstuk~\ref{ch:conclusie}, tenslotte, wordt de conclusie gegeven en een antwoord geformuleerd op de onderzoeksvragen. Daarbij wordt ook een aanzet gegeven voor toekomstig onderzoek binnen dit domein.
