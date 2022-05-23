@@ -61,49 +61,50 @@ Eens men ingelogd is op de virtuele machine opent men een terminal sessie.
 Volg deze stappen om Minikube te installeren: \autocite{Simic2020}
 \begin{enumerate}
     \item {\bf Update het systeem en installeer vereiste packages:}
-\begin{lstlisting}[language=bash]
-# Update het systeem
-$ sudo apt-get update -y
-
-# Upgrade het systeem
-$ sudo apt-get upgrade -y
-
-# Installeer de curl package
-$ sudo apt-get install curl
-
-# Installeer de apt-transport-https package
-$ sudo apt-get install apt-transport-https
+    \begin{lstlisting}[language=bash]
+    # Update het systeem
+    $ sudo apt-get update -y
+    
+    # Upgrade het systeem
+    $ sudo apt-get upgrade -y
+    
+    # Installeer de curl package
+    $ sudo apt-get install curl
+    
+    # Installeer de apt-transport-https package
+    $ sudo apt-get install apt-transport-https
+    
     \end{lstlisting}
 
     \item {\bf Installeer Minikube:}
-\begin{lstlisting}[language=bash]
-# Download de minikube binary
-$ wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-
-# Kopieer het gedownloade bestand naar de directory /usr/local/bin/minikube
-$ sudo cp minikube-linux-amd64 /usr/local/bin/minikube
-
-# Verander de rechten van de binary zodat deze uitvoerbaar wordt
-$ sudo chmod 755 /usr/local/bin/minikube
-
-# Verifieer de installatie
-$ minikube version
-\end{lstlisting}
+    \begin{lstlisting}[language=bash]
+    # Download de minikube binary
+    $ wget https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    
+    # Kopieer het gedownloade bestand naar de directory /usr/local/bin/minikube
+    $ sudo cp minikube-linux-amd64 /usr/local/bin/minikube
+    
+    # Verander de rechten van de binary zodat deze uitvoerbaar wordt
+    $ sudo chmod 755 /usr/local/bin/minikube
+    
+    # Verifieer de installatie
+    $ minikube version
+    \end{lstlisting}
 
     \item {\bf Installeer de kubectl tool om de communicatie met- / en het beheer van de Minikube cluster mogelijk te maken:}
-\begin{lstlisting}[language=bash]
-# Download de kubectl tool binary
-$ curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-
-# Maak de binary uitvoerbaar
-$ chmod +x ./kubectl
-
-# Verplaats de binary naar /usr/local/bin/
-$ sudo mv ./kubectl /usr/local/bin/kubectl
-
-# Verifieer de installatie
-$kubectl version -o json
-\end{lstlisting}
+    \begin{lstlisting}[language=bash]
+    # Download de kubectl tool binary
+    $ curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+    
+    # Maak de binary uitvoerbaar
+    $ chmod +x ./kubectl
+    
+    # Verplaats de binary naar /usr/local/bin/
+    $ sudo mv ./kubectl /usr/local/bin/kubectl
+    
+    # Verifieer de installatie
+    $kubectl version -o json
+    \end{lstlisting}
     
 \end{enumerate} 
 
@@ -136,6 +137,7 @@ $ kubectl cluster-info
 
 # SSH-verbinding met de cluster maken
 $ minikube ssh 
+
 \end{lstlisting}
 
 \subsection{Conclusie Minikube}
@@ -208,7 +210,8 @@ Volgende stappen worden uitgevoerd op elke virtuele machine alvorens men kan ove
 $ ip link OF ipconfig -a
 
 # product_uuid controle 
-$ sudo cat /sys/class/dmi/id/product_uuid     
+$ sudo cat /sys/class/dmi/id/product_uuid  
+   
 \end{lstlisting} 
 
     \item {\bf Laad de module\textunderscore netfilter zodat iptables bridged netwerkverkeer kan zien.}
@@ -219,6 +222,7 @@ $ lsmod | grep br_netfilter
 
 # Laad de module br_netfilter in
 $ sudo modprobe br_netfilter
+
 \end{lstlisting}
 
     \item {\bf Pas de 'sysctl' configuratie aan zodat iptables het bridged netwerkverkeer correct kan zien.}
@@ -233,6 +237,7 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 $ sudo sysctl --system
+
 \end{lstlisting}
     
 \end{enumerate}
@@ -246,11 +251,13 @@ Men heeft verschillende opties qua Container Runtimes, maar in dit geval wordt g
 \begin{lstlisting}[language=bash]
     $ curl -fsSL https://get.docker.com -o get-docker.sh
     $ sudo sh get-docker.sh    
+    
 \end{lstlisting}
     
     \item {\bf Controleer als Docker succesvol is geïnstalleerd.}
 \begin{lstlisting}[language=bash]  
     $ systemctl status docker
+    
 \end{lstlisting}
 \end{enumerate}
 
@@ -275,7 +282,6 @@ $ sudo curl -fsSLo \
 /usr/share/keyrings/kubernetes-archive-keyring.gpg \ 
 https://packages.cloud.google.com/apt/doc/apt-key.gpg
 
-
 # Voeg de Kubernetes apt repository toe 
 $ echo "deb \
 [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] \ 
@@ -288,6 +294,7 @@ $ sudo apt-get update
 # Installeer kubelet, kubeadm en kubectl
 $ sudo apt-get install -y kubelet kubeadm kubectl
 $ sudo apt-mark hold kubelet kubeadm kubectl
+
 \end{lstlisting}
 
 Nota: De kubelet zal nu in een herstart-loop terecht komen aangezien het wacht op orders van kubeadm.
@@ -308,6 +315,7 @@ Om een cluster op te starten gebruikt men commando 'kubeadm init', aangevuld met
 \begin{lstlisting}[language=bash]
 $ kubeadm init --pod-network-cidr 10.244.0.0/16 \
 --apiserver-advertise-address=[IP-master node]
+
 \end{lstlisting}
 
 Nota: Indien er problemen zijn kan men deze troubleshooten via commando 'journalctl -xeu kubelet'. 
@@ -317,6 +325,7 @@ Het verwerken van dit commando zal even tijd nodig hebben. Als dit succesvol is 
 $ mkdir -p $HOME/.kube
 $ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
 \end{lstlisting}
 
 De resterende commando's te zien in de output worden uitgevoerd om worker nodes toe te voegen aan de cluster. Dit lukt pas nadat een Container Network Interface is geconfigureerd in volgend hoofdstuk. Bewaar de output voorlopig in een tekstbestand zodat men later kan terug grijpen naar de benodigde commando's.
@@ -340,6 +349,7 @@ Men gebruikt hiervoor het 'kubeadm join' commando, aangevuld met een token om au
 $ kubeadm join 192.168.56.2:6443 --token [TOKEN] 
   --discovery-token-ca-cert-hash
   sha256:[HASH]
+  
 \end{lstlisting} 
 
 Indien de toevoeging succesvol is zal men onderaan de gegenereerde output de melding 'This node has joined the cluster' zien. Men kan dit bevestigen via commando 'kubectl get nodes'. 
@@ -397,7 +407,8 @@ $ sudo apt-get install python3-pip -y
 $ cd kubespray && sudo pip3 install -r requirements.txt
 
 # Kopiëer directory inventory/sample naar inventory/mycluster
-$ cp -rfp inventory/sample inventory/mycluster    
+$ cp -rfp inventory/sample inventory/mycluster   
+ 
 \end{lstlisting}
  
 Nota: Indien de installatie van de benodigde packages faalt kan men proberen een oudere versie van requirements.txt aan te spreken vb. requirements-2.11.txt. Voer commando 'ls' uit in de kubespray directory om alle mogelijkheden op te lijsten.
@@ -421,7 +432,8 @@ $ vagrant ssh [master1, worker1, worker2]
 # Plaats daar de public key van de provisioning node en 
 # sla vervolgens op.
 # Herhaal dit proces op alle nodes.
-$ nano .ssh/authorized_keys    
+$ nano .ssh/authorized_keys
+    
 \end{lstlisting} 
 
 Op dit moment kan de Ansible provisioning node connecteren via SSH met de (toekomstige) cluster nodes. In volgende stap creëert men via de inventory\textunderscore builder automatisch een inventory file genaamd hosts.yaml. Het enige wat vooraf nodig is zijn de IP-adressen van de clusternodes. Om deze snel op te vragen kan men volgend commando uitvoeren in een nieuwe Git Bash terminal:
@@ -441,6 +453,7 @@ Zoek volgende regel in het inventory.py bestand en pas de waarde 2 aan naar 1 en
 # Remove the reference of KUBE_MASTERS after ...
 KUBE_CONTROL_HOSTS = int(os.environ.get("KUBE_CONTROL_HOSTS",
 os.environ.get("KUBE_MASTERS", 2)))
+
 \end{lstlisting}  
 
 Vervolgens kan men overgaan tot het creëeren van de inventory file: 
@@ -453,6 +466,7 @@ contrib/inventory_builder/inventory.py ${IPS[@]}
 
 # (Optioneel) Controleer de zojuist gecreëerde inventory file
 $ cat inventory/mycluster/hosts.yaml
+
 \end{lstlisting}
 
 Nu kan men overgaan tot het installeren van de Kubernetes cluster op de nodes geconfigureerd in de inventory file. Dit geautomatiseerd proces zal, afhankelijk van de toegewezen resources, ongeveer een half uur tijd nodig hebben om alles op te zetten. Gebruik volgend commando om de Ansible playbook uit te voeren: 
@@ -460,6 +474,7 @@ Nu kan men overgaan tot het installeren van de Kubernetes cluster op de nodes ge
 \begin{lstlisting}[language=bash]
 ansible-playbook -i inventory/mycluster/hosts.yaml \
 --become --become-user=root cluster.yml
+
 \end{lstlisting}
 
 Eens de clusterconfiguratie afgerond is dient men eerst nog volgende commando's uit te voeren op de control-plane node, alvorens men kan communiceren met de cluster via de kubectl commandline tool. 
@@ -471,6 +486,7 @@ $ vagrant ssh master1
 $ mkdir -p $HOME/.kube
 $ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
 \end{lstlisting}
 
 De drie virtuele machines horen nu in een Kubernetes cluster. Dit kan men controleren door op de control-plane node het commando 'kubectl get nodes' uit te voeren. 
@@ -490,6 +506,7 @@ NAME                     READY   STATUS    IP            NODE
 nginx-85b98978db-4t792   1/1     Running   10.233.96.3   node2
 nginx-85b98978db-78gcd   1/1     Running   10.233.90.5   node1
 nginx-85b98978db-n9tb2   1/1     Running   10.233.92.1   node3
+
 \end{lstlisting}
 
 De default configuratie van Kubespray heeft een cluster opgezet waarbij de Scheduler applicatie-pods kan onderbrengen op de control-plane node. Om de resources van de control-plane node onder controle te houden, maar ook eveneens om veiligheidsredenen, is het echter afgeraden dit in een cluster in productie toe te passen. Meer info over dit onderwerp kan men in de bron raadplegen. \autocite{Bailey2016}
@@ -502,10 +519,13 @@ $ kubectl taint node node1 node-role.kubernetes.io/master=node1:NoSchedule
 
 # Controle als de taint geconfigureerd is
 $ kubectl describe nodes | grep -i taints
+
 \end{lstlisting}
 
 \subsection{Conclusie Kubespray}
 
-De manier hoe met Kubespray een lokale Kubernetes cluster werd opgezet maakt zowel gebruik van de automatisatietools Vagrant als Ansible. Dit heeft het voordeel dat veel van de tijdrovende taken die in voorgaande tool Kubeadm aan bod kwamen alreeds geautomatiseerd zijn. Zo is elke node van de multi-node cluster alreeds toegevoegd aan de cluster, is er alreeds een CNI aanwezig, is de Container Runtime containerd op elke node geïnstalleerd ...
+De manier hoe met Kubespray een lokale Kubernetes cluster werd opgezet maakt zowel gebruik van de automatisatietools Vagrant als Ansible. Dit heeft het voordeel dat veel van de tijdrovende taken die in voorgaande tool Kubeadm aan bod kwamen alreeds geautomatiseerd zijn. Zo is elke node van de multi-node cluster alreeds toegevoegd aan de cluster, is er alreeds een CNI aanwezig, is de Container Runtime containerd op elke node geïnstalleerd ... De Ansible playbook had wel bijna een half uur nodig om deze cluster tot stand te brengen. Hierdoor kan men nog steeds concluderen dat een lokale cluster opzetten een tijdrovende taak is ondanks het wel het nodige inzicht met zich meebrengt welke zaken nodig zijn om een Kubernetes cluster operationeel te krijgen. 
 
-De procedure beschreven op de Kubespray website is vrij summier en mocht duidelijker omschreven zijn. Het uitvoeren van de Ansible playbook bracht een cluster tot stand waarin de control plane node eveneens user pods toegewezen kreeg. Hoe dit precies kon aangepast worden via de playbook was eveneens onduidelijk gedocumenteerd. 
+De procedure op de Kubespray website om een cluster tot stand te brengen is vrij summier en mocht duidelijker omschreven zijn. Het uitvoeren van de Ansible playbook bracht een cluster tot stand waarin de control plane node eveneens user pods toegewezen kreeg. Hoe dit precies kon aangepast worden via de playbook was eveneens onduidelijk gedocumenteerd. 
+
+In volgend hoofdstuk zal een Kubernetes cluster in de cloud via Google Cloud opgezet worden, om enerzijds te vergelijken als de setup vlotter verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.

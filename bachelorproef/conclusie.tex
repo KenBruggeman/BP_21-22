@@ -13,6 +13,28 @@
 % niet duidelijk zijn?
 % Heeft het onderzoek geleid tot nieuwe vragen die uitnodigen tot verder 
 %onderzoek?
+Gedurende dit onderzoek werd een antwoord gezocht op de vragen die in Hoofdstuk~\ref{sec:onderzoeksvraag} aan bod kwamen. Volgende antwoorden kan men aanschouwen als de conclusie van dit onderzoek:  
 
-TO DO 
+\begin{enumerate}
+\item {\bf Biedt het een meerwaarde om een lokale Kubernetes cluster op te zetten m.b.v. automatisatietools ten opzichte van een Kubernetes cluster via Google Cloud op te zetten?}
 
+Verschillende lokale Kubernetes clusters werden opgezet bij de start van dit onderzoek. Een single-node Minikube cluster kan snel en eenvoudig opgezet worden maar biedt geen meerwaarde om het inzicht in de werking van Kubernetes te verruimen. Eveneens kan men geen experimenten toepassen die gericht zijn op een node, aangezien dit de enige node in de omgeving zou treffen. Een multi-node cluster opzetten via Kubeadm is een tijdrovende manuele taak, maar geeft wel het nodige inzicht welke stappen nodig zijn om een cluster operationeel te krijgen. Deze manuele taken konden grotendeels opgelost worden via de geautomatiseerde setup m.b.v. de Ansible playbook in Kubespray, maar deze had bijna een half uur nodig om de cluster op te zetten wat terug als tijdrovend kan aanschouwd worden.
+\newline De snelheid en het gemak waarmee een cluster opgezet wordt in Google Cloud is ten opzichte van een lokale setup een enorm verschil. Een cluster opzetten in Google Cloud duurt slechts enkele minuten. Men kan extra functionaliteit toevoegen tijdens de setup zoals autoscaling, waardoor nodes automatisch kunnen schalen. Eveneens is er de aanwezigheid van een monitoring dashboard in Google Cloud, waardoor sommige experimenten zoals het belasten van het geheugen beter opgevolgd kunnen worden. Google Cloud biedt 300 dollar aan gratis krediet aan gedurende negentig dagen. Hierdoor is het mogelijk deze setup te gebruiken in een curriculum systeem-en netwerkbeheer.     
+\newline 
+\item {\bf Welke chaos engineering tool die in dit onderzoek aan bod komt is het meest geschikt om experimenten uit te voeren op een applicatie in een Kubernetes cluster?}
+\newline Het antwoord op deze vraag is minder eenvoudig. Elke onderzochte tool heeft namelijk zijn voor- en nadelen. Chaos Toolkit en Litmus opzetten ging vrij vlot, maar de GUI van Chaos Mesh bracht tijdens de setup de nodige problemen met zich mee. Na enkele pogingen lukte het toch om deze operationeel te krijgen, maar de oorzaak van het probleem is nooit achterhaald. 
+\newline Chaos Toolkit kan enkel gebruikt worden via de terminal en heeft een beperkt aanbod qua experimenten ten opzichte van de andere onderzochte tools. Het voordeel bij Chaos Toolkit is dat de structuur van de experimenten alsook de uitvoer in de terminal vrij duidelijk zijn. Ondanks de website van Chaos Toolkit veel documentatie bevat hoe men experimenten vorm geeft zijn enkele van de configuraties wel alreeds in een verouderde ('deprecated') staat.
+\newline Chaos Mesh heeft een breed gamma aan experimenten en heeft eveneens weinig resources nodig om operationeel te kunnen zijn tegenover Litmus. Experimenten opzetten in de terminal is mogelijk, maar biedt geen meerwaarde tegenover het opzetten van experimenten via de GUI. 
+\newline Litmus heeft eveneens een breed gamma aan experimenten ter beschikking, maar experimenten opzetten via de terminal is duidelijk niet de bedoeling en is ook beduidend moeilijker dan via Chaos Toolkit en Chaos Mesh, aangezien verschillende objecten steeds gecreëerd moeten worden voor elk experiment. Litmus heeft ook minder overzichtelijke documentatie dan Chaos Toolkit en Chaos Mesh.
+\newline Met de nodige voorzichtigheid komt Chaos Mesh als meest geschikte/complete tool van de drie onderzochte tools uit deze vergelijking. 
+\newline 
+\item {\bf Welke chaos engineering experimenten zijn relevant om een beter inzicht te creëeren in de werking van Kubernetes?}  
+\newline Dit onderzoek is vertrokken vanuit het standpunt van de leerling/lector. Het had dan ook weinig zin om nodeloos complexe applicaties op te zetten die een gevorderde kennis van Kubernetes zouden vereisen. Door de applicatie(s) simpel te houden konden alreeds enkele relevante zaken omtrent de werking van Kubernetes aangetoond worden zoals o.a.: 
+\begin{itemize}
+    \item het vernietigen van pods in een Deployment triggert de ReplicaSet om nieuwe pods te creëeren.
+    \item het vernietigen van pods in de Podtato-Head applicatie bracht aan het licht dat het voordeliger is om meerdere pods via een Deployment te creëeren, zodat een applicatie bereikbaar blijft wanneer een pod getroffen wordt.
+    \item het simuleren van netwerkproblemen toonde het belang aan van de communicatie tussen Services die verantwoordelijk zijn voor de bereikbaarheid van pods verspreid over verschillende nodes.      
+    \item het geheugen belasten van pods kan opgevangen worden via een HorizontalPodAutoscaler die extra pods creëert om deze belasting op te vangen.
+    \item het simuleren van een nodefaling toonde aan dat Kubernetes alle pods op de getroffen node kon verhuizen. 
+\end{itemize} 
+\end{enumerate}

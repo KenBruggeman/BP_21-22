@@ -7,11 +7,9 @@
 
 \section{Google Cloud Platform}
 
-In het voorgaande hoofdstuk \ref{ch:lokaleclusters} lag de focus op het in stand brengen van een Kubernetes cluster in een lokale omgeving. Initieel werd de voorkeur gegeven aan een lokale omgeving omdat deze dichter aanleunt bij de manier hoe men in schoolverband een virtuele omgeving tot stand brengt, vaak met behulp van automatisatie.
+In het voorgaande hoofdstuk \ref{ch:lokaleclusters} lag de focus op het in stand brengen van een Kubernetes cluster in een lokale omgeving. Initieel werd de voorkeur gegeven aan een lokale omgeving omdat deze dichter aanleunt bij de manier hoe men in schoolverband een virtuele omgeving tot stand brengt, vaak met behulp van automatisatie. Ondanks de automatisatie bleek dit nog steeds een tijdrovende taak te zijn. 
 
-Ondanks het opzetten van een lokale omgeving inzicht bood in welke zaken nodig zijn om een Kubernetes cluster operationeel te krijgen bleek het ook een tijdrovende taak te zijn, door de vele manuele stappen die genomen moesten worden naast de alreeds gebruikte automatisatietools Vagrant en Ansible.
-
-Vandaar is besloten ook een cluster via Google Cloud op te zetten, om enerzijds te vergelijken als de setup vlotter verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.
+In dit hoofdstuk zal besproken worden hoe men een Kubernetes cluster kan opzetten in de Google Cloud omgeving. 
 
 \subsection{Opzetten van een cluster via Google Cloud}
 \label{sec:cloudclustersetup}
@@ -49,7 +47,7 @@ Eén van de features die Google Kubernetes Engine (GKE) heeft is de aanwezigheid
 
 In de Monitoring pagina die geopend wordt kan men heel wat functionaliteit opmerken. In het linkermenu ziet men {\bf Metrics Explorer}. Via deze kan men verschillende metrics opvragen van de nodes in de cluster. Dit zal later van pas komen in het chaos engineering experiment waarbij node resources zoals geheugen/CPU belast worden.
 
-Voor het opvolgen van andere experimenten zal de terminal-gebaseerde UI {\bf k9s} gebruikt worden, waarvan de setup besproken zal worden bij het opzetten van de verschillende chaos engineering tools. 
+Voor het opvolgen van andere experimenten zal de terminal-gebaseerde UI {\bf k9s} gebruikt worden, waarvan de setup alreeds besproken is in Hoofdstuk~\ref{subsec:k9s}. 
   
 \subsection{Conclusie GKE cluster}
 

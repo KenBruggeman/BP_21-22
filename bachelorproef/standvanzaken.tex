@@ -261,9 +261,10 @@ Wanneer de configuratie geschreven is slaat men het bestand vervolgens op en kan
 Met behulp van het commando 'kubectl get pods' of het algemenere commando 'kubectl get all' kan het zopas gecreëerde object opgevraagd worden. 
 
 \begin{lstlisting}[language=bash]
-    $ kubectl get pods
-    NAME    READY   STATUS    RESTARTS   AGE
-    nginx   1/1     Running   0          24s
+$ kubectl get pods
+NAME    READY   STATUS    RESTARTS   AGE
+nginx   1/1     Running   0          24s
+    
 \end{lstlisting}
 
 Om het overzicht te bewaren over de Kubernetes objecten zoals pods, deployments, services ... die in een cluster actief zijn wordt gebruik gemaakt van labels. Verder kan men ook nog onderscheid creëren door gebruik te maken van namespaces, wat een manier is om een aparte groep te vormen waaronder Kubernetes objecten actief zijn. Het toepassen van namespaces zal later in hoofdstuk \ref{ch:chaos} Chaos Engineering gebruikt worden om de scope van de experimenten te bepalen. 
@@ -292,6 +293,34 @@ Een besturingssysteem maakt vaak standaard gebruik van een pakketbeheerder (of p
 Ook Kubernetes maakt gebruik van een eigen package manager genaamd Helm, die het mogelijk maakt om Kubernetes applicaties te beheren. Via Helm charts kan men de meest complexe Kubernetes applicaties definiëren, installeren en upgraden.
 
 Later in dit onderzoek zal één van de chaos engineering tools genaamd 'Chaos Mesh' in een cluster in de Google Cloud geïnstalleerd worden met behulp van Helm.  
+
+\subsection{k9s monitoring tool}
+\label{subsec:k9s} 
+
+De tool {\bf k9s} is een terminal-gebaseerde UI waarmee men makkelijker de objecten in een Kubernetes cluster kan beheren en observeren. K9s kan gebruikt worden voor monitoring doeleinden aangezien het continu de Kubernetes cluster afspeurt voor wijzigingen. Met behulp van deze tool zullen enkele van de chaos engineering experimenten die later in dit onderzoek aan bod komen opgevolgd worden.
+
+De k9s website biedt heel wat verschillende opties om de tool te installeren. \autocite{K9s2022}
+\newline In dit onderzoek is gekozen om k9s te installeren door een archiefbestand van de k9s binary in de Google Cloud Shell te downloaden en vervolgens uit te pakken. Om dit proces te herhalen kan men volgende stappenn uitvoeren: 
+\begin{lstlisting}
+# k9s binary downloaden in de terminal
+$ wget https://github.com/derailed/k9s/\
+releases/download/v0.25.18/k9s_Linux_x86_64.tar.gz
+
+# Uitpakken .gz archiefbestand
+$ tar -xvf k9s_Linux_x86_64.tar.gz
+
+# k9s binary verplaatsen naar /usr/bin
+$ sudo mv k9s /usr/bin/
+
+# Verwijder het gedownloade .gz archiefbestand
+$ rm k9s_Linux_x86_64.tar.gz
+
+# Pods in een specifieke namespace weergeven
+$  k9s -n [namespace]
+    
+\end{lstlisting} 
+
+Deze tool bevat heel wat functionaliteit die in dit onderzoek echter niet aan bod komt. Indien men deze tool verder wil ontdekken kan deze bron gebruikt worden: \url{https://medium.com/flant-com/k9s-terminal-ui-for-kubernetes-aeead8b0303f}
 
 \section{Chaos Engineering}
 \label{ch:chaos}

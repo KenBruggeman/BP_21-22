@@ -18,7 +18,7 @@ Daarna komt de installatie van de verschillende chaos engineering tools en het u
 
 \section{Demo-applicaties opzetten}
 
- Aangezien dit onderzoek gericht is om experimenten uit te voeren voor educatieve doeleinden, is gekozen om eerst enkele experimenten uit te voeren op Nginx en Apache webserver pods. Door twee aparte Deployments en Services op te zetten kon de onderlinge communicatie tussen beiden aangetoond en getest worden. Dit was praktisch om experimenten uit te voeren waarbij de communicatie verstoord werd tussen verschillende Services, of experimenten enkel te richten op specifieke pods in een namespace. 
+Aangezien dit onderzoek gericht is om experimenten uit te voeren voor educatieve doeleinden, is gekozen om eerst enkele experimenten uit te voeren op Nginx en Apache webserver pods. Door twee aparte Deployments en Services op te zetten kon de onderlinge communicatie tussen beiden aangetoond en getest worden. Dit was praktisch om experimenten uit te voeren waarbij de communicatie verstoord werd tussen verschillende Services, of experimenten enkel te richten op specifieke pods in een namespace. 
 
 Het visuele aspect ontbrak hierbij echter om de impact van een experiment te verduidelijken op de applicatie in een browser. Vandaar is gekozen om enkele experimenten te herhalen op een tweede demo-applicatie genaamd PodTato-Head, een applicatie die een aardappelmannetje toont en waarbij de lichaamsdelen bestaan uit verschillende pods, opgezet via afzonderlijke Deployments en Services.   Met behulp van deze applicatie kon o.a. aangetoond worden dat een applicatie nog steeds bereikbaar kan zijn desondanks bepaalde pods getroffen worden.
 
@@ -91,32 +91,6 @@ Via de output van het 'helm install ...' commando ziet men enkele commando's hoe
 
 Nota: Bovenstaande output bevat een LoadBalancer Service, maar in geval de applicatie in een lokale omgeving geïnstalleerd wordt zal hier een NodePort of ClusterIP te zien zijn. In dat geval zal men andere stappen moeten ondernemen om de toegang tot de applicatie in de browser te bekomen. 
 Zie sectie {\bf Test the API Endpoint} in de bron die aan het begin van dit hoofdstuk vermeld wordt, waar de nodige acties omschreven worden om toe te passen in deze verschillende situaties.  
-
-\section{k9s monitoring tool}
-
-De tool {\bf k9s} is een terminal-gebaseerde UI waarmee men makkelijker de objecten in een Kubernetes cluster kan beheren en observeren. K9s kan gebruikt worden voor monitoring doeleinden aangezien het continu de Kubernetes cluster afspeurt voor wijzigingen. Met behulp van deze tool zullen enkele van de chaos engineering experimenten die later in dit onderzoek aan bod komen opgevolgd worden.
-
-De k9s website biedt heel wat verschillende opties om de tool te installeren. \autocite{K9s2022}
-\newline In dit onderzoek is gekozen om k9s te installeren door een archiefbestand van de k9s binary in de Google Cloud Shell te downloaden en vervolgens uit te pakken. Om dit proces te herhalen kan men volgende stappenn uitvoeren: 
-\begin{lstlisting}
-# k9s binary downloaden in de terminal
-$ wget https://github.com/derailed/k9s/\
-releases/download/v0.25.18/k9s_Linux_x86_64.tar.gz
-
-# Uitpakken .gz archiefbestand
-$ tar -xvf k9s_Linux_x86_64.tar.gz
-
-# k9s binary verplaatsen naar /usr/bin
-$ sudo mv k9s /usr/bin/
-
-# Verwijder het gedownloade .gz archiefbestand
-$ rm k9s_Linux_x86_64.tar.gz
-
-# Pods in een specifieke namespace weergeven
-$  k9s -n [namespace]
-\end{lstlisting} 
-
-Deze tool bevat heel wat functionaliteit die in dit onderzoek echter niet aan bod komt. Indien men deze tool verder wil ontdekken kan deze bron gebruikt worden: \url{https://medium.com/flant-com/k9s-terminal-ui-for-kubernetes-aeead8b0303f}
 
 \section{Chaos Toolkit}
 
