@@ -9,7 +9,9 @@
 
 In het voorgaande hoofdstuk \ref{ch:lokaleclusters} lag de focus op het in stand brengen van een Kubernetes cluster in een lokale omgeving. Initieel werd de voorkeur gegeven aan een lokale omgeving omdat deze dichter aanleunt bij de manier hoe men in schoolverband een virtuele omgeving tot stand brengt, vaak met behulp van automatisatie. Ondanks de automatisatie bleek dit nog steeds een tijdrovende taak te zijn. 
 
-In dit hoofdstuk zal besproken worden hoe men een Kubernetes cluster kan opzetten in de Google Cloud omgeving. 
+In dit hoofdstuk zal besproken worden hoe men een Kubernetes cluster kan opzetten via Google Cloud. Hiervoor zal Google Kubernetes Engine (GKE), een Kubernetes beheer- en orkestratieplatform van Google, gebruikt worden. GKE voorziet een beheerde omgeving voor het uitrollen, beheren en schalen van gecontaineriseerde applicaties.
+
+Na de installatieprocedure zal ook kort ingegaan worden op de extra functionaliteit die het opzetten van een GKE cluster met zich meebrengt. 
 
 \subsection{Opzetten van een cluster via Google Cloud}
 \label{sec:cloudclustersetup}
@@ -19,7 +21,7 @@ Om een cluster op te zetten via Google Cloud doet men beroep op Google Kubernete
 Via volgende stappenplan kan men een account op GKE creëeren en een cluster opzetten: 
 \begin{enumerate}
     \item Ga naar GKE via volgende URL: \url{https://cloud.google.com/kubernetes-engine}
-    \item Vul uw gegevens in + activeer uw account
+    \item Vul uw gegevens in + activeer uw account.
     \item Kies voor de optie {\bf Enable} bij de Kubernetes Engine API en wacht vervolgens één a twee minuten tot het startscherm van het Google Cloud Platform tevoorschijn komt. Bovenaan deze pagina zal u het huidige saldo en de resterende dagen steeds kunnen opvolgen.
     \item Centraal op deze pagina ziet men {\bf Kubernetes Engine - Kubernetes Clusters}. Kies hier eerst voor de optie {\bf Create}, en vervolgens de optie {\bf GKE Standard} om verder te gaan. 
     \item Het opzetten van een cluster met voldoende resources is cruciaal, aangezien men later zowel pods zal installeren toebehorend aan een chaos engineering tool als een demo-applicatie. 
