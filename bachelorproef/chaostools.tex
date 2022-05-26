@@ -10,23 +10,21 @@ Het toepassen van chaos engineering is relatief nieuw, maar er zijn ondertussen 
 
 Pavlos Ratis, Site Reliability Engineer bij RedHat OpenShift, onderhoudt een Github repository  waar men heel wat zaken omtrent chaos engineering kan terugvinden. In deze repository vindt men in de sectie 'Notable Tools' een lijst van chaos engineering tools die bruikbaar zijn voor verschillende doeleinden. Deze lijst werd eveneens geraadpleegd in de zoektocht naar een geschikte tool om chaos engineering experimenten toe te passen op een Kubernetes cluster. \autocite{Ratis2022}.
 
-De eerste tool die onderzocht werd is Chaos Toolkit, via een cursus op het online leerplatform Udemy. Nadien kwamen uit de eerder vernoemde bronnen nog twee andere tools naar boven genaamd ChaosMesh en Litmus.
+De eerste tool die onderzocht werd is Chaos Toolkit, via een cursus op het online leerplatform Udemy. Nadien kwamen uit de eerder vernoemde bronnen nog twee andere tools naar boven genaamd Chaos Mesh en Litmus.
 
-Vooraleer men experimenten kan beginnen uitvoeren heeft men eerst een demo-applicatie nodig. Volgend hoofdstuk beschrijft hoe men twee demo-applicaties kan opzetten waar men later experimenten op kan toepassen. Deze identieke setup zal gerepliceerd worden telkens een chaos engineering tool besproken wordt.
-
-Daarna komt de installatie van de verschillende chaos engineering tools en het uitvoeren van de experimenten aan bod.
+Vooraleer men experimenten kan beginnen uitvoeren heeft men eerst een demo-applicatie nodig. Volgend hoofdstuk beschrijft hoe men twee demo-applicaties kan opzetten waar men later experimenten op kan toepassen. Daarna komt de installatie van de verschillende chaos engineering tools en het uitvoeren van de experimenten aan bod.
 
 \section{Demo-applicaties opzetten}
 
-Aangezien dit onderzoek gericht is om experimenten uit te voeren voor educatieve doeleinden, is gekozen om eerst enkele experimenten uit te voeren op Nginx en Apache webserver pods. Door twee aparte Deployments en Services op te zetten kon de onderlinge communicatie tussen beiden aangetoond en getest worden. Dit was praktisch om experimenten uit te voeren waarbij de communicatie verstoord werd tussen verschillende Services, of experimenten enkel te richten op specifieke pods in een namespace. 
+Aangezien dit onderzoek gericht is om experimenten uit te voeren voor educatieve doeleinden, is gekozen om eerst enkele experimenten uit te voeren op Nginx en Apache webserver pods. Door twee aparte Deployments en Services op te zetten kan de onderlinge communicatie tussen beiden aangetoond en getest worden. Dit is praktisch om experimenten uit te voeren waarbij de communicatie verstoord wordt tussen verschillende Services, of experimenten enkel te richten op specifieke pods in een namespace. 
 
-Het visuele aspect ontbrak hierbij echter om de impact van een experiment te verduidelijken op de applicatie in een browser. Vandaar is gekozen om enkele experimenten te herhalen op een tweede demo-applicatie genaamd PodTato-Head, een applicatie die een aardappelmannetje toont en waarbij de lichaamsdelen bestaan uit verschillende pods, opgezet via afzonderlijke Deployments en Services.   Met behulp van deze applicatie kon o.a. aangetoond worden dat een applicatie nog steeds bereikbaar kan zijn desondanks bepaalde pods getroffen worden.
+Het visuele aspect ontbreekt hierbij echter nog om de impact van een experiment te verduidelijken op de applicatie in een browser. Vandaar is gekozen om enkele experimenten te herhalen op een tweede demo-applicatie genaamd PodTato-Head, een applicatie die een aardappelmannetje toont en waarbij de lichaamsdelen bestaan uit verschillende pods, opgezet via afzonderlijke Deployments en Services. Met behulp van deze applicatie kan o.a. aangetoond worden dat een applicatie nog steeds bereikbaar kan zijn desondanks bepaalde pods getroffen worden.
 
 Men kan alle experimenten die hieronder beschreven staan ook toepassen op de PodTato-Head applicatie door simpelweg de namespace aan te passen waar nodig naar 'demoapp2'.
 
-\subsubsection{Demo-applicatie 1:Nginx/Apache webserver pods}
+\subsection{Demo-applicatie 1:Nginx/Apache webserver pods}
 
-De eerste demo applicatie kan men onderbrengen in een aparte namespace genaamd demoapp1. Op deze manier kan men de impact van de experimenten (= de blast radius) beperken en voorkomen dat andere pods ongewenst mee betrokken worden in een experiment. Om de eerste demo-applicatie tot stand te brengen voert men volgende commando's uit: 
+De eerste demo-applicatie kan men onderbrengen in een aparte namespace genaamd 'demoapp1'. Op deze manier kan men de impact van de experimenten (= de blast radius) beperken en voorkomen dat andere pods ongewenst mee betrokken worden in een experiment. Om de eerste demo-applicatie tot stand te brengen voert men volgende commando's uit: 
 \begin{lstlisting}[language=bash]
 # Creëer een nieuwe namespace voor de experimenten
 $ kubectl create ns demoapp1
@@ -52,21 +50,19 @@ $ kubectl expose deploy nginx --port=80 --type=LoadBalancer \
 
 \end{lstlisting} 
 
-Wanneer men vervolgens via commando {\bf kubectl get svc -n demoapp1} de Services opvraagt zal men zien dat een extern IP-adres bij de Nginx LoadBalancer Service te zien is. Via de browser kan men nu surfen naar dit IP-adres en zal men de nginx default webpagina te zien krijgen. 
+Wanneer men vervolgens via commando {\bf kubectl get svc -n demoapp1} de Services opvraagt zal men een extern IP-adres bij de Nginx LoadBalancer Service zien. Via de browser kan men nu surfen naar dit IP-adres en zal men de nginx default webpagina te zien krijgen. 
 
 \subsection{Demo-applicatie 2: PodTato-Head}
 \label{subsec:podtato-setup}
 
-De tweede demo applicatie PodTato-Head kan men onderbrengen in een aparte namespace genaamd demoapp2. De manier hoe deze geïnstalleerd wordt is opnieuw via het eerder gebruikte Helm, alhoewel men ook o.a. kubectl kan gebruiken om deze te installeren. \autocite{Gavant2022}
+De tweede demo-applicatie PodTato-Head kan men onderbrengen in een aparte namespace genaamd 'demoapp2'. De manier hoe deze geïnstalleerd wordt is opnieuw via het eerder gebruikte Helm, alhoewel men ook o.a. kubectl kan gebruiken om deze te installeren. \autocite{Gavant2022}
 
-Maak eerst een nieuwe directory aan op het systeem waarin men in volgende stappen de PodTato-Head repository kan in bewaren. 
-
-Men voert volgende commando's uit in de nieuwe directory om de applicatie te installeren:
+Met behulp van volgende commando's kan men de Podtato-Head applicatie installeren op het systeem:
 \begin{lstlisting}[language=bash]
     # Creëer de namespace demoapp2
     $ kubectl create ns demoapp2
     
-    # Kloon de podtato-head Git repo in de directory
+    # Kopieer de Podtato-Head repository op het systeem
     $ git clone https://github.com/podtato-head/podtato-head.git
     
     # Ga verder naar de podtato-head directory
@@ -80,7 +76,7 @@ Men voert volgende commando's uit in de nieuwe directory om de applicatie te ins
     $ kubectl get svc -n demoapp2
 \end{lstlisting} 
 
-Via de output van het 'helm install ...' commando ziet men enkele commando's hoe de URL verkregen kan worden om toegang tot de applicatie te bekomen via de browser.  \newline Zie figuur \ref{img:podtato-head} als voorbeeld hoe de applicatie er in de browser uitziet. 
+Via de output van het {\bf helm install ...} commando ziet men enkele commando's hoe de URL verkregen kan worden om toegang tot de applicatie te bekomen via de browser.  \newline Zie figuur \ref{img:podtato-head} als voorbeeld hoe de applicatie er in de browser uitziet. 
 
 \begin{figure}[h]
     \centering
@@ -88,9 +84,6 @@ Via de output van het 'helm install ...' commando ziet men enkele commando's hoe
     \caption{Podtato-Head applicatie}
     \label{img:podtato-head}
 \end{figure}
-
-Nota: Bovenstaande output bevat een LoadBalancer Service, maar in geval de applicatie in een lokale omgeving geïnstalleerd wordt zal hier een NodePort of ClusterIP te zien zijn. In dat geval zal men andere stappen moeten ondernemen om de toegang tot de applicatie in de browser te bekomen. 
-Zie sectie {\bf Test the API Endpoint} in de bron die aan het begin van dit hoofdstuk vermeld wordt, waar de nodige acties omschreven worden om toe te passen in deze verschillende situaties.  
 
 \section{Chaos Toolkit}
 
@@ -100,14 +93,14 @@ Er zullen in dit onderzoek enkele eenvoudige experimenten aan bod komen, zowel u
 
 \subsection{Installatie Chaos Toolkit}
 
-De enige vereiste wanneer men ChaosToolkit wil installeren is dat Python op het systeem nodig is. \autocite{ChaosToolkit2022b}
+De enige vereiste wanneer men ChaosToolkit wil installeren is dat Python alreeds op het systeem aanwezig is. \autocite{ChaosToolkit2022b}
 
 Voor een Linux Debian/Ubuntu distributie kan men volgend commando gebruiken om de nodige packages te installeren: {\bf sudo apt-get install python3 python3-venv}
  
-ChaosToolkit zal geïnstalleerd worden in een Python virtuele omgeving. Dit is een geïsoleerde omgeving die toelaat om afzonderlijke afhankelijkheden te beheren voor verschillende Python projecten. \autocite{UniMinnesota2022}
+ChaosToolkit zal geïnstalleerd worden in een Python virtuele omgeving. Dit is een geïsoleerde omgeving die toelaat om afzonderlijke afhankelijkheden te beheren voor verschillende Python projecten. \autocite{Uni2022}
 
 Gebruik volgend stappenplan om Chaos Toolkit te installeren in de Google Cloud Shell. Dezelfde werkwijze kan men ook toepassen in een lokale omgeving.
-\begin{lstlisting}
+\begin{lstlisting}[language=bash]
 # Maak een virtuele omgeving aan
 $ python3 -m venv ~/.venvs/chaostk
 
@@ -121,12 +114,12 @@ $ pip install -U chaostoolkit
 $ chaos --version
 \end{lstlisting}
 
-Chaos Toolkit is nu geïnstalleerd in de virtuele omgeving op het systeem. Dit kan men zien doordat links naast de username nu (chaostk) zal te zien zijn. 
-{\bf Let op:} Wanneer men de sessie beëindigd door de terminal te sluiten zal men eveneens deze virtuele omgeving verlaten. Wanneer men opnieuw richting deze omgeving wil gaan dient men het commando {\bf source  ~/.venvs/chaostk/bin/activate} nogmaals uit te voeren. Vergeet men dit echter te doen dan zal het 'chaos' commando niet gevonden worden wanneer men dit in de terminal probeert uit te voeren, aangezien dit commando enkel in de geïsoleerde virtuele omgeving bestaat.
+Chaos Toolkit is nu geïnstalleerd in de virtuele omgeving op het systeem. Men zal links naast de prompt nu {\bf (chaostk)} zien staan.
+\newline {\bf Let op:} Het beëindigen van de sessie door de terminal te sluiten zal eveneens resulteren in het verlaten van de virtuele omgeving. Wanneer men opnieuw naar de virtuele omgeving wil gaan dient men het commando {\bf source  ~/.venvs/chaostk/bin/activate} nogmaals uit te voeren. Vergeet men dit echter te doen dan zal het 'chaos' commando niet gevonden worden wanneer men dit in de terminal probeert uit te voeren, aangezien dit commando enkel in de geïsoleerde virtuele omgeving bestaat.
 
 Chaos Toolkit bevat na installatie voorlopig weinig functionaliteit. Men kan namelijk op dit moment nog geen experimenten opzetten die toepasbaar zijn op een Kubernetes cluster. Om dit mogelijk te maken dient men de {\bf chaostoolkit-kubernetes} plugin te installeren. \autocite{ChaosToolkit2022}. 
 Via volgende stappen kan men eerst de chaostoolkit-kubernetes plugin installeren op het systeem en vervolgens de verschillende experimentconfiguraties opvragen die deze plugin bevat.
-\begin{lstlisting} 
+\begin{lstlisting}[language=bash]
 # Installeer chaostoolkit-kubernetes plugin
 $ pip install chaostoolkit-kubernetes
 
@@ -135,9 +128,11 @@ $ chaos discover chaostoolkit-kubernetes
 
 # Ontdek alle opties voor experimenten in Kubernetes
 $ cat discovery.json
+
 \end{lstlisting}
 
-Andere extensies/plugins waarmee men de functionaliteit van Chaos Toolkit verder kan uitbreiden om bv. experimenten op te zetten m.b.t. specifieke cloudarchitecturen en platformen, netwerkgerelateerde experimenten ... kan men via volgende link raadplegen: \url{https://github.com/search?utf8=%E2%9C%93&q=topic%3Achaostoolkit-extension&type=Repositories} 
+Andere extensies/plugins waarmee men de functionaliteit van Chaos Toolkit verder kan uitbreiden kan men via volgende link raadplegen: \href{https://github.com/search?utf8=%E2%9C%93&q=topic%3Achaostoolkit-extension&type=Repositories}{Repository Chaos Toolkit extensies.}
+\newline Via deze extensies/plugins is het o.a. mogelijk experimenten op te zetten m.b.t. specifieke cloudarchitecturen en platformen, netwerkgerelateerde experimenten uit te voeren ... 
 
 \subsection{Een experiment opzetten}
 
@@ -156,7 +151,7 @@ Experimenten die via de wizard opgezet worden leiden tot de creatie van een {\bf
 Er zal ook een {\bf journal.json} bestand gecreëerd worden na de uitvoer van een experiment opgezet via het 'chaos init' commando. Dit toont o.a. de definitie van het uitgevoerde experiment, welke pods getroffen zijn, wanneer en hoelang het experiment uitgevoerd is ...
 Alleen het laatst uitgevoerde experiment wordt bewaard in dit bestand m.a.w. ook dit wordt overschreven bij elke uitvoer van een nieuw experiment.   
 
-Zowel de setup m.b.v. de wizard via het 'chaos init' commando, alsook het zelf creëeren van experiment-definities zullen in komende experimenten beschreven worden. Vooraleer men van start gaat met het experimenteren maakt men een nieuwe directory waarin deze experimenten zullen bewaard worden genaamd 'chaostoolkit-experiments' m.b.v. commando {\bf mkdir chaostoolkit-experiments}. 
+Zowel de setup m.b.v. de wizard via het {\bf chaos init} commando, alsook het zelf creëeren van experiment-definities zullen in komende experimenten beschreven worden. Vooraleer men van start gaat met het experimenteren maakt men een nieuwe directory aan waarin deze experimenten zullen bewaard worden genaamd 'chaostoolkit-experiments' m.b.v. commando {\bf mkdir chaostoolkit-experiments}. 
 
 \subsection{Experiment 1: Een random pod vernietigen}
 
@@ -168,16 +163,16 @@ Zet het experiment op volgende manier op:
     \item Geef een naam aan het experiment vb. random-pod-kill.
     \item Geef deze keer géén steady-state hypothese op. Dit zal in volgende experimenten aan bod komen.
     \item Antwoord met 'y' op de vraag 'Do you want to define an experimental method?' Dit zal een lijst weergeven met alle mogelijke acties die uitgevoerd kunnen worden. 
-    \item Kies de actie 'terminate\textunderscore pods' in deze lijst (= optie 26) en bevestig de keuze met 'y'. 
+    \item Kies de actie 'terminate\textunderscore pods' in deze lijst en bevestig de keuze met 'y'. 
     \item Vervolgens zal men enkele parameters moeten opgeven voor deze actie: 
     \begin{enumerate}
         \item {\bf label\textunderscore selector}: geef hier 'app=nginx' in om het experiment op de nginx te richten.
         \item {\bf name\textunderscore pattern}: via enter kiest men de defaultwaarde 'null'.
         \item {\bf all}: via enter kiest men de defaultwaarde 'False' om aan te geven dat niet alle pods moeten vernietigd worden.
         \item {\bf rand}: geef 'True' in, om een willekeurige pod te selecteren.
-        \item {\bf mode}: via enter kiest men de defaultwaarde 'Fixed'
-        \item {\bf qty}: via enter kiest men de defaultwaarde '1', wat neerkomt op het aantal pods die vernietigd moet worden.
-        \item {\bf grace\textunderscore period}: via enter kiest men de defaultwaarde '-1' wat overeenkomt met onmiddelijke vernietiging van de pod.
+        \item {\bf mode}: via enter kiest men de defaultwaarde 'Fixed'.
+        \item {\bf qty}: via enter kiest men de defaultwaarde '1' (= het aantal pods die vernietigd moeten worden).
+        \item {\bf grace\textunderscore period}: via enter kiest men de defaultwaarde '-1'.
         \item {\bf ns}: geef hier de namespace 'demoapp1' op.
         \item {\bf order}: via enter kiest men de defaultwaarde 'Alphabetic'.
     \end{enumerate}
@@ -186,7 +181,7 @@ Zet het experiment op volgende manier op:
 
 De wizard is afgelopen en het bestand 'experiment.json' zal vervolgens gecreëerd worden in deze directory. Men kan dit experiment uitvoeren via commando {\bf chaos run experiment.json}
 De uitvoer van het experiment in onderstaande output toont aan dat dit succesvol verlopen is:
-\begin{lstlisting}
+\begin{lstlisting}[language=bash]
 $ chaos run experiment.json
 [INFO] Validating the experiment's syntax
 [INFO] Experiment looks valid
@@ -199,12 +194,13 @@ $ chaos run experiment.json
 [INFO] Let's rollback...
 [INFO] No declared rollbacks, let's move on.
 [INFO] Experiment ended with status: completed
+
 \end{lstlisting}
 
 Men ziet in de uitvoer dat dit experiment geen steady-state probeert te bevestigen of een rollback uitvoert, maar louter één actie 'terminate\textunderscore pods' doorloopt.
 Indien bovenstaande regels enkel groen gekleurd zijn kan men concluderen dat het experiment zonder fouten doorlopen is. De kleur van deze regels kan ook oranje of rood zijn bij afwijkingen tijdens de uitvoer van het experiment, maar dit zal vaker voorkomen bij het valideren van de steady state bv. door een probe die faalt.  
  
-Via het commando {\bf cat journal.json} kan men de details opvragen van het uitgevoerde experiment zoals de definitie van het experiment, de start- en eindtijd, de getroffen pod , de status ... 
+Via het commando {\bf cat journal.json} kan men de details opvragen van het uitgevoerde experiment zoals de definitie van het experiment, de start- en eindtijd, de getroffen pod, de status ... 
 
 Tijdens de uitvoer van dit experiment kan men via commando {\bf k9s -n demoapp1} zien hoe één van de nginx pods in de namespace demoapp1 vernietigd wordt (zie kolom Status) en hoe direct daarna een nieuwe pod gecreëerd wordt om terug tot drie actieve pods te komen. 
 
@@ -215,10 +211,10 @@ Tijdens de uitvoer van dit experiment kan men via commando {\bf k9s -n demoapp1}
     \label{img:chaostoolkitexperiment1}
 \end{figure}
 
-Men hoeft de configuratie niet noodzakelijk te bekomen via het 'chaos init' commando maar kan een experiment ook opzetten via een vooraf gedefinieerd YAML-bestand. Via volgende stappen zet men dit op: 
+Men hoeft de configuratie niet noodzakelijk te bekomen via het {\bf chaos init} commando maar kan een experiment ook opzetten via een vooraf gedefinieerd YAML-bestand. Via volgende stappen zet men dit op: 
 \begin{enumerate} 
     \item Creëer een nieuw bestand genaamd 'random-pod-kill.yaml' m.b.v. een teksteditor naar keuze. 
-    \item Klik op volgende link naar de Github repository waar men een YAML-definitie voor dit experiment kan terugvinden: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/random-pod-kill.yaml}{Experiment 1: random-pod-kill.yaml}
+    \item Kopieer de YAML-definitie van dit experiment die men kan terugvinden via volgende link: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/random-pod-kill.yaml}{Experiment 1: random-pod-kill.yaml}
     \newline Men ziet in dit bestand eerst een beschrijving van het experiment, gevolgd door de configuratie van de 'method'. Ook hier ontbreekt dus de configuratie van andere componenten zoals een steady state of een rollback, die in volgende experimenten nog aan bod zullen komen.
     \item Neem de inhoud van dit bestand over in het nieuw gecreëerde bestand random-pod-kill.yaml en sla op.
     \item Herhaal het experiment m.b.v. deze YAML-definitie via commando {\bf chaos run random-pod-kill.yaml}.
@@ -273,7 +269,7 @@ Volgende stappen kan men toepassen om het experiment op te zetten en uit te voer
     \item Voer dit experiment uit m.b.v. commando {\bf chaos run multiple-random-pod-kill-ssh.yaml} 
 \end{enumerate}
 
-De YAML-definitie van dit experiment ontbreekt een waarde bij parameter {\bf label\textunderscore selector} waardoor nu alle pods in de namespace demoapp1 getroffen kunnen worden. Men ziet via de k9s tool dat bij het uitvoeren van dit experiment hierdoor nu ook de Apache pods getroffen worden. De slaagkans van de probe na de actie 'terminate\textunderscore pods' is afhankelijk van de snelheid waarmee Kubernetes de nieuwe pods kan creëeren.  
+De YAML-definitie van dit experiment ontbreekt een waarde bij parameter {\bf label\textunderscore selector} waardoor nu alle pods, inclusief de Apache pods, in de namespace demoapp1 getroffen kunnen worden. De slaagkans van de probe na de actie 'terminate\textunderscore pods' is afhankelijk van de snelheid waarmee Kubernetes de nieuwe pods kan creëeren.  
 
 \subsection{Experiment 4: bereikbaarheid van Podtato-Head applicatie testen}
 
@@ -303,15 +299,20 @@ Gebruik volgend stappenplan om dit experiment op te zetten:
     \label{img:chaostoolkitex4}
 \end{figure}
 
-\\ {\bf Oplossing:} Een applicatie die onbereikbaar is wil men ten allen tijde vermijden. Wat men ziet in de Podtato-Head applicatie is dat elke pod slechts één keer voorkomt. In deze applicatie wordt elke pod voorzien door een aparte Deployment. Een voordeel van pods die opgezet worden via een Deployment is dat deze makkelijk te schalen zijn.
-Als oplossing op voorgaand gefaald experiment kan men dus de Deployment die verantwoordelijk is voor de podtato-head-entry pod schalen zodat deze steeds twee pods actief heeft. Als één pod in de problemen komt zal de andere de bereikbaarheid van de applicatie toch nog verzekeren. 
-Men kan dit controleren via commando {\bf kubectl get deploy -n demoapp2}. In de output van dit commando ziet men dat de Deployment eveneens podtato-head-entry noemt. Om deze te schalen zodat steeds twee pods actief zijn past men volgend commando toe: {\bf kubectl scale deploy podtato-head-entry --replicas=2 -n demoapp2}. Als gevolg kan men zien via de k9s tool dat een extra podtato-head-entry pod gecreëerd is in namespace demoapp2.
+\\ {\bf Oplossing:} Een applicatie die onbereikbaar is wil men ten allen tijde vermijden. Wat men ziet in de Podtato-Head applicatie is dat elke pod slechts één keer voorkomt. In deze applicatie wordt elke pod voorzien door een aparte Deployment. 
+\newline Een voordeel van pods die opgezet worden via een Deployment is dat deze makkelijk te schalen zijn.
+Als oplossing op voorgaand gefaald experiment kan men dus de Deployment die verantwoordelijk is voor de 'podtato-head-entry' pod schalen zodat deze steeds twee pods actief heeft. Als één pod in de problemen komt zal de andere de bereikbaarheid van de applicatie toch nog verzekeren. 
+Men kan dit controleren via commando {\bf kubectl get deploy -n demoapp2}. In de output van dit commando ziet men dat de Deployment eveneens 'podtato-head-entry' noemt. 
+
+Om deze te schalen zodat steeds twee pods actief zijn past men volgend commando toe: {\bf kubectl scale deploy podtato-head-entry --replicas=2 -n demoapp2}. Als gevolg kan men zien via de k9s tool dat een extra podtato-head-entry pod gecreëerd is in namespace demoapp2.
+
+Nota: Zoals alreeds vermeld in Hoofdstuk~\ref{subsec:extrafuncgke} is het eveneens mogelijk deze actie uit te voeren vanuit het Workloads menu in het Google Cloud Platform. 
 
 Herhaal vervolgens het experiment en als resultaat zal men nu zien dat de applicatie bereikbaar blijft wanneer één van de podtato-head-entry pods getroffen wordt. Als test kan men de parameter pauses in commentaar plaatsen in de YAML-definitie, zodat de http probe rechtstreeks na de actie uitgevoerd wordt.  
 
 \subsection{Referenties toepassen in een experiment}
 
-Wanneer men een actie of probe opnieuw wil uitvoeren dan kan men via een referentie verwijzen naar de alreeds bestaande configuratie van die actie of probe. Zie als voorbeeld de onderstaande code uit de YAML-definitie van experiment 4 waarin een probe herhaald wordt door ernaar te refereren via parameter {\bf ref}:  
+Wanneer men een actie of probe meermaals wil uitvoeren dan kan men via een referentie verwijzen naar de alreeds bestaande configuratie van die actie of probe. Zie als voorbeeld de onderstaande code uit de YAML-definitie van experiment 4 waarin een probe herhaald wordt door ernaar te refereren via parameter {\bf ref}:  
 
 \begin{lstlisting}[language=bash] 
 steady-state-hypothesis:
@@ -330,15 +331,15 @@ steady-state-hypothesis:
     ref: response-OK
 \end{lstlisting}
 
-Ter info: Men hoeft een probe niet noodzakelijk in een steady-state-hypothesis te definiëren. Wil men  een probe tijdens de actie van het experiment uitvoeren dan kan men dit in de 'method' definitie alreeds toepassen. Hou rekening dat deze controle dan direct na de actie uitgevoerd wordt waardoor deze vaak niet het gewenste resultaat zal geven.
+Nota: Men hoeft een probe niet noodzakelijk in een steady-state-hypothesis te definiëren. Wil men  een probe tijdens de actie van het experiment uitvoeren dan kan men dit in de 'method' definitie alreeds toepassen. Hou rekening dat deze controle dan direct na de actie uitgevoerd wordt waardoor deze vaak niet het gewenste resultaat zal geven.
 
 \subsection{Experiment 5: Een nodefaling simuleren}
 
-Pods blijven niet voor eeuwig op dezelfde node bestaan. Er zijn enkele redenen wanneer de locatie van een pod kan wijzigen o.a. wanneer autoscaling geactiveerd is en hierdoor nodes af- en opgebouwd worden, of men een onderhoud moet uitvoeren aan een bepaalde node in een Kubernetes cluster waardoor de aanwezige pods op deze node moeten verhuizen naar een andere node. 
+Pods blijven niet voor eeuwig op dezelfde node bestaan. Er zijn enkele redenen wanneer de locatie van een pod kan wijzigen o.a. wanneer autoscaling geactiveerd is en hierdoor nodes op- en afgebouwd kunnen worden, of men een onderhoud moet uitvoeren aan een bepaalde node in een Kubernetes cluster waardoor de aanwezige pods op deze node moeten verhuizen naar een andere node. 
 
-Dit proces noemt men {\bf node draining} en kan dus zowel automatisch door Kubernetes toegepast worden alsook manueel door een administrator. 
+Het proces waarbij alle pods op één van de nodes verwijderd worden en verhuizen richting een andere node noemt men {\bf node draining}. Dit proces kan zowel automatisch door Kubernetes toegepast worden alsook manueel door een administrator. 
 
-In volgend experiment zullen de pods op één van de nodes verwijderd worden en verhuizen richting een andere node. Dit zal opgezet worden m.b.v. de actie {\bf drain\textunderscore nodes}. \autocite{ChaosToolkit2022e} 
+In volgend experiment zal m.b.v. de actie {\bf drain\textunderscore nodes} een nodefaling gesimuleerd worden. Tijdens dit experiment zal men live deze verhuis kunnen opvolgen in de k9s tool. Het experiment zal ook de bereikbaarheid van de applicatie controleren voor en na de verhuis om te bevestigen dat deze nog steeds toegankelijk is. \autocite{ChaosToolkit2022e} 
 
 De nodes in de cluster kan men opvragen via commando {\bf kubectl get nodes}: 
 \begin{lstlisting}[language=bash]
@@ -346,23 +347,12 @@ $ kubectl get nodes
 NAME                                       STATUS
 gke-cluster-1-default-pool-1a61ddf4-mcs9   Ready
 gke-cluster-1-default-pool-1a61ddf4-z4rx   Ready
+
 \end{lstlisting}
 
-In bovenstaande output ziet men dat er momenteel twee nodes actief zijn. Het experiment wordt toegepast op de pods van de Podtato-Head applicatie. Hoe de pods over deze twee nodes verdeeld zijn kan men bekijken via commando {\bf kubectl get pods -n demoapp2 -o wide}:
-\begin{lstlisting}[language=bash]
-$ kubectl get pods -n demoapp2 -o wide
-NAME                                      NODE                                       
-podtato-head-entry-678765f77f-7j8v4       gke-cluster-1-z4rx
-podtato-head-entry-678765f77f-r65c6       gke-cluster-1-mcs9
-podtato-head-hat-67454666b-znt9w          gke-cluster-1-mcs9
-podtato-head-left-arm-7df4878b79-dth4c    gke-cluster-1-z4rx
-podtato-head-left-leg-64b87585df-lmfbk    gke-cluster-1-mcs9
-podtato-head-right-arm-776cdbb8cd-7c5sx   gke-cluster-1-mcs9
-podtato-head-right-leg-54cd484dfb-kt5zr   gke-cluster-1-mcs9
-\end{lstlisting} 
+In bovenstaande output ziet men dat er momenteel twee nodes actief zijn. Het experiment wordt toegepast op de pods van de Podtato-Head applicatie. Hoe de pods over deze twee nodes verdeeld zijn kan men bekijken via commando {\bf kubectl get pods -n demoapp2 -o wide}.
  
-In de YAML-definitie van dit experiment zullen ook enkele argumenten opgenomen worden met als doel het experiment te richten op een node waarop specifiek pods van de demoapp2 namespace actief zijn (= {\bf node\textunderscore label}), alsook een node te kiezen waarop specifiek de pod 'podtato-head-entry' aanwezig is ({\bf = pod\textunderscore label\textunderscore selector}). \newline Nota: de output van bovenstaande commando's toonde alreeds aan dat deze argumenten geen meerwaarde zullen bieden in dit geval, aangezien beide nodes zullen beantwoorden aan de toegepaste filtering in deze argumenten.
-Bij het reproduceren van dit experiment kan het echter zijn dat een andere omgeving gebruikt wordt, waar eventueel meer nodes bestaan en waar niet elke node de 'podtato-head-entry' pod bevat.
+In de YAML-definitie van dit experiment zullen ook enkele argumenten opgenomen worden met als doel het experiment te richten op een node waarop specifiek pods van de demoapp2 namespace actief zijn (= {\bf node\textunderscore label}), alsook een node te kiezen waarop specifiek de pod 'podtato-head-entry' aanwezig is ({\bf = pod\textunderscore label\textunderscore selector}).
 
 Om een waarde toe te kennen aan parameter {\bf node\textunderscore label} is de output van het commando {\bf kubectl describe nodes} nodig. Wanneer men naar de eerste regels van deze output gaat ziet men enkele labels gekoppeld aan de nodes in de cluster. Men heeft dus verschillende opties qua labels om te koppelen aan de parameter. Aangezien deze labels kunnen variëren op basis van de cluster die opgezet is (vb. andere cloud provider of lokale clusters) wordt buiten de YAML-definitie eerst een omgevingsvariabele gecreëerd op het systeem.
 \newline In het geval van de Google Cloud cluster is deze waarde 'beta.kubernetes.io/os=linux'. 
@@ -372,28 +362,28 @@ Pas volgende stappen toe om dit experiment op te zetten:
     \item Creëer de omgevingsvariabele via commando \newline {\bf export NODE\textunderscore LABEL="beta.kubernetes.io/os=linux"}
     \item Creëer een nieuw YAML-bestand genaamd 'drain-node.yaml'.
     \item Kopieer de experimentdefinitie in volgende link naar het nieuwe bestand: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaostoolkit%20experimenten/drain-node.yaml}{Experiment 5: drain-node.yaml}
-     \item Pas de parameter {\bf url} aan naar deze die men bij de setup van de Podtato-Head applicatie in hoofdstuk \ref{subsec:podtato-setup} alreeds heeft bekomen.
-     \item Sla de wijzigingen op.
+     \item Pas de parameter {\bf url} aan naar deze die men bij de setup van de Podtato-Head applicatie in hoofdstuk \ref{subsec:podtato-setup} alreeds heeft bekomen en sla de wijzigingen op.
      \item Voer het experiment uit via commando {\bf chaos run drain-node.yaml}.
 \end{enumerate}
 
-Resultaat: Men kan via de k9s tool opvolgen dat alle pods van één van de nodes verhuizen richting een andere node. In de configuratie van het experiment kreeg het hiervoor 2 minuten tijd. Soms blijkt dit echter niet genoeg waardoor de uitvoer van het experiment toch nog foutmeldingen geeft. \newline Het experiment bevestigde eveneens m.b.v. een http probe dat de Podtato-Head applicatie ondertussen bereikbaar blijft. 
+Men kan via de k9s tool opvolgen dat alle pods van één van de nodes verhuizen richting een andere node. In de configuratie van het experiment kreeg het hiervoor twee minuten tijd. Soms blijkt dit echter niet genoeg waardoor de uitvoer van het experiment toch nog foutmeldingen geeft. Het experiment bevestigde eveneens m.b.v. een http probe dat de Podtato-Head applicatie ondertussen bereikbaar blijft. 
 
 Als men de nodes terug opvraagt via commando {\bf kubectl get nodes} zal men opmerken dat bij kolom {\bf Status} de term {\bf SchedulingDisabled} te zien is.
 
-\begin{lstlisting}
+\begin{lstlisting}[language=bash]
 $ kubectl get nodes
 NAME                                       STATUS    
 gke-cluster-1-default-pool-1a61ddf4-mcs9   Ready                      
 gke-cluster-1-default-pool-1a61ddf4-z4rx   Ready,SchedulingDisabled
+
 \end{lstlisting}
 
 Dit is het gevolg van de node drain actie en hierdoor zal de Kubernetes Scheduler deze node als onplanbaar zal zien m.a.w. er zullen geen nieuwe pods op deze node geplaatst worden. Aangezien dit geen gewenst scenario is zal men dit proces deze keer wel moeten terugdraaien via een {\bf rollback}. 
-Het proces waarbij de Status veranderd wordt richting 'SchedulingDisabled' en de node alsgevolg onplanbaar wordt noemt men {\bf node cordoning}. \autocite{DeFabia2022}
+Het proces waarbij de Status veranderd wordt richting 'SchedulingDisabled' en de node als gevolg onplanbaar wordt noemt men {\bf node cordoning}. \autocite{DeFabia2022}
 
 \subsection{Experiment 6: Rollback toepassen op experiment 5}
 
-Het vorige experiment heeft een node onbruikbaar gemaakt. Dit proces kan via ChaosToolkit eveneens omgedraaid worden door het implementeren van de rollback {\uncordon\textunderscore node}. \autocite{Chaostoolkit2022f}
+Het vorige experiment heeft een node onbruikbaar gemaakt. Dit proces kan via ChaosToolkit eveneens omgedraaid worden door het implementeren van de rollback-actie {\bf uncordon\textunderscore node}. \autocite{Chaostoolkit2022f}
 
 Pas volgende stappen toe om de rollback toe te passen:
 \begin{enumerate}
@@ -407,7 +397,7 @@ Pas volgende stappen toe om de rollback toe te passen:
 
 Resultaat: Men kan zien dat de Status van de nodes nu terug naar Ready veranderd is. Dit experiment is uitgevoerd in een Google Cloud cluster en het gevolg van deze experimenten was vaak dat eveneens een nieuwe node werd opgezet om het verlies van de getroffen node op te vangen. 
 
-\subsubsection{Google Cloud cluster resizing}
+\subsubsection{GKE cluster resizing}
 
 Aangezien Google Cloud via het 'pay per node' principe werkt zullen de gratis credits dus sneller
 verbruikt worden indien meer nodes dan nodig actief zijn. Via volgend commando kan men de nodes in
@@ -419,38 +409,30 @@ Nota: dit resizing proces zal ongeveer een minuut tijd in beslag nemen.
 
 \subsection{Conclusie ChaosToolkit}
 
-ChaosToolkit is eenvoudig te installeren op het systeem. Men kan de functionaliteit van deze chaos engineering tool uitbreiden via verschillende plugins. Vooraf gedefinieerde experimenten worden niet aangeboden, maar afzonderlijke configuraties voor verschillende Kubernets objecten, probes, rollbacks ... kan men op de website \url{https://chaostoolkit.org/} terugvinden.
-\newline Op deze manier krijgt men de vrijheid zelf een experiment naar wens samen te stellen. Om de eerste experimenten op te zetten kan men via het {\bf chaos init} commando een wizard raadplegen. Zowel JSON als YAML-definities worden aanvaard als experimentconfiguratie. 
+ChaosToolkit is eenvoudig te installeren op het systeem. Men kan de functionaliteit van deze chaos engineering tool uitbreiden via verschillende extensies/plugins. Vooraf gedefinieerde experimenten worden niet aangeboden, maar afzonderlijke configuraties voor verschillende Kubernets objecten, probes, rollbacks ... kan men op de website \url{https://chaostoolkit.org/} terugvinden. 
+\newline Op deze manier krijgt men de vrijheid zelf een experiment naar wens samen te stellen. Om de eerste experimenten op te zetten kan men via het {\bf chaos init} commando een wizard raadplegen. Zowel JSON als YAML-definities worden aanvaard als experimentconfiguratie. Deze tool is goed gedocumenteerd. 
 
 Enkele nadelen aan Chaos Toolkit zijn:
 \begin{itemize}
     \item  het ontbreken van een GUI waarmee via de browser experimenten opgezet kunnen worden.
-    \item  het ontbreken van de optie om experimenten in te plannen zodat deze periodiek uitgevoerd kunnen worden. 
-    \item het ontbreken van experimenten om het geheugen of CPU te belasten. Dit is nochtans een realistisch scenario waarmee applicaties te maken krijgen.  
-    \item  de moeilijkheidsgraad om netwerkgerelateerde experimenten uit te voeren. Hiervoor moeten extra plugins en packages geïnstalleerd worden zoals Istio, die op zich ook de nodige technische kennis vereisen.   
+    \item  het ontbreken van de optie om experimenten in te plannen zodat deze periodiek uitgevoerd kunnen worden. Dit zou eventueel via het configureren van een cronjob opgevangen kunnen worden.
+    \item Sommige experimenten zijn enkel beschikbaar voor bepaalde omgevingen bv. 
+    het belasten van de CPU is enkel beschikbaar via de Azure extensie. Deze stresstesten kunnen nochtans een waardevol inzicht bieden in hoe een applicatie omgaat met belasting, wat een realistisch scenario is voor een applicatie in productie. 
+    \item de moeilijkheidsgraad om netwerkgerelateerde experimenten uit te voeren. Hiervoor moeten extra plugins en packages geïnstalleerd worden zoals Istio, die op zich ook de nodige technische kennis vereisen.   
 \end{itemize}
 
 \section{Chaos Mesh}
 
 Het Chaos Mesh project bestaat sinds begin 2020 en was oorspronkelijk bedoeld als testplatform voor de open-source NewSQL-database TiDB. Chaos Mesh is een veelzijdig chaos engineering platform om chaos experimenten uit te voeren in Kubernetes omgevingen. Het project werd in juli 2020 geaccepteerd als Cloud Native Computing Foundation (CNCF) Sandbox project en is sinds begin 2022 geëvolueerd naar een CNCF Incubating project. \autocite{CNCF2022b}
 
-De algemene documentatie op de Chaos Mesh website toont aan dat voor volgende lokale omgevingen een oneliner script kan toegepast worden om deze tool te installeren \autocite{ChaosMesh2022}: 
-\begin{itemize}
-    \item Minikube
-    \item KinD
-    \item K3s
-    \item Microk8s
-\end{itemize}
+De algemene documentatie op de Chaos Mesh website toont aan dat voor enkele lokale omgevingen een oneliner script kan toegepast worden om deze tool te installeren. \autocite{ChaosMesh2022} 
+Bij de start van dit onderzoek werd de installatie van Chaos Mesh oorspronkelijk uitgevoerd op een single-node Minikube cluster. Hierin werden enkele experimenten succesvol uitgevoerd via de terminal en de Chaos Mesh GUI genaamd Chaos Dashboard.
 
-Bij de start van dit onderzoek werd de installatie van Chaos Mesh oorspronkelijk uitgevoerd op een single-node minikube cluster. Hierin werden enkele experimenten succesvol uitgevoerd via de terminal en de Chaos Mesh GUI genaamd Chaos Dashboard.
+Nadien is ChaosMesh geïnstalleerd in de lokale multi-node cluster opgezet via Kubespray. Enkele experimenten via de terminal konden in deze omgeving ook uitgevoerd worden. De GUI Chaos Dashboard toonde echter verschillende foutmeldingen in de browser bij het openen van de Developer Tools (F12). Pas later in het onderzoek is bij herinstallatie van Chaos Mesh een correcte werking van het Chaos Dashboard vastgesteld.   
 
-Later werd gekozen om deze installatie te herhalen op een multi-node cluster, opgezet via KinD. Dit resulteerde echter in een instabiele omgeving doordat na een reboot van de virtuele machine de cluster plots ontoegankelijk was. Troubleshooting bracht geen oplossing en hierdoor is besloten de installatie van KinD in dit onderzoek niet te beschrijven.
+Aangezien alreeds enkele lokale setups uitgeprobeerd waren is besloten de installatie van Chaos Mesh uit te voeren in een cluster die opgezet is via GKE, waar het Chaos Dashboard  wel opgestart kon worden. Volgende beschrijving hoe men Chaos Mesh kan installeren m.b.v. de package manager Helm en hoe experimenten vervolgens uitgevoerd kunnen worden, zal zich specifiek op deze Google Cloud omgeving richten. \autocite{ChaosMesh2022a}
 
-De installatie van ChaosMesh is succesvol verlopen in de lokale multi-node Kubespray omgeving. Enkele experimenten via de terminal konden in deze omgeving ook uitgevoerd worden. Het Chaos Dashboard was echter ontoegankelijk via de browser.  
-
-Aangezien alreeds enkele lokale setups uitgeprobeerd waren is besloten de installatie van Chaos Mesh uit te voeren in een cluster die opgezet is via het Google Cloud Platform, waar het Chaos Dashboard  wel opgestart kon worden. Volgende beschrijving hoe men Chaos Mesh kan installeren m.b.v. de package manager Helm en hoe experimenten vervolgens uitgevoerd kunnen worden, zal zich specifiek op deze Google Cloud omgeving richten. \autocite{ChaosMesh2022a}
-
-\subsection {Vereisten}
+\subsubsection {Vereisten}
 
 Om Chaos Mesh via de package manager {\bf Helm} te kunnen installeren moet Helm vooraf geïnstalleerd worden op het systeem. In volgende link kan men verschillende manieren terugvinden om Helm te installeren: \url{https://helm.sh/docs/intro/install/}
 
@@ -461,14 +443,16 @@ Pas volgend stappenplan toe om ChaosMesh te installeren:
     \item Voeg Chaos Mesh toe aan de helm repositories via volgend commando {\bf helm repo add chaos-mesh https://charts.chaos-mesh.org}.
     \item Bekijk welke versie van Chaos Mesh in de helm repositories beschikbaar is via commando {\bf helm search repo chaos-mesh}. Deze info zal men in stap 4 nodig hebben.
     \item Creëer de namespace `chaos-testing` via commando {\bf kubectl create namespace chaos-testing}.
-    \item Installeer de nodige Chaos Mesh componenten in de chaos-testing namespace. {\bf Let op:} GKE maakt gebruik van de container runtime containerd en NIET van Docker. Daardoor moet men dit specifiëren in het installatiecommando om errors in de toekomst te vermijden. Om de Chaos Mesh componenten te installeren gebruikt men onderstaand commando:
+    \item Installeer de nodige Chaos Mesh componenten in de chaos-testing namespace. \newline {\bf Let op:} GKE maakt gebruik van de container runtime containerd en NIET van Docker. Daardoor moet men dit specifiëren in het installatiecommando om errors in de toekomst te vermijden. Om de Chaos Mesh componenten te installeren gebruikt men onderstaand commando:
 \begin{lstlisting}
 $ helm install chaos-mesh chaos-mesh/chaos-mesh \
  -n=chaos-testing --set chaosDaemon.runtime=containerd --set \
  chaosDaemon.socketPath=/run/k3s/containerd/containerd.sock \
  --version 2.2.0    
+ 
 \end{lstlisting}
-    \item Controleer als Chaos Mesh componenten in de namespace zijn geïnstalleerd via commando {\bf kubectl get pods -n chaos-testing}. Een correcte installatie in GKE zou volgende output moeten tonen: 
+
+    \item Controleer als de Chaos Mesh componenten in de namespace zijn geïnstalleerd en operationeel zijn via commando {\bf kubectl get pods -n chaos-testing}. Een correcte installatie in GKE zou volgende output moeten tonen: 
 \begin{lstlisting}  
 kubectl get pods -n chaos-testing
 NAME                                        READY   STATUS   
@@ -479,6 +463,7 @@ chaos-daemon-bvpgd                          1/1     Running
 chaos-daemon-k6pz5                          1/1     Running
 chaos-daemon-stqvk                          1/1     Running
 chaos-dashboard-7f7bc7cdfb-pbj52            1/1     Running   
+
 \end{lstlisting}  
 \end{enumerate}
 
@@ -492,12 +477,13 @@ NAME                    TYPE        PORT(S)
 chaos-daemon            ClusterIP   31767/TCP,31766/TCP                     
 chaos-dashboard         NodePort    2333:30061/TCP,2334:30554/TCP          
 chaos-mesh-controller   ClusterIP   443/TCP,10081/TCP,10082/TCP
+
 \end{lstlisting}
 
 Met behulp van volgende stappen kan men via de browser connectie maken met het Chaos Dashboard:
 \begin{enumerate}
     \item Men zal eerst een firewall regel moeten toevoegen in de Google Cloud Shell die verkeer toelaat op de poort verbonden aan de Nodeport service van het Chaos Dashboard die in vorig commando opgevraagd is. Gebruik één van de poorten NA de dubbelpunt en creëer een firewall regel via volgend commando:\newline {\bf gcloud compute firewall-rules create chaos-dashboard-rule --allow tcp:30061}
-    \item Men kan vervolgens het extern IP-adres van één van de nodes gebruiken in combinatie met de poort die in vorige stap gebruikt werd om via de browser naar het Chaos Dashboard te gaan.\newline Tip: om het extern IP-adres van een node te bekomen gebruikt men commando {\bf kubectl get nodes -o wide}.
+    \item Men kan vervolgens het extern IP-adres van één van de nodes gebruiken in combinatie met de poort die in vorige stap gebruikt werd om via de browser naar het Chaos Dashboard te gaan.\newline Tip: om het extern IP-adres van een node te bekomen gebruikt men commando {\bf kubectl get nodes -o wide}.  
 \end{enumerate}
 
 Wanneer men voor het eerst gebruik maakt van het Chaos Mesh Dashboard zal men een pop up venster zien waarin een token moet ingegeven worden. Kies voor `Click here to generate` om een nieuwe token te maken. De bedoeling van deze token is om een RBAC autorisatie in te stellen waarmee men definieert wat de rechten zijn van een gebruiker van het Chaos Dashboard ten opzichte van de Kubernetes cluster. \autocite{ChaosMesh2022b} \newline In volgende stappen wordt stapsgewijs de procedure uitgelegd om deze token te creëren:
@@ -532,7 +518,7 @@ Wanneer men via 'New Experiment' een experiment wil opzetten zal eerst een keuze
     \label{img:chaosmeshexperimenten}
 \end{figure}
 
-\subsubsection{Een eerste pod kill experiment opzetten via New Experiment} 
+\subsection{Pod kill experiment in Chaos Dashboard via New Experiment} 
 
 Het eerste experiment zal één willekeurige nginx pod uit de demo applicatie in namespace demoapp1 vernietigen. Volgende stappen omschrijven hoe men dit kan opzetten in het Chaos Dashboard: 
 \begin{enumerate}
@@ -560,32 +546,29 @@ Het eerste experiment zal één willekeurige nginx pod uit de demo applicatie in
 
 Na de bevestiging ziet men het experiment verschijnen in het menu Experiments met als status 'Injecting'. Wanneer men hierop klikt zal extra info weergegeven worden waaronder de configuratie, de Events (die de fases van het experiment beschrijven) en de YAML-definitie van het experiment. 
 
-Men kan een (statisch) overzicht van de pods opvragen in de Cloud Shell terminal m.b.v. commando {\bf kubectl get pods -n demoapp1}, maar nog een betere optie is om dit experiment op te volgen via k9s. Gebruik hiervoor het commando {\bf ./k9s -n demoapp1} om specifiek de pods in de namespace van de demo-applicatie te openen. Op deze manier kan men live volgen hoe na het bevestigen van het experiment één willekeurige nginx pod uit de demo-applicatie vernietigd wordt.
-In de kolom 'Age' zal te zien zijn dat één van de nginx pods nog maar enkele seconden actief is. 
+Men kan een (statisch) overzicht van de pods opvragen in de Cloud Shell terminal m.b.v. commando {\bf kubectl get pods -n demoapp1}, maar nog een betere optie is om dit experiment op te volgen via k9s. Gebruik hiervoor het commando {\bf ./k9s -n demoapp1} om specifiek de pods in de namespace van de demo-applicatie te openen. Op deze manier kan men live volgen hoe na het starten van het experiment één willekeurige nginx pod uit de demo-applicatie vernietigd wordt.
+In de kolom 'Age' zal na afloop te zien zijn dat één van de nginx pods nog maar enkele seconden actief is. 
 
-In bovenstaand stappenplan werd elke parameter van het experiment geconfigureerd in de GUI. In figuur \ref{img:config-in-dashboard} ziet men ook nog twee andere tabbladen nl.:
+In bovenstaand stappenplan werd elke parameter van het experiment geconfigureerd in de GUI. In figuur \ref{img:config-in-dashboard} ziet men bovenaan ook nog twee andere tabbladen nl.:
 \begin{itemize}
     \item {\bf Load from:} bedoeld om configuratie van een alreeds uitgevoerd experiment te herladen en aan te passen. Let op: men moet de naam van het experiment wijzigen aangezien anders een foutmelding op het scherm zal verschijnen die zal aangeven dat het experiment alreeds bestaat.
     \item {\bf By YAML:} bedoeld om zelf een YAML-definitie te schrijven of een alreeds bestaande vanop het systeem in te laden.
 \end{itemize} 
 
-\subsubsection{Een experiment plannen via New schedule}
+\subsection{Een experiment plannen via New schedule}
 
-In vorige subsectie werd beschreven hoe een enkelvoudig experiment opgezet werd. Een meer praktische benadering van chaos engineering zou zijn om een experiment meerdere malen te herhalen om de applicatie op verschillende tijdstippen te testen. In het Chaos Dashboard kan men dit bekomen via de optie 'New schedule' in het Dashboard menu, of door direct naar het 'Schedules' menu te gaan. 
+In vorige sectie werd beschreven hoe een enkelvoudig experiment opgezet werd. Een meer praktische benadering van chaos engineering zou zijn om een experiment meerdere malen te herhalen om de applicatie op verschillende tijdstippen te testen. In het Chaos Dashboard kan men dit bekomen via de optie 'New schedule' in het Dashboard menu, of door direct naar het 'Schedules' menu te gaan. 
 
 Op een gelijkaardige manier als voordien zal men het experiment kunnen configureren. Enkele extra parameters zullen hier ook geconfigureerd moeten worden nl.:
 \begin{itemize}
-    \item {\bf newS.basic.historyLimit:} het aantal logbestanden (records) er moeten bewaard worden.
+    \item {\bf newS.basic.historyLimit:} het aantal logbestanden (= records) dat er moeten bewaard worden.
     \item {\bf newS.basic.concurrencyPolicy:} toestaan dat het experiment gelijktijdig met andere experimenten wordt uitgevoerd.
     \item {\bf Schedule:} via een cron schedule aangeven op welke tijdstippen het experiment moet uitgevoerd worden. Een link naar de website \url{https://crontab.guru/} wordt meegegeven om deze parameter op een correcte manier te configureren.
 \end{itemize}
 
-Op een gelijkaardige manier als voordien zal nu een nieuw experiment opgezet worden genaamd 'kill-random-three' waarbij drie willekeurige pods in de demo applicatie vernietigd zullen worden elk uur op minuut 45. Deze keer zal geen gebruik gemaakt worden van een label dus zowel Apache als Nginx pods komen hierdoor in aanmerking.
-De cron schedule die gebruikt wordt is 45 * * * *  (minuut / uur / dag / maand / dag v.d. week).
+Geplande experimenten kunnen opgevolgd worden in het 'Schedules' menu, waar het experiment de status 'Running' krijgt. Deze status wordt behouden tot men beslist het experiment te archiveren. 
 
-Geplande experimenten kunnen opgevolgd worden in het 'Schedules' menu. Hier zal men zien dat het experiment de status 'Running' krijgt. Deze status zal behouden worden tot wanneer men zelf beslist dit te stoppen door het experiment te archiveren. 
-
-\subsubsection{Meerdere experimenten opzetten via New workflow}
+\subsection{Meerdere experimenten opzetten via New workflow}
 
 Wanneer men meerdere experimenten wil uitvoeren in serie, parallel, in combinatie met een taak ... dan doet men dit d.m.v. een workflow te creëeren. In het Chaos Dashboard kan men dit bekomen via de optie 'New workflow' in het Dashboard menu, of door direct naar het 'Workflows' menu te gaan.
 
@@ -594,13 +577,13 @@ Een praktische benadering in een workflow zou zijn om parallel een experiment ui
 Jammer genoeg is het opzetten van dit scenario in een workflow op het eerste zicht niet mogelijk. Men kan wel opteren voor één HTTP-request uit te sturen via de task type 'HTTP Request'. Na onderzoek bleek deze functionaliteit zich nog in een experimentele fase te bevinden. \autocite{ChaosMesh2022c}  
 \newline Ook op de Chaos Mesh Q\&A pagina kan men lezen dat 'probe support' nog niet gepland staat om toegevoegd te worden aan de functionaliteiten van Chaos Mesh. \autocite{ChaosMesh2021}
 
-Het iteratief herhalen van een experiment is wel mogelijk via een workflow, maar is vrij omslachtig. Men moet hierbij hetzelfde experiment meerdere malen configureren zodat dit achtereenvolgens uitgevoerd kan worden. Een voorbeeld van de YAML-definitie die ontstaan is bij het testen van het iteratief vernietigen van een willekeurige pod van de applicatie in namespace demoapp2 kan men in volgende link terugvinden: \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/iteration-test.yaml}{iteration-test.yaml}. \newline Een betere manier zou zijn om een iteratie als parameter mee te geven bij het opzetten van een enkelvoudig experiment. 
+Het iteratief herhalen van een experiment is wel mogelijk via een workflow, maar is vrij omslachtig. Men moet hierbij hetzelfde experiment meerdere malen configureren zodat dit achtereenvolgens uitgevoerd kan worden. Een voorbeeld van de YAML-definitie die ontstaan is bij het testen van het iteratief vernietigen van een willekeurige pod van de applicatie in namespace demoapp2 kan men in volgende link terugvinden: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaosmesh%20experimenten/iteration-test.yaml}{iteration-test.yaml}
 
-\subsection{Experimenten opzetten via de terminal}
+\subsection{Experimenten opzetten in de terminal}
 
-Op de Chaos Mesh website vindt men heel wat voorbeeld YAML-definities van experimenten terug. Open volgende link naar de website en ga in het linkermenu naar 'Types of Chaos Experiments': \url{https://chaos-mesh.org/docs/}.
+Op de Chaos Mesh website vindt men heel wat voorbeelden van YAML-definities van experimenten terug. Open volgende link naar de website en ga in het linkermenu naar 'Types of Chaos Experiments': \url{https://chaos-mesh.org/docs/}.
 
-Hieronder krijgt men opnieuw de keuze tussen 'Kubernetes' en 'Physical Nodes' te zien. Als men verder gaat in optie Kubernetes ziet men dezelfde oplijsting als voordien in het Chaos Dashboard. In de documentatie van elk experiment ziet men o.a. hoe men via het Chaos Dashboard dit kan opzetten, maar ook een voorbeeld YAML-definitie die men via de terminal kan uitproberen.
+Hieronder krijgt men opnieuw de keuze tussen 'Kubernetes' en 'Physical Nodes' te zien. Als men verder gaat in optie Kubernetes ziet men dezelfde oplijsting als voordien in het Chaos Dashboard. In de documentatie van elk experiment ziet men o.a. hoe men dit kan opzetten via de GUI, maar ook een voorbeeld YAML-definitie die men via de terminal kan uitproberen.
 
 \subsubsection{Experiment 1: pod-failure}
 
@@ -635,9 +618,7 @@ Men kan bij het uitvoeren van het pod-failure experiment zien via k9s dat een re
 
 Het starten van het pod-failure experiment creëerde een 'podchaos' object in de demoapp2 namespace. Dit kan men controleren via commando {\bf kubectl get podchaos -n demoapp2}. Indien men Events wil opvragen van het bovenstaand experiment dan spreekt men het 'podchaos' object aan via commando {\bf kubectl describe podchaos pod-failure-example -n demoapp2}.
 
-Nota: Afhankelijk van het type experiment zal dit object variëren vb. bij een later experiment waarbij CPU-belasting zal opgewekt worden noemt dit object 'stresschaos'. Deze info kan men afleiden uit de parameter 'kind' in de YAML-definitie van het experiment. 
-
-Men zal eveneens zien dat dit experiment toegevoegd is in het Experiments menu van het Chaos Dashboard.
+Nota: Afhankelijk van het type experiment zal dit object variëren vb. bij een later experiment waarbij CPU-belasting zal opgewekt worden noemt dit object 'stresschaos'. Deze info kan men afleiden uit de parameter 'kind' in de YAML-definitie van het experiment. Men zal eveneens zien dat dit experiment toegevoegd is in het Experiments menu van het Chaos Dashboard.
 
 \subsubsection{Een experiment herhalen via de terminal}
 
@@ -647,8 +628,8 @@ Men moet steeds eerst het bestaande podchaos object verwijderen via commando {\b
 
 \subsubsection{Experiment 2: NetworkChaos experiment}
 
-In dit experiment zal gedurende zestig seconden een communicatiestoring uitgelokt worden tussen de Apache en Nginx pods van de demo-applicatie in namespace demoapp1. Vooraf kan men al testen als de communicatie tussen beiden succesvol is. Dit doen men op volgende manier: 
-\begin{lstlisting}
+In dit experiment zal gedurende zestig seconden een communicatiestoring uitgelokt worden tussen de Apache en Nginx pods van de demo-applicatie in namespace demoapp1. Vooraf kan men al testen als de communicatie tussen beiden succesvol is. Dit doet men op volgende manier: 
+\begin{lstlisting}[language=bash]
 # Bewaar eerste Apache pod in environment variabele
 $ pod=$(kubectl get pods -n demoapp1 -l app=apache \
  -o jsonpath='{.items[0].metadata.name}')
@@ -671,14 +652,12 @@ $ kubectl exec $pod2 -n demoapp1 -it -- /bin/sh \
 Beide controles tonen de output van de Apache of Nginx website waardoor bevestigd is dat de communicatie tussen deze pods/services correct verloopt. 
 
 Het toepassen van dit experiment verloopt opnieuw door de YAML-definitie van de officiële Chaos Mesh website te raadplegen en dit op het systeem over te brengen in een nieuw bestand genaamd 'network-partition.yaml'.
-\newline Men kan alreeds een voorgedefinieerde YAML-definitie van dit NetworkChaos experiment via volgende link terugvinden: \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/network-partition.yaml}{network-partition.yaml}
+\newline Men kan alreeds een voorgedefinieerde YAML-definitie van dit NetworkChaos experiment via volgende link terugvinden: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaosmesh%20experimenten/network-partition.yaml}{network-partition.yaml}
 
 Voer het experiment vervolgens uit via {\bf kubectl apply -f network-partition.yaml}. 
 
-Door nu opnieuw de commando's toe te passen waarmee men de bereikbaarheid van de nginx en Apache pods kon testen zal men nu gedurende de duurtijd van het experiment geen output meer te zien krijgen. 
-
-Nota: Later bij het documenteren en herproberen van alle experimenten mislukte het NetworkChaos experiment met de melding 'Failed to apply chaos: PodNetworkChaos.chaos-mesh.org is invalid: spec.ipsets.cidrs: Required value'. \newline Een reden hiervoor kon echter niet gevonden worden en bij online troubleshooting kon deze foutmelding geen enkele concrete oplossing tonen.  
-
+Door nu opnieuw de commando's toe te passen waarmee men de bereikbaarheid van de Nginx en Apache pods kon testen zal men nu gedurende de duurtijd van het experiment geen output meer te zien krijgen. Dit experiment toont het belang aan van Services die verantwoordelijk zijn voor de communicatie tussen pods op verschillende nodes.
+  
 \subsubsection{Experiment 3: Stresschaos experiment}
 
 In dit experiment zal over een periode van twee minuten een belasting van ongeveer 200 MB geheugenverbruik gegenereerd worden op de nginx pods in de demo-applicatie in namespace demoapp1. Vervolgens zal het nut aangetoond worden van het Kubernetes object {\bf HorizontalPodAutoscaler (HPA)}, die extra pods zal creëeren wanneer een geconfigureerde CPU- of geheugenlimiet overschreden wordt.
@@ -686,29 +665,29 @@ In dit experiment zal over een periode van twee minuten een belasting van ongeve
 Bij de demo-applicatie in demoapp1 is een kanttekening te maken aangezien deze oorspronkelijk opgezet is zonder een limiet op de resources die het mag gebruiken. Hierdoor zou een applicatie alle resources van een node kunnen aanspreken, maar dit is geen ideaal scenario. Zo is een pod ingesteld volgens 3 QoS klasses. Pods zonder geconfigureerde resource management vallen onder de klasse 'best effort' en komen hierdoor als eerste in aanmerking om vernietigd te worden wanneer de node resources beperkt worden. \autocite{Tatiyana2020}
 
 Om de pods in de demoapp1 namespace te configureren zodanig deze maximum 200 mCPU en 256MB gebruiken voert men volgende twee commando's uit \autocite{Kubernetes2022c}: 
-\begin{lstlisting}
-    $ kubectl set resources deployment nginx -n demoapp1 \
-    --limits=cpu=200m,memory=256Mi
-    
-    $ kubectl set resources deployment apache -n demoapp1 \
-    --limits=cpu=200m,memory=256Mi
+\begin{lstlisting}[language=bash]
+$ kubectl set resources deployment nginx -n demoapp1 \
+--limits=cpu=200m,memory=256Mi
+
+$ kubectl set resources deployment apache -n demoapp1 \
+--limits=cpu=200m,memory=256Mi
 \end{lstlisting}
 
 De officiële documentatie voor een StressChaos experiment op te zetten kan men hier terugvinden: \url{https://chaos-mesh.org/docs/simulate-heavy-stress-on-kubernetes/}
+\newline Men kan ook gebruik maken van de alreeds geconfigureerde YAML-definitie voor dit specifieke experiment via volgende link: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaosmesh%20experimenten/memory-stress.yaml}{Experiment 3: memory-stress.yaml}
 
-Men kan ook gebruik maken van de alreeds geconfigureerde YAML-definitie voor dit specifieke experiment via volgende link: \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/memory-stress.yaml}{Experiment 3: memory-stress.yaml}
+Maak een nieuw bestand aan genaamd 'memory-stress.yaml' in de directory 'chaosmesh-experiments' en plaats de inhoud uit bovenstaande link hierin. Start vervolgens het experiment op via commando {\bf kubectl apply -f memory-stress.yaml}
 
-Maak een nieuw bestand aan genaamd 'memory-stress.yaml' in de directory chaosmesh-experiments en plaats de inhoud hierin. Start vervolgens het experiment op via commando {\bf kubectl apply -f memory-stress.yaml}
-
-Tijdens de uitvoer van het experiment kan men via het Google Cloud Platform de geheugenbelasting van de nginx pods opvolgen. Open het dropdownmenu in de linkerbovenhoek en kies in deze lijst {\bf Kubernetes Engine} en vervolgens {\bf Workloads} om naar de pods in de demoapp1 namespace te gaan. Wanneer men hier op nginx klikt zal een overzicht geopend worden waarin drie metrics opgevolgd worden nl. CPU, geheugen en diskverbruik.
-
-Optioneel: Men kan bij elk van deze metrics in de rechterbovenhoek het menu openen en verder gaan naar de {\bf Metrics Explorer}.
+Tijdens de uitvoer van het experiment kan men via het Google Cloud Platform de geheugenbelasting opvolgen via het {\bf Workloads} menu. Kies vervolgens de Nginx Deployment in de demoapp1 namespace om het overzicht van deze specifieke Deployment te zien. In dit overzicht ziet men drie metrics die opgevolgd worden nl. CPU, geheugen en diskverbruik. Tijdens de uitvoer van het experiment zal te zien zijn dat een piek veroorzaakt wordt in het geheugenverbruik.
 
 \begin{figure}[h]
     \centering
     \includegraphics{img/nginx-memorystress.png}
-    \caption{GKE workloads: belasten van geheugen nginx pods}
+    \caption{GKE workloads: belasten van geheugen Nginx pods}
 \end{figure}
+
+Een oplossing voorzien om deze belasting te helpen opvangen bestaat in de vorm van het Kubernetes object {\bf HorizontalPodAutoscaler}, hieronder in Hoofdstuk~\ref{subsec: HPA} beschreven. Nadat men de stappen heeft uitgevoerd die hierin beschreven staan kan men vervolgens het experiment opnieuw uitvoeren.
+\newline {\bf Let op:} Men kan niet zomaar het experiment herhalen maar zal eerst het bestaande experiment moeten verwijderen. Dit doet men via commando {\bf kubectl delete stresschaos memory-stress-example -n demoapp1}. Nu kan men opnieuw de YAML-definitie van het experiment oproepen via commando {\bf kubectl apply -f memory-stress.yaml}. Via de k9s tool kan men vervolgens zien hoe drie extra Nginx pods aangemaakt worden om de belasting te helpen opvangen. 
 
 \subsubsection{Kubernetes object: HorizontalPodAutoscaler}
 \label{subsec: HPA}
@@ -716,28 +695,28 @@ Wanneer pods zwaar belast worden qua geheugen (of CPU) dan zal dit een negatieve
 
 Een antwoord bieden om dit risico te helpen vermijden is het gebruiken van het Kubernetes object {\bf HorizontalPodAutoscaler}. Dit object zal ervoor zorgen dat extra pods gegenereerd worden wanneer een geconfigureerde resources threshold overschreden wordt.
 
-Een voorgeconfigureerde YAML-definitie voor het creëeren van een HPA kan men hier terugvinden: 
-\href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/chaosmesh-experimenten/hpa.yaml}{HorizontalPodAutoscaler definitie: hpa.yaml} 
+Een voorgeconfigureerde YAML-definitie voor het creëeren van een HPA, gericht op de Nginx pods in demoapp1, en met een treshold ingesteld op 100 MB kan men via volgende link terugvinden: 
+\href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/chaosmesh%20experimenten/hpa.yaml}{hpa.yaml} 
 
 Creëer een nieuwe YAML-definitie op het systeem genaamd 'hpa.yaml' en voer dit vervolgens uit via commando {\bf kubectl apply -f hpa.yaml}. 
-
-Men kan nu niet zomaar het experiment herhalen maar zal eerst het bestaande experiment moeten verwijderen. Dit doet men via commando {\bf kubectl delete stresschaos memory-stress-example -n demoapp1}. Nu kan men opnieuw de YAML-definitie van het experiment oproepen via commando {\bf kubectl apply -f memory-stress.yaml}. Via k9s kan men vervolgens opvolgen hoe drie extra pods aangemaakt worden tijdens de belasting van het geheugen.
  
 \subsection{Conclusie Chaos Mesh}
 
-De installatie van Chaos Mesh verloopt snel en eenvoudig, zowel met het onliner script in een lokale omgeving als via de package manager Helm in de cloud omgeving. Het opzetten van het Chaos Dashboard daarentegen ging enkele keren mis waardoor dit onbruikbaar was. Controle in de browser via de Developer Tools (F12) gaven hierbij een resem fouten aan. Pas na enkele pogingen kon een correcte werking bekomen worden, maar de oorzaak waardoor het in de eerste plaats fout ging is nooit achterhaald.
+De installatie van Chaos Mesh verloopt snel en eenvoudig, zowel met het onliner script in een lokale omgeving als via de package manager Helm in de cloud omgeving. Het opzetten van het Chaos Dashboard daarentegen ging enkele keren mis waardoor dit onbruikbaar was. Deze tool vereist weinig resources in een cluster. 
 
-Het Chaos Dashboard is gebruiksvriendelijk opgesteld en vereist weinig kennis om direct aan de slag te kunnen. Experimenten opzetten is eenvoudig, maar de extra functionaliteit tijdens de uitvoer van een experiment ontbreekt jammer genoeg. Zo is het bv. niet mogelijk om een experiment op te zetten waarbij doorlopende controle van de bereikbaarheid van een applicatie getest wordt, kan men geen logs raadplegen van uitgevoerde experimenten ... Ook zou het praktisch zijn om in de configuratie van een experiment aan te geven dat dit iteratief uitgevoerd dient te worden bv. elke twintig seconden herhalen gedurende een periode van vijf minuten. Dit kan men enkel bekomen door een workflow te configureren waarbij enkelvoudige experimenten in serie herhaald worden, maar dit is vrij omslachtig aangezien telkens dezelfde configuratie gewoonweg herhaald wordt.
+Het Chaos Dashboard is gebruiksvriendelijk opgesteld en vereist weinig kennis om direct aan de slag te kunnen. Het aanbod van experimenten is ruim en het configureren van deze via de GUI is eenvoudig, maar eveneens ontbreekt hier nog wat gewenste functionaliteit. Zo is het bv. niet mogelijk om een experiment op te zetten waarbij doorlopende controle van de bereikbaarheid van een applicatie getest wordt via HTTP-requests, kan men geen logs raadplegen van uitgevoerde experimenten ... 
 
-Experimenten opzetten via de terminal is mogelijk, maar biedt geen meerwaarde t.o.v. het uitvoeren van experimenten via het Chaos Dashboard. Meeste experimenten in Chaos Mesh werden wel toegepast in de terminal doordat het Chaos Dashboard bij eerdere installaties onbruikbaar was. Het is ook jammer dat een experiment niet gewoon kan herhaald worden zonder dat eerst het origineel gewist moet worden. Er kwamen ook enkele foutmeldingen bij het opzetten en uitvoeren van de experimenten via de terminal die moeilijk te troubleshooten waren door een gebrek aan documentatie.  
- 
+Ook zou het praktisch zijn om in de configuratie van een experiment aan te geven dat dit iteratief uitgevoerd dient te worden bv. elke twintig seconden herhalen gedurende een periode van vijf minuten. Dit kan men momenteel enkel bekomen door een workflow te configureren waarbij enkelvoudige experimenten in serie herhaald worden, maar dit is vrij omslachtig aangezien telkens dezelfde configuratie gewoonweg herhaald wordt. Een extra nadeel is dat een experiment niet kan herhaald worden zonder dat eerst het origineel experiment gewist wordt.  
+
+Experimenten opzetten via de terminal is mogelijk, maar biedt geen meerwaarde t.o.v. het uitvoeren van experimenten via het Chaos Dashboard. Meeste experimenten in Chaos Mesh werden wel oorspronkelijk toegepast in de terminal doordat het Chaos Dashboard bij eerdere installaties nog onbruikbaar was. De documentatie voor de experimenten op te zetten is overzichtelijk en richt zich zowel op uitvoer via de terminal als via de GUI. 
+
 \section{Litmus}
 
-In de zoektocht naar een chaos engineering tool die net zoals voorgaande tool ChaosMesh zowel experimenten kon uitvoeren vanuit de terminal als via de browser, werd de keuze gemaakt om Litmus te onderzoeken. 
+In de zoektocht naar een chaos engineering tool die net zoals voorgaande tool Chaos Mesh zowel experimenten kon uitvoeren vanuit de terminal als via de browser, werd de keuze gemaakt om Litmus te onderzoeken. 
 
 Het Litmus project startte in 2017 met als doel om simpele chaos experimenten op te zetten in een Kubernetes cluster. Het werd een Cloud Native Computing Foundation (CNCF) sandbox project in 2020, en wordt vandaag onderhouden door vijf verschillende organisaties. Sinds begin 2022 is het project geëvolueerd naar een CNCF incubating project. \autocite{CNCF2022}
 
-\subsection {Vereisten}
+\subsubsection {Vereisten}
 \label{sec:litmusvereisten}
 
 Om Litmus te kunnen installeren moeten drie zaken aanwezig zijn \autocite{Litmus2022}: 
@@ -758,10 +737,8 @@ De installatie kan men opsplitsen in twee delen. Eerst zullen de benodigde pods 
 Voer volgende stappen uit om Litmus op het systeem te installeren:
 \begin{lstlisting}[language=bash]
 # Voeg de Litmus helm repository toe 
-$ helm repo add litmuschaos https://litmuschaos.github.io/litmus-helm/
-
-# Optioneel: controleer als repo toegevoegd is op het systeem
-$ helm repo list
+$ helm repo add litmuschaos \
+  https://litmuschaos.github.io/litmus-helm/
 
 # Maak een namespace aan waaronder Litmus toegevoegd wordt
 $ kubectl create ns litmus
@@ -769,8 +746,7 @@ $ kubectl create ns litmus
 # Installeer Litmus in de namespace litmus
 $ helm install chaos litmuschaos/litmus --namespace=litmus
 
-# Optioneel: verifieer de installatie
-# Pods frontend, database (mongo) en server zouden aanwezig moeten zijn.
+# Verifieer werking pods frontend, database en server 
 $ kubectl get pods -n litmus
 \end{lstlisting}
 
@@ -781,14 +757,15 @@ Vooraleer men via de browser connectie kan maken met het Litmus ChaosCenter zull
 Voer o.b.v. info uit de output van vorig commando volgende stappen uit om de firewall te configureren. Hierbij is vooral het poortnummer in kolom Ports van belang. Deze poorten variëren echter bij elke installatie. Volgende commando's configureren firewall regels specifiek voor een GKE cluster en kunnen dus niet gebruikt worden in een lokale omgeving. Verder onderzoek hoe deze poorten te openen in een lokale omgeving is hierdoor nog nodig.  
 \begin{lstlisting}[language=bash]
 # Firewall regel die verkeer op poort frontend service toelaat.
-# Gebruik frontend service poortnummer (na de dubbelpunt) 
+# Gebruik frontend Service poortnummer (na dubbelpunt) 
 $ gcloud compute firewall-rules create frontend-service-rule \
  --allow tcp:[port]
 
 # Firewall regel die verkeer op poort server service toelaat. 
-# Gebruik één v.d. server service poortnummers (na de dubbelpunt) 
+# Gebruik één v.d. server Service poortnummers (na dubbelpunt) 
 $ gcloud compute firewall-rules create server-service-rule \
 --allow tcp:[port]
+
 \end{lstlisting}
 
 Bij elk van bovenstaande commando's zal men bij een succesvolle uitvoer de regels 'Creating firewall...working..Created' en 'Creating firewall...done' te zien krijgen. 
@@ -810,34 +787,10 @@ Wanneer men voor het eerst connecteert met het Litmus ChaosCenter kan men gebrui
     \caption{login Litmus ChaosCenter}
 \end{figure}
 
-Later in dit onderzoek, vanaf hoofdstuk \ref{subsec:expchaoscenter}, zal omschreven worden hoe een experiment op te zetten via deze GUI. 
+Later in dit onderzoek, vanaf Hoofdstuk~\ref{subsec:expchaoscenter}, zal omschreven worden hoe een experiment op te zetten via deze GUI. 
  
-Nu de accountactivatie in Litmus ChaosCenter afgerond is zal men heel wat extra pods terugvinden in de namespace litmus. Dit kan men controleren door in de terminal het commando {\bf kubectl get pods -n litmus} uit te voeren. Een eerder gecreëerde cluster waarbij de resources per node te beperkt waren zorgde hier echter voor een falende pod genaamd 'event-tracker-[...]'. Deze pod bleef de status Pending behouden en door de pod te beschrijven via commando {\bf kubectl describe pod event-tracker-[...] -n litmus} kon onderaan bij Events te zien zijn dat onvoldoende CPU de oorzaak was. (zie onderstaande output)
- 
-\begin{lstlisting}[language=bash]
--- voorgaande output weggelaten --
--- volgende output ingekort     --
-Events:
-Type     Reason       From        Message
-----     ------       ----        -------
-Warning  Failed...    scheduler   0/3 nodes are available
-                                  : 3 Insufficient cpu.
-\end{lstlisting}
- 
-Vandaar bij voorgaand hoofdstuk in sectie \ref {sec:cloudclustersetup} het nodige belang gehecht werd aan voldoende resources toe te wijzen aan de nodes in de cluster. Volgende output toont aan dat de autoscaling configureren zijn nut bewees bij het herinstalleren van Litmus: 
-
-\begin{lstlisting}[language=bash]
--- voorgaande output weggelaten --
--- volgende output ingekort     --
-Events:
-Type     Reason        From        Message
-----     ------        ----        -------
-Warning  Failed...     scheduler   0/3 nodes are available: 
-                                   3 Insufficient cpu
-Normal   Scheduled     scheduler   Successfully assigned ... 
-Normal   Triggered...  autoscaler  pod triggered scale-up: 
-                                   3 -> 4 (max: 6)
-\end{lstlisting}
+Nu de accountactivatie in Litmus ChaosCenter afgerond is zal men heel wat extra pods terugvinden in de namespace litmus. Dit kan men net zoals voordien controleren door in de terminal het commando {\bf kubectl get pods -n litmus} uit te voeren. Controleer als de aanwezige pods allemaal operationeel zijn. \newline Een eerder gecreëerde cluster waarbij de resources per node te beperkt waren en géén autoscaler actief was resulteerde in een falende pod die de status Pending bleef behouden. Door de Events van deze pod te bekijken kwam aan het licht dat onvoldoende CPU de oorzaak was.  
+Vandaar bij voorgaand hoofdstuk in sectie \ref {sec:cloudclustersetup} het nodige belang gehecht werd aan voldoende resources toe te wijzen aan de nodes in de cluster. 
 
 \subsection{Litmus experimenten uitvoeren via de terminal}
 
@@ -848,67 +801,13 @@ Vooraleer men experimenten kan uitvoeren moet men eerst volgende Litmus concepte
     \item {\bf Chaos Result:} Het resultaat van de uitvoer van een experiment. 
 \end{itemize} 
  
-Eerst zal in volgende subsecties een theoretische benadering geformuleerd worden hoe men een experiment dient op te zetten om uitgevoerd te worden via de terminal. Nadien wordt beschreven hoe het eerste experiment pod-delete opgezet kan worden. Vervolgens kan men nog een aantal andere uitgevoerde experimenten via de terminal terugvinden, alvorens over te gaan tot het uitvoeren van experimenten via de browser m.b.v. Litmus ChaosCenter.
+In Bijlage~\ref{ch:litmusexpterminal} kan men eerst een theoretische benadering vinden hoe men een experiment dient op te zetten om uitgevoerd te worden via de terminal. Nadien wordt beschreven hoe het eerste experiment 'pod-delete' opgezet kan worden. Vervolgens kan men nog een aantal andere uitgevoerde experimenten via de terminal terugvinden, alvorens over te gaan tot het uitvoeren van experimenten via de browser m.b.v. Litmus ChaosCenter.
  
-\subsubsection{Experimenten installeren op het systeem}
-\label{subsec:experimenteninstalleren}
-
-Een experiment uit bovenstaande concept Chaos Experiment wordt bewaard in de Litmus Chaos Hub.  
-Alle mogelijke Litmus experimenten kan men hier terugvinden, geklasseerd in verschillende categorieën. \autocite{ChaosHub2022} 
-
-Men dient eerst de nodige categorie van experimenten te installeren in dezelfde namespace(s) van de demo-applicatie(s). De experimenten die via de terminal uitgevoerd worden vallen allen onder categorie {\bf generic/all-experiments}. \newline Om deze experimenten te installeren voert men volgend commando uit voor zowel de namespaces demoapp1 en demoapp2:
-\begin{lstlisting}[language=bash]
-$ kubectl apply -f \
-https://hub.litmuschaos.io/api/chaos/2.7.0?file=charts/generic\
-/experiments.yaml -n demoapp[1 en 2]
-\end{lstlisting}
-
-\subsubsection{Permissies van een experiment instellen}
-
-Het uitvoeren van deze experimenten moet eerst voorafgegaan worden door de nodige permissies te configureren via {\bf Role Based Access Control (RBAC)}. Hierdoor verkrijgt het later beschreven experiment in de ChaosEngine de toestemming om uitgevoerd te worden binnen een bepaalde namespace. Permissies configureert men bij elk experiment wanneer men dit via de terminal uitvoert. 
-
-Een vooraf gedefinieerde RBAC-configuratie per experiment kan men terugvinden via volgende link: \url{https://litmuschaos.github.io/litmus/experiments/categories/contents/}
-
-De YAML-definitie in sectie {\bf Minimal RBAC configuration} slaat men op in een bestand onder een nieuw gecreëerde subdirectory (bv. serviceaccounts) in de alreeds bestaande directory litmus-experiments. Men hoeft enkel nog de waarde van elke parameter 'namespace' in dit bestand aanpassen naar de naam van de namespace waarin het experiment uitgevoerd wordt m.a.w. de namespace demoapp1 of demoapp2. \newline Via commando {\bf kubectl apply -f [bestand].yaml} maakt men vervolgens de nodige bestanden aan om de permissies te activeren.  
-
-\subsubsection{Een ChaosEngine definiëren}
-
-Nu de nodige permissies ingesteld zijn kan men een ChaosEngine definiëren waarin de link wordt gelegd naar het ChaosExperiment. Ook deze definitie kan men terugvinden in eerder vermelde link, in de sectie {\bf Experiment Examples}. Kopieer ook hier de inhoud en sla deze op in een nieuw bestand in de directory litmus-experiments. \autocite{Experiments2022}. 
-
-Men zal zien dat in de ChaosEngine definitie de ServiceAccount aangesproken wordt. De parameter jobCleanUpPolicy zal er voor zorgen dat de 'helper pods' die Litmus lanceert tijdens het experiment terug verwijderd zullen worden na afloop.
-
-Alle mogelijke parameters in aanvulling van een experiment kan men terugvinden in de sectie {\bf Experiment tunables}. Zo kan men o.a. beslissen via parameter CHAOS\textunderscore INTERVAL een experiment in iteraties uit te voeren, via parameter PODS\textunderscore AFFECTED\textunderscore PERC het percentage getroffen pods in te stellen ... 
-
-\subsubsection{Een experiment uitvoeren}
-\label{subsec:experimentuitvoeren}
-Vervolgens is men klaar om een experiment uit te voeren. Dit kan men doen via commando {\bf kubectl apply -f [experiment-naam].yaml}. Dit commando zal géén output genereren. 
-
-Tijdens de uitvoer kan men via de UI monitoring tool k9s het experiment live opvolgen. Hierin zal men eveneens zien dat in de demoapp[1/2] namespace tijdelijke helper pods gelanceerd worden om de uitvoer van het experiment te faciliteren. 
-
-Enkele handige commando's om de uitvoer tijdens-, of het resultaat na een experiment te controleren zijn:
-\begin{lstlisting}[language=bash]
-# ChaosEngine object(en) oplijsten
-$ kubectl get chaosengine -n demoapp[1 of 2]
-
-# Het verloop van experiment tonen door het 
-# ChaosEngine object te beschrijven
-$ kubectl describe chaosengine [chaosengine] -n demoapp[1 of 2]
-
-# ChaosResult object(en) oplijsten
-$ kubectl get chaosresult -n demoapp[1/2]
-
-# Het resultaat van experiment tonen door het 
-# ChaosResult object te beschrijven
-$ kubectl describe chaosresult [chaosresult] -n demoapp[1 of 2]
-\end{lstlisting}
-
 \subsection{Experiment 1: Nginx pod delete}
 
-Bovenstaande theoretische benadering hoe men m.b.v. Litmus een experiment kan opzetten via de terminal zal in dit hoofdstuk omgezet worden naar de praktijk. De ChaosEngine van dit experiment, inclusief volgende experimenten kan men eveneens raadplegen via volgende link naar Git repository: \url{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/}
+De theoretische benadering hoe men m.b.v. Litmus een experiment kan opzetten via de terminal zal in dit hoofdstuk omgezet worden naar de praktijk. Het eerste experiment die aan bod komt is het vernietigen van een Nginx pod in de namespace demoapp1. In deze namespace is ook een Deployment met Apache pods actief, die gevrijwaard zal blijven van de impact van dit experiment door dit zorgvuldig te configureren in de ChaosEngine definitie. 
 
-Het eerste experiment die aan bod komt is het vernietigen van een Nginx pod in de namespace demoapp1. In deze namespace is ook een Deployment met Apache pods actief, die gevrijwaard zal blijven van de impact van dit experiment door dit zorgvuldig te configureren in de ChaosEngine definitie. 
-
-Nota: Experiment 2 en 3 zijn uitbreidingen op dit experiment en zullen dus gebruik maken van de alreeds geconfigureerde permissies onder subdirectory litmus-experiments/serviceaccounts/ van experiment 1. Dit kan men eveneens zien in de ChaosEngine definitie, waar de naam onder parameter 'experiments' steeds pod-delete zal zijn. 
+Nota: Experiment 2 en 3 zijn uitbreidingen op dit experiment en zullen dus gebruik maken van de alreeds geconfigureerde permissies onder directory litmus-experiments/serviceaccounts/. Dit kan men eveneens zien in de ChaosEngine definitie, waar de naam onder parameter 'experiments' steeds pod-delete zal zijn. 
 
 De bedoeling van dit experiment is aantonen dat een pod vernietigen in Kubernetes opgevangen wordt door de ReplicaSet die bij een Deployment hoort. Deze zal er steeds voor zorgen dat het gewenste aantal pods van een Deployment verzekerd wordt. Bij creatie van de Nginx Deployment in demoapp1 werd in het commando aangegeven dat drie replicas moesten bestaan. Dit experiment zal slechts 1 willekeurige Nginx pod vernietigen.  
 
@@ -918,9 +817,9 @@ Via volgend stappenplan stelt men de permissies van het eerste pod-delete experi
 \begin{enumerate}
     \item Open volgende link via de browser: \url{https://litmuschaos.github.io/litmus/experiments/categories/contents/} 
     \item Ga in het linkermenu via de dropdownlist Kubernetes - Generic - Pod Chaos naar het experiment {\bf Pod Delete}. Daar vindt men de beschrijving en configuratie van dit experiment.
-    \item Kopieer de YAML-definitie in sectie {\bf Minimal RBAC configuration}
-    \item Ga via de Cloud Shell terminal naar de subdirectory /litmus-experiments/servicaccounts/
-    \item Maak een nieuwe file pod-delete-sa.yaml aan en kleef de inhoud uit voorgaande stap hierin
+    \item Kopieer de YAML-definitie in sectie {\bf Minimal RBAC configuration}.
+    \item Ga via de Cloud Shell terminal naar de directory /litmus-experiments/servicaccounts/
+    \item Maak een nieuwe file 'pod-delete-sa.yaml' aan en kleef de inhoud uit voorgaande stap hierin.
     \item Verander bij elke parameter 'namespace:' de waarde default naar demoapp1, en sla vervolgens op.
     \item Voer het bestand uit via commando {\bf kubectl apply -f pod-delete-sa.yaml}. Dit zal volgende output genereren:
 \begin{lstlisting}[language=bash]    
@@ -930,20 +829,19 @@ rolebinding.rbac.authorization.k8s.io/pod-delete-sa created
 \end{lstlisting}
     \item Herhaal bovenstaande stappen 1 en 2. Ga naar sectie {\bf Experiment Examples} en kopieer de inhoud van dit bestand.
     \item Maak een YAML-bestand aan in de directory litmus-experiments en noem dit bv. nginx-pod-kill.yaml
-    \item Kleef de inhoud uit sectie {\bf Experiment Examples} in dit YAML-bestand en wijzig  de waarde van parameters namespace naar demoapp1, en applabel naar app=nginx, zodat het experiment specifiek gericht wordt op de nginx pods van de demo-applicatie in namespace demoapp1.
+    \item Kleef de inhoud uit sectie {\bf Experiment Examples} in dit YAML-bestand en wijzig  de waarde van parameters namespace naar 'demoapp1', en applabel naar 'app=nginx', zodat het experiment specifiek gericht wordt op de Nginx pods van de demo-applicatie in namespace demoapp1.
     \item Sla het bestand op en voer het experiment uit via {\bf kubectl apply -f nginx-pod-kill.yaml}
     \item Volg het experiment op via k9s of via commando's uit subsectie \ref{subsec:experimentuitvoeren}: Een experiment uitvoeren.
 \end{enumerate}
 
-Dit experiment toonde de werking van de ReplicaSet die binnen enkele seconden na het vernietigen van een willekeurige Nginx pod alreeds een nieuwe pod heeft gecreëerd.
+{\bf Resultaat:} Dit experiment toonde de werking van de ReplicaSet die binnen enkele seconden na het vernietigen van een willekeurige Nginx pod alreeds een nieuwe pod heeft gecreëerd.
+Om een voorgeconfigureerde YAML-definitie van dit experiment te raadplegen kan men volgende link gebruiken: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill.yaml}{Experiment 1: nginx-pod-kill.yaml}
 
 \subsection{Experiment 2: Nginx pod delete met iteratie}
 
-Link naar het Git repository bestand ChaosEngine-definitie \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill.yaml}{Experiment 2: nginx-pod-kill.yaml}
+In dit experiment wordt een parameter toegevoegd aan de bestaande ChaosEngine uit voorgaand experiment die ervoor zorgt dat de uitvoer elke tien seconden herhaald zal worden. Dezelfde YAML-definitie in de link op het eind van vorig experiment kan hierbij geraadpleegd worden, waarbij onderaan de nodige parameters nog uit commentaar gehaald moeten worden.  
 
-In dit experiment wordt een parameter toegevoegd aan de bestaande ChaosEngine uit voorgaand experiment die ervoor zorgt dat de uitvoer elke tien seconden herhaald zal worden. 
-
-Open het YAML-bestand nginx-pod-kill.yaml, ga naar sectie 'env' en verleng de tijd van het experiment naar zestig seconden. Voeg eveneens een extra parameter 'CHAOS\textunderscore INTERVAL' toe om de iteratie in te stellen. Zie onderstaand vb.:
+Open het YAML-bestand 'nginx-pod-kill.yaml', ga naar sectie 'env' en verleng de tijd van het experiment naar zestig seconden. Voeg eveneens een extra parameter 'CHAOS\textunderscore INTERVAL' toe om de iteratie in te stellen. Zie onderstaand vb.:
 \begin{lstlisting}
 - name: TOTAL_CHAOS_DURATION
   value: '60'
@@ -955,17 +853,17 @@ Sla vervolgens op en start het experiment op dezelfde manier als voordien via {\
 
 Men kan bij de uitvoer van het experiment zien via k9s dat elke tien seconden één willekeurige pod vernietigd wordt gedurende één minuut waardoor de ReplicaSet meermaals getriggerd zal worden om een nieuwe pod te creëeren.
 
-Om te zien als dit een impact heeft op de bereikbaarheid van de Nginx pods zal in volgend experiment een http-probe toegevoegd worden aan de ChaosEngine definitie. 
+Om te zien als dit een impact heeft op de bereikbaarheid van de Nginx pods zal in volgend experiment een {\bf HTTP-probe} toegevoegd worden aan de ChaosEngine definitie. 
 
 \subsection{Experiment 3: Nginx pod delete met iteratie en probe}
 
-Link naar het Git repository bestand ChaosEngine-definitie \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill-probed.yaml}{Experiment  3: nginx-pod-kill-probed.yaml}
+In dit experiment controleert men via een {\bf HTTP-probe} als de applicatie bereikbaar is gedurende de uitvoer van het experiment. Via deze probe wordt een GET-request gestuurd naar een opgegeven IP-adres, in dit geval het extern IP-adres van de LoadBalancer (of NodePort) service van de Nginx pods. Door eveneens een HTTP-response code op te geven die men verwacht terug te krijgen zal kunnen gecontroleerd worden als de applicatie tijdig bereikbaar is. 
 
-In dit experiment controleert men via een {\bf http-probe} als de applicatie bereikbaar is gedurende de uitvoer van het experiment. Via een http-probe wordt een GET-request gestuurd naar een opgegeven IP-adres, in dit geval het extern IP-adres van de LoadBalancer (of NodePort) service van de Nginx pods. Door eveneens een HTTP-response code op te geven die men verwacht terug te krijgen zal kunnen gecontroleerd worden als de applicatie tijdig bereikbaar is. 
+De ChaosEngine-definitie van dit experiment kan men via volgende link raadplegen:  \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-kill-probed.yaml}{Experiment  3: nginx-pod-kill-probed.yaml}
 
-Er zijn vier verschillende probes beschikbaar in Litmus, waarvan men een vooraf geconfigureerde YAML-definitie kan terugvinden en toepassen in een ChaosEngine. Deze vindt men hier terug: \url{https://docs.litmuschaos.io/docs/concepts/probes/} 
+Er zijn vier verschillende probes beschikbaar in Litmus, waarvan men een voorgeconfigureerde YAML-definitie kan terugvinden en toepassen in een ChaosEngine. Deze vindt men hier terug: \url{https://docs.litmuschaos.io/docs/concepts/probes/} 
 
-Men kan een http-probe configureren via verschillende parameters die o.a. bepalen:
+Men kan een HTTP-probe configureren via verschillende parameters die o.a. bepalen:
 \begin{itemize}
     \item hoe snel men de response verwacht
     \item hoeveel keer deze probe moet uitgevoerd worden
@@ -973,11 +871,11 @@ Men kan een http-probe configureren via verschillende parameters die o.a. bepale
     \item ...
 \end{itemize}
     
-Kopieer de inhoud van dit bestand en sla dit lokaal op via de Cloud Shell terminal in een nieuw YAML-bestand genaamd nginx-pod-kill-probed.yaml. Voer het experiment vervolgens uit via commando {\bf kubectl apply -f nginx-pod-kill-probed.yaml} en volg opnieuw op via k9s. 
+Kopieer de inhoud van dit bestand en sla dit lokaal op via de Cloud Shell terminal in een nieuw YAML-bestand genaamd 'nginx-pod-kill-probed.yaml'. Voer het experiment vervolgens uit via commando {\bf kubectl apply -f nginx-pod-kill-probed.yaml} en volg opnieuw op via k9s. 
 
-Men kan de status van de http-probe nadien controleren door het resultaat van het experiment op te vragen die bewaard wordt in een ChaosResult object. Om de exacte naam van dit object te weten te komen gebruikt men commando {\bf kubectl get chaosresults -n appdemo1}. \newline Eens men de naam kent kan via commando {\bf kubectl describe chaosresult [chaosresult-naam] -n appdemo1} het resultaat opgevraagd worden.
+Men kan de status van de HTTP-probe nadien controleren door het resultaat van het experiment op te vragen die bewaard wordt in een ChaosResult object. Om de exacte naam van dit object te weten te komen gebruikt men commando {\bf kubectl get chaosresults -n appdemo1}. \newline Eens men de naam kent kan via commando {\bf kubectl describe chaosresult [chaosresult-naam] -n appdemo1} het resultaat opgevraagd worden.
 
-Een deel van de output, waarin aangetoond wordt dat de probe geslaagd is en de nginx website nog bereikbaar is wanneer nginx pods vernietigd worden, kan men hieronder zien: 
+Een deel van de output, waarin aangetoond wordt dat de probe geslaagd is en de Nginx website nog bereikbaar is wanneer Nginx pods vernietigd worden, kan men hieronder zien: 
 \begin{lstlisting}
 --vorige output weggelaten--    
 Probe Status:
@@ -998,15 +896,16 @@ In dit experiment zal het geheugen belast worden van de nginx pods in de demo-ap
 Bij de demo-applicatie in demoapp1 is een kanttekening te maken aangezien deze oorspronkelijk opgezet is zonder een limiet op de resources die het mag gebruiken. Hierdoor zou een applicatie alle resources van een node kunnen aanspreken, maar dit is geen ideaal scenario. Zo is een pod ingesteld volgens 3 QoS klasses. Pods zonder geconfigureerde resource management vallen onder de klasse 'best effort' en komen hierdoor als eerste in aanmerking om vernietigd te worden wanneer de node resources beperkt worden. \autocite{Tatiyana2020}
 
 Om de pods in de demoapp1 namespace te configureren zodanig deze maximum 200 mCPU en 256MB gebruiken voert men volgende twee commando's uit \autocite{Kubernetes2022c}: 
-\begin{lstlisting}
+\begin{lstlisting}[language=bash]
 $ kubectl set resources deployment nginx -n demoapp1 \
 --limits=cpu=200m,memory=256Mi
 
 $ kubectl set resources deployment apache -n demoapp1 \
 --limits=cpu=200m,memory=256Mi
+
 \end{lstlisting}
 
-Link naar het Git repository bestand ChaosEngine-definitie \href{https://github.com/KenBruggeman/BP_21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-memory-hog.yaml}{Experiment 4: nginx-pod-memory-hog.yaml}
+De ChaosEngine-definitie kan men raadplegen via volgende link: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/nginx-pod-memory-hog.yaml}{Experiment 4: nginx-pod-memory-hog.yaml}
 
 Men kan de inhoud uit bovenstaande link kopiëren en plaatsen in een nieuwe ChaosEngine in directory litmus-experiments met als naam 'nginx-pod-memory-hog.yaml'.
 
@@ -1025,19 +924,19 @@ Voer het experiment uit via commando {\bf kubectl apply -f nginx-pod-memory-hog.
     \caption{Geheugen belasting nginx pods tot 200 MB}
 \end{figure}
 
-In vorig besproken chaos engineering tool Chaos Mesh kwam het Kubernetes object HorizontalPodAutoscaler alreeds aan bod in een soortgelijk experiment. Uitleg over wat een HPA doet kan men in subsectie \ref{subsec: HPA} terugvinden.   
+In vorig besproken chaos engineering tool Chaos Mesh kwam het Kubernetes object HorizontalPodAutoscaler alreeds aan bod in een soortgelijk experiment. Uitleg over wat een HPA doet kan men in Hoofdstuk~\ref{subsec: HPA} terugvinden.   
 
-Een vooraf gedefinieerde YAML-definitie kan men raadplegen in volgend Git repository bestand  \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/hpa.yaml}{Experiment 4 oplossing: hpa.yaml}
+Een vooraf gedefinieerde YAML-definitie voor deze HPA kan men raadplegen via volgende link: \href{https://github.com/KenBruggeman/BP\textunderscore 21-22/blob/master/bachelorproef/docs/litmus%20experimenten/hpa.yaml}{Experiment 4 oplossing: hpa.yaml}
 
 Gebruik volgend stappenplan om de HorizontalPodAutoscaler toe te passen:
 \begin{enumerate}
-    \item Plaats de inhoud van de YAML-definitie 'hpa.yaml' uit bovenstaande link in een nieuw bestand genaamd 'hpa.yaml' in de directory litmus-experiments. In dit bestand kan men zien dat de threshold ingesteld is op 100 MB en dat er mag geschaald worden tot zes pods indien nodig. Zodra de threshold overschreden wordt zullen nieuwe pods gecreëerd worden. Zie \ref{img:threshold} ter verduidelijking.
+    \item Plaats de inhoud van de YAML-definitie 'hpa.yaml' uit bovenstaande link in een nieuw bestand genaamd 'hpa.yaml' in de directory litmus-experiments. In dit bestand kan men zien dat de threshold ingesteld is op 100 MB en dat er mag geschaald worden tot zes pods indien nodig. Zodra de threshold overschreden wordt zullen nieuwe pods gecreëerd worden. Zie Figuur~\ref{img:threshold} ter verduidelijking.
     \item Activeer de HorizontalPodAutoscaler m.b.v. commando {\bf kubectl apply -f hpa.yaml}.
     \item Herhaal experiment 4 via {\bf kubectl apply -f nginx-pod-memory-hog.yaml}.
 \end{enumerate}    
   
 Via k9s ziet men hoe drie nieuwe pods gecreëerd worden om de belasting mee te helpen opvangen.
-Deze nieuwe nginx pods zullen gevrijwaard blijven van de geheugenbelasting die het lopende experiment veroorzaakt en dus niet belast worden zoals de vooraf bestaande nginx pods.  
+Deze nieuwe Nginx pods zullen gevrijwaard blijven van de geheugenbelasting die het lopende experiment veroorzaakt en dus niet belast worden zoals de vooraf bestaande nginx pods.  
 
 \begin{figure}[h]
     \centering
@@ -1049,65 +948,21 @@ Deze nieuwe nginx pods zullen gevrijwaard blijven van de geheugenbelasting die h
 \subsection{Experimenten uitvoeren via Litmus ChaosCenter}
 \label{subsec:expchaoscenter}
 
-Bovenstaande experimenten zijn allemaal tot nu toe uitgevoerd via de terminal. Hierdoor moet men echter verschillende manuele stappen doorlopen alvorens te kunnen overgaan tot de uitvoer van een experiment. Via de browser kan men deze experimenten ook uitvoeren in het Litmus ChaosCenter, die in een voorgaand hoofdstuk \ref{subsec:chaoscenter} alreeds werd opgezet. 
+Bovenstaande experimenten zijn tot nu toe allemaal uitgevoerd via de terminal. Hierdoor moet men echter verschillende manuele stappen doorlopen alvorens te kunnen overgaan tot de uitvoer van een experiment. Via de browser kan men deze experimenten ook uitvoeren in de GUI genaamd Litmus ChaosCenter, die in een voorgaand hoofdstuk \ref{subsec:chaoscenter} alreeds werd opgezet. 
 
-Ga via de browser naar Litmus ChaosCenter en vul de credentials in om toegang te krijgen. Gebruik volgend stappenplan om experiment 3 (= herhalende pod vernietiging met probe) te herhalen via deze GUI:
-\begin{enumerate}
-    \item Ga in het linkermenu naar {\bf Litmus Workflows} en klik vervolgens op 'Schedule a workflow'
-    \item In tabblad {\bf Choose Agent}: selecteer de (enige) Self-Agent die hier aanwezig is en klik op Next. Een self-agent is een benaming voor de cluster waarop we het experiment willen uitvoeren.
-    \item In tabblad {\bf Choose a workflow}: kies voor `Create a new workflow using the experiments from ChaosHubs` en klik op Next.
-    \item In tabblad {\bf Workflow Settings}: Geef de workflow een naam naar wens (vb. iterated-podtato-head-pod-kill) en klik op Next.
-    \item In tabblad {\bf Tune workflow}: kies rechtsboven voor `Add a new experiment`. Kies in de lijst die vervolgens getoond wordt voor `generic/pod-delete` en bevestig via Done.
-    \item Men ziet de naam van het experiment in de workflow verschijnen. Rechts naast de naam klikt men het potlood aan om de nodige aanpassingen in te stellen.
-    \item In sectie {\bf General}: verander niks en klik op Next.
-    \item In sectie {\bf Target Application}:
-        \begin{enumerate}
-            \item open de dropdownlist `appns` (app namespace) en selecteer de namespace `demoapp2`, waar de podtato-head applicatie actief is.
-            \item open de dropdownlist `applabel` en kies voor `app.kubernetes.io/name=podtato-head`.
-            \item Ga verder door op Next te klikken.
-        \end{enumerate}
-    \item In sectie {\bf Define the steady state}:
-        \begin{enumerate}
-            \item kies voor `Add a new probe`.
-            \item geef de probe een naam naar wens vb. application-access
-            \item kies als probe type `http` m.a.w. bereikbaarheid van URL controleren
-            \item kies als probe mode `Continuous` m.a.w. gedurende heel het experiment
-            \item stel de {\bf Probe Properties} in m.a.w. hoe vaak gecontroleerd moet worden als de opgegeven URL bereikbaar is a.d.h.v. verschillende parameters.
-            
-            De Podtato-Head applicatie bevat meerdere pods waarvan één pod nl. 'podtato-head-entry' de toegang tot de applicatie voorziet via de Service LoadBalancer (of NodePort). Wanneer het experiment deze pod zou vernietigen kan de http-probe hierdoor falen aangezien de applicatie tijdelijk onbereikbaar wordt. Vandaar moet men rekening houden dat voldoende tijd ingesteld wordt bij 'interval' om de kans op slagen tijdens het opnieuw proberen van de probe te verhogen.  
-            
-            \item stel de {\bf Probe Details} in m.a.w. de URL van de PodTato-Head applicatie, hoe deze getest wordt nl. via een GET-request, hoelang het mag duren om de response te krijgen op deze request en welke HTTP status code terug verwacht wordt, in dit geval code 200 (OK).
-            
-            Een metric om de laadsnelheid van een pagina te volgen is de {\bf TTFB of time to first byte}. Men kan dit vooraf controleren door naar de applicatie te surfen, de Developer Tools (F12) te openen en naar tabblad Network te gaan. Daar voert men een reload uit via CTRL + F5 en kan men zien hoelang het duurt van request tot eerste byte van de response. \autocite{Mensink2022}
-            
-            \item Bevestig alle configuraties onderaan via Done.  
-        \end{enumerate}
-    \item In sectie {\bf Tune Experiment}:
-        \begin{enumerate}
-            \item stel 'Total chaos duration' in op 120 seconden m.a.w. experiment duurt 2 minuten
-            \item stel 'Chaos interval' in op 10 m.a.w. elke 10 seconden wordt een pod verwijderd
-            \item stel 'Force' in op false m.a.w. graceful termination \autocite{Dinesh2018a}
-            \item Bevestig configuratie door op 'Finish' te klikken.
-        \end{enumerate}  
-    \item In sectie {\bf Advanced options to tune workflow}: activeer `Cleanup Chaos Workflow Pods` zodat na het uitvoeren van het experiment, de nodige helper pods ook terug verwijderd worden.
-    Bevestig vervolgens via 'Save Changes'.
-    \item Klik rechtsonderaan op Next om alle configuraties te bevestigen en naar het volgende tabblad te gaan.
-    \item In tabblad {\bf Reliability Score}: staat standaard op 10, is niet van belang voor de uitvoer van experimenten. Klik op Next om door te gaan.
-    \item In tabblad {\bf Choose a chaos schedule}: kies voor `Schedule now` en klik op Next. Men kan hier ook opteren een 'Recurring Schedule' te creëeren die het experiment op vaste tijdstippen vb. elk uur, elke dag, elke maand ... zal uitvoeren.
-    \item In tabbled {\bf Summary}: Bevestig de configuratie rechtsonderaan via Finish. Bevestig nogmaals via `Go to workflow`.  
-\end{enumerate}
+Ga via de browser naar Litmus ChaosCenter en vul de credentials in om toegang te krijgen. Zie het  stappenplan in Bijlage~\ref{sec:stappenplan_ex3_chaoscenter} om experiment 3 (= herhalende pod vernietiging met probe) te herhalen via de GUI.
 
-De workflow start nu op waarvan het experiment slechts één specifiek onderdeel is. In de workflow zal men eerst het experiment (m.a.w. het object ChaosExperiment uit de ChaosHub) installeren alvorens de ChaosEngine (= de configuratie van het experiment) uit te voeren. Na de uitvoer van het experiment start het laatste onderdeel van de workflow nl. de toegebrachte chaos ongedaan maken.
+Eens het stappenplan doorlopen is zal de workflow vervolgens opstarten waarin het experiment slechts één specifiek onderdeel is. In de workflow zal men eerst het experiment (m.a.w. het object ChaosExperiment uit de ChaosHub) installeren alvorens de ChaosEngine (= de configuratie van het experiment) uit te voeren. Na de uitvoer van het experiment start het laatste onderdeel van de workflow nl. de toegebrachte chaos ongedaan maken.
 
-Tijdens de uitvoer van het experiment kan men via de tool k9s zien dat er regelmatig pods van de podtato-head applicatie in de namespace litmusexperiments verwijderd worden. Doordat deze pods via een Deployment opgezet zijn zal de ReplicaSet er voor zorgen dat het gewenste aantal pods in de configuratie steeds gerespecteerd blijft. De http-probe zal controleren als de applicatie bereikbaar blijft gedurende het experiment.
+Tijdens de uitvoer van het experiment kan men via k9s zien dat er regelmatig pods van de Podtato-Head applicatie in de namespace 'litmusexperiments' verwijderd worden. Doordat deze pods via een Deployment opgezet zijn zal de ReplicaSet er voor zorgen dat het gewenste aantal pods in de configuratie steeds gerespecteerd blijft. De HTTP-probe zal controleren als de applicatie bereikbaar blijft gedurende het experiment.
  
 \subsubsection{Workflow herhalen/aanpassen}
 
-Wanneer men de configuratie van een uitgevoerde workflow wil aanpassen, of de workflow opnieuw wil uitvoeren, dan gaat men in het linkermenu bij Litmus Workflows naar het tabblad Scheduled.
+Wanneer men de configuratie van een uitgevoerde workflow wil aanpassen, of deze opnieuw wil uitvoeren, dan gaat men in het linkermenu bij Litmus Workflows naar het tabblad Scheduled.
 
-Door uiterst rechts naast de workflow het menu te openen ziet men de optie **Rerun Schedule** om de workflow opnieuw uit te voeren.
+Door uiterst rechts naast de workflow het menu te openen ziet men de optie {\bf Rerun Schedule} om de workflow opnieuw uit te voeren.
 
-Via de optie 'Save Template' kan men een wijziging aanbrengen aan de configuratie van de workflow. Hierbij wordt gevraagd een nieuwe workflow naam op te geven. Men kan een aanpassing namelijk NIET rechtstreeks uitvoeren in de bestaande workflow! De nieuwe aangepaste workflow zal men vervolgens aanspreken via optie 'Schedule a workflow'. In het tabblad {\bf Choose a workflow} kan men vervolgens kiezen voor 'Create a new workflow by cloning an existing workflow'. Daar zal de aangepaste versie van de bestaande workflow terug te vinden zijn. Aangezien alle configuraties alreeds opgenomen zijn in deze kan men direct doorgaan tot het uitvoeren van de aangepaste workflow. 
+Via de optie 'Save Template' kan men een wijziging aanbrengen aan de configuratie van de workflow. Hierbij wordt gevraagd een nieuwe naam aan de workflow te geven. Men kan een aanpassing namelijk NIET rechtstreeks uitvoeren in de bestaande workflow! De nieuwe aangepaste workflow zal men vervolgens aanspreken via optie 'Schedule a workflow'. In het tabblad {\bf Choose a workflow} kan men vervolgens kiezen voor 'Create a new workflow by cloning an existing workflow'. Daar zal de aangepaste versie van de bestaande workflow terug te vinden zijn. Aangezien alle configuraties alreeds opgenomen zijn in deze kan men direct doorgaan tot het uitvoeren van de aangepaste workflow. 
 
 \subsubsection{Extra functionaliteit in Litmus ChaosCenter}
 
@@ -1119,13 +974,14 @@ Deze extra opties zijn niet verder onderzocht doordat meerdere experimenten geli
 
 \subsection{Conclusie Litmus}
 
-Het installeren van Litmus verliep vlot via de package manager Helm. De documentatie mocht wel duidelijker zijn omtrent de minimum vereisten qua CPU en geheugen per node. Zo werd na eerste installatiepogingen duidelijk dat de Litmus pods vrij veel resources nodig hadden om operationeel te kunnen zijn.   
+Het installeren van Litmus verliep vlot via de package manager Helm. Ook het opzetten van de GUI ChaosCenter lukte zonder problemen. De documentatie mocht wel duidelijker zijn omtrent de minimum vereisten qua CPU en geheugen per node. Zo werd na eerste installatiepogingen duidelijk dat de Litmus pods vrij veel resources nodig hadden om operationeel te kunnen zijn.   
 
 De verschillende objecten die Litmus gebruikt om een experiment op te zetten nl. ChaosExperiment, ChaosEngine, ServiceAccount, RBAC-regels ... maken deze chaos engineering tool vrij ingewikkeld om aan te leren. Ook is de documentatie die hulp kan bieden bij de experimenten soms moeilijk te vinden. 
 
-Litmus experimenten opzetten via de terminal is vrij omslachtig. Men moet manueel de nodige experimenten vooraf installeren, de nodige permissies configureren, de ChaosEngine manueel opzetten ...
-Ook wanneer een experiment niet naar wens verloopt en men dit vervolgens wil troubleshooten, moet men verschillende objecten analyseren vb. helper pods onderzoeken, uitvoer van chaosengine object bestuderen ... 
+Litmus heeft net zoals Chaos Mesh het voordeel van veel experimenten in het aanbod te hebben. 
+Experimenten opzetten via de terminal is vrij omslachtig. Men moet manueel de nodige experimenten vooraf installeren, de nodige permissies configureren, de ChaosEngine manueel opzetten ...
+Ook wanneer een experiment niet naar wens verloopt en men dit vervolgens wil troubleshooten, moet men verschillende objecten analyseren vb. helper pods onderzoeken, uitvoer van chaosengine object bestuderen ... Hierdoor is het duidelijk dat Litmus niet ontworpen is om via de terminal experimenten uit te voeren.
 
 Bovenstaand proces wordt makkelijker wanneer experimenten opgezet worden via het Litmus ChaosCenter. Experimenten worden bij de start van een workflow steeds geïnstalleerd, men hoeft geen YAML-definitie op te stellen maar gewoon parameters te configureren, men kan indien nodig logs raadplegen na afloop van een experiment om troubleshooting eenvoudiger te maken ...
 
-Litmus is een waardige tool om chaos experimenten uit te voeren op applicaties in een Kubernetes cluster, maar heeft een steile leercurve vooraleer men er daadwerkelijk mee aan de slag kan. De documentatie omtrent de installatie en het opzetten van experimenten is er wel, maar is te wijd verspreid wat de leercurve bemoeilijkt. Ook het hoge aantal resources die de Litmus pods nodig hebben in vergelijking met voorgaand onderzochte tool ChaosMesh kan als nadelig aanschouwd worden.   
+Litmus is een waardige tool om chaos experimenten uit te voeren op applicaties in een Kubernetes cluster, maar heeft een steile leercurve vooraleer men er daadwerkelijk mee aan de slag kan. De documentatie omtrent de installatie en het opzetten van experimenten is er wel, maar vereist wat zoekwerk. Ook het hoge aantal resources die de Litmus pods nodig hebben in vergelijking met voorgaand onderzochte tool Chaos Mesh kan als nadelig aanschouwd worden.

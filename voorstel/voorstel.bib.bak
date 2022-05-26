@@ -423,7 +423,7 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
 }
 
 @Online{UniMinnesota2022,
-  author = {University_of_Minnesota},
+  author = {Minnesota_University},
   date   = {2022-05-17},
   title  = {Python Virtual Environments in Linux},
   url    = {https://latisresearch.umn.edu/python-virtual-environments-in-linux},
@@ -469,6 +469,34 @@ To do that, I'm going to cover three case studies: a single process, a JVM appli
   date   = {2022-05-22},
   title  = {Uncordon node},
   url    = {https://chaostoolkit.org/drivers/kubernetes/#uncordon_node},
+}
+
+@Online{Vagrant2022,
+  author = {Vagrant},
+  date   = {2022-05-23},
+  title  = {Vagrant: Development Environments Made Easy},
+  url    = {https://www.vagrantup.com/},
+}
+
+@Online{Vagrant2022a,
+  author = {Vagrant},
+  date   = {2022-05-23},
+  title  = {Providers: VirtualBox},
+  url    = {https://www.vagrantup.com/docs/providers/virtualbox},
+}
+
+@Online{RedHatAnsible2022,
+  author = {RedHat-Ansible},
+  date   = {2022-05-23},
+  title  = {What is an Ansible playbook?},
+  url    = {https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook},
+}
+
+@Online{GKE2022,
+  author = {GKE},
+  date   = {2022-05-01},
+  title  = {Cluster Autoscaler},
+  url    = {https://cloud.google.com/kubernetes-engine/docs/concepts/cluster-autoscaler},
 }
 
 @Comment{jabref-meta: databaseType:biblatex;}

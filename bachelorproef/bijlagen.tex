@@ -1,0 +1,110 @@
+%%=============================================================================
+%% Bijlagen
+%%=============================================================================
+
+\chapter{Bijlagen}
+\label{ch:bijlagen}
+
+\section{Litmus experimenten opzetten via de terminal}
+\label{ch:litmusexpterminal}
+
+\subsubsection{Experimenten installeren op het systeem}
+\label{subsec:experimenteninstalleren}
+
+Een experiment uit bovenstaande concept Chaos Experiment wordt bewaard in de Litmus Chaos Hub.  
+Alle mogelijke Litmus experimenten kan men hier terugvinden, geklasseerd in verschillende categorieën. \autocite{ChaosHub2022} 
+
+Men dient eerst de nodige categorie van experimenten te installeren in dezelfde namespace(s) van de demo-applicatie(s). De experimenten die via de terminal uitgevoerd worden vallen allen onder categorie {\bf generic/all-experiments}. \newline Om deze experimenten te installeren voert men volgend commando uit voor zowel de namespaces demoapp1 en demoapp2:
+\begin{lstlisting}[language=bash]
+    $ kubectl apply -f \
+    https://hub.litmuschaos.io/api/chaos/2.7.0?file=charts/generic\
+    /experiments.yaml -n demoapp[1 en 2]
+    
+\end{lstlisting}
+
+\subsubsection{Permissies van een experiment instellen}
+
+Het uitvoeren van deze experimenten moet eerst voorafgegaan worden door de nodige permissies te configureren via {\bf Role Based Access Control (RBAC)}. Hierdoor verkrijgt het later beschreven experiment in de ChaosEngine de toestemming om uitgevoerd te worden binnen een bepaalde namespace. Permissies configureert men bij elk experiment wanneer men dit via de terminal uitvoert. 
+
+Een vooraf gedefinieerde RBAC-configuratie per experiment kan men terugvinden via volgende link: \url{https://litmuschaos.github.io/litmus/experiments/categories/contents/}
+
+De YAML-definitie in sectie {\bf Minimal RBAC configuration} slaat men op in een bestand onder een nieuw gecreëerde subdirectory (bv. serviceaccounts) in de alreeds bestaande directory litmus-experiments. Men hoeft enkel nog de waarde van elke parameter 'namespace' in dit bestand aanpassen naar de naam van de namespace waarin het experiment uitgevoerd wordt m.a.w. de namespace demoapp1 of demoapp2. \newline Via commando {\bf kubectl apply -f [bestand].yaml} maakt men vervolgens de nodige bestanden aan om de permissies te activeren.  
+
+\subsubsection{Een ChaosEngine definiëren}
+
+Nu de nodige permissies ingesteld zijn kan men een ChaosEngine definiëren waarin de link wordt gelegd naar het ChaosExperiment. Ook deze definitie kan men terugvinden in eerder vermelde link, in de sectie {\bf Experiment Examples}. Kopieer ook hier de inhoud en sla deze op in een nieuw bestand in de directory litmus-experiments. \autocite{Experiments2022}. 
+
+Men zal zien dat in de ChaosEngine definitie de ServiceAccount aangesproken wordt. De parameter jobCleanUpPolicy zal er voor zorgen dat de 'helper pods' die Litmus lanceert tijdens het experiment terug verwijderd zullen worden na afloop.
+
+Alle mogelijke parameters in aanvulling van een experiment kan men terugvinden in de sectie {\bf Experiment tunables}. Zo kan men o.a. beslissen via parameter CHAOS\textunderscore INTERVAL een experiment in iteraties uit te voeren, via parameter PODS\textunderscore AFFECTED\textunderscore PERC het percentage getroffen pods in te stellen ... 
+
+\subsubsection{Een experiment uitvoeren}
+\label{subsec:experimentuitvoeren}
+Vervolgens is men klaar om een experiment uit te voeren. Dit kan men doen via commando {\bf kubectl apply -f [experiment-naam].yaml}. Dit commando zal géén output genereren. 
+
+Tijdens de uitvoer kan men via de UI monitoring tool k9s het experiment live opvolgen. Hierin zal men eveneens zien dat in de demoapp[1/2] namespace tijdelijke helper pods gelanceerd worden om de uitvoer van het experiment te faciliteren. 
+
+Enkele handige commando's om de uitvoer tijdens-, of het resultaat na een experiment te controleren zijn:
+\begin{lstlisting}[language=bash]
+    # ChaosEngine object(en) oplijsten
+    $ kubectl get chaosengine -n demoapp[1|2]
+    
+    # Het verloop van experiment tonen door het 
+    # ChaosEngine object te beschrijven
+    $ kubectl describe chaosengine [naam] -n demoapp[1|2]
+    
+    # ChaosResult object(en) oplijsten
+    $ kubectl get chaosresult -n demoapp[1/2]
+    
+    # Het resultaat van experiment tonen door het 
+    # ChaosResult object te beschrijven
+    $ kubectl describe chaosresult [naam] -n demoapp[1|2]
+\end{lstlisting}
+
+\section{Stappenplan experiment 3 opzetten in ChaosCenter}
+\label{sec:stappenplan_ex3_chaoscenter}
+
+\begin{enumerate}
+    \item Ga in het linkermenu naar {\bf Litmus Workflows} en klik vervolgens op 'Schedule a workflow'
+    \item In tabblad {\bf Choose Agent}: selecteer de (enige) Self-Agent die hier aanwezig is en klik op Next. Een self-agent is een benaming voor de cluster waarop we het experiment willen uitvoeren.
+    \item In tabblad {\bf Choose a workflow}: kies voor `Create a new workflow using the experiments from ChaosHubs` en klik op Next.
+    \item In tabblad {\bf Workflow Settings}: Geef de workflow een naam naar wens (vb. iterated-podtato-head-pod-kill) en klik op Next.
+    \item In tabblad {\bf Tune workflow}: kies rechtsboven voor `Add a new experiment`. Kies in de lijst die vervolgens getoond wordt voor `generic/pod-delete` en bevestig via Done.
+    \item Men ziet de naam van het experiment in de workflow verschijnen. Rechts naast de naam klikt men het potlood aan om de nodige aanpassingen in te stellen.
+    \item In sectie {\bf General}: verander niks en klik op Next.
+    \item In sectie {\bf Target Application}:
+    \begin{enumerate}
+        \item open de dropdownlist `appns` (app namespace) en selecteer de namespace `demoapp2`, waar de podtato-head applicatie actief is.
+        \item open de dropdownlist `applabel` en kies voor `app.kubernetes.io/name=podtato-head`.
+        \item Ga verder door op Next te klikken.
+    \end{enumerate}
+    \item In sectie {\bf Define the steady state}:
+    \begin{enumerate}
+        \item kies voor `Add a new probe`.
+        \item geef de probe een naam naar wens vb. application-access
+        \item kies als probe type `http` m.a.w. bereikbaarheid van URL controleren
+        \item kies als probe mode `Continuous` m.a.w. gedurende heel het experiment
+        \item stel de {\bf Probe Properties} in m.a.w. hoe vaak gecontroleerd moet worden als de opgegeven URL bereikbaar is a.d.h.v. verschillende parameters.
+        
+        De Podtato-Head applicatie bevat meerdere pods waarvan één pod nl. 'podtato-head-entry' de toegang tot de applicatie voorziet via de Service LoadBalancer (of NodePort). Wanneer het experiment deze pod zou vernietigen kan de http-probe hierdoor falen aangezien de applicatie tijdelijk onbereikbaar wordt. Vandaar moet men rekening houden dat voldoende tijd ingesteld wordt bij 'interval' om de kans op slagen tijdens het opnieuw proberen van de probe te verhogen.  
+        
+        \item stel de {\bf Probe Details} in m.a.w. de URL van de PodTato-Head applicatie, hoe deze getest wordt nl. via een GET-request, hoelang het mag duren om de response te krijgen op deze request en welke HTTP status code terug verwacht wordt, in dit geval code 200 (OK).
+        
+        Een metric om de laadsnelheid van een pagina te volgen is de {\bf TTFB of time to first byte}. Men kan dit vooraf controleren door naar de applicatie te surfen, de Developer Tools (F12) te openen en naar tabblad Network te gaan. Daar voert men een reload uit via CTRL + F5 en kan men zien hoelang het duurt van request tot eerste byte van de response. \autocite{Mensink2022}
+        
+        \item Bevestig alle configuraties onderaan via Done.  
+    \end{enumerate}
+    \item In sectie {\bf Tune Experiment}:
+    \begin{enumerate}
+        \item stel 'Total chaos duration' in op 120 seconden m.a.w. experiment duurt 2 minuten
+        \item stel 'Chaos interval' in op 10 m.a.w. elke 10 seconden wordt een pod verwijderd
+        \item stel 'Force' in op false m.a.w. graceful termination \autocite{Dinesh2018a}
+        \item Bevestig configuratie door op 'Finish' te klikken.
+    \end{enumerate}  
+    \item In sectie {\bf Advanced options to tune workflow}: activeer `Cleanup Chaos Workflow Pods` zodat na het uitvoeren van het experiment, de nodige helper pods ook terug verwijderd worden.
+    Bevestig vervolgens via 'Save Changes'.
+    \item Klik rechtsonderaan op Next om alle configuraties te bevestigen en naar het volgende tabblad te gaan.
+    \item In tabblad {\bf Reliability Score}: staat standaard op 10, is niet van belang voor de uitvoer van experimenten. Klik op Next om door te gaan.
+    \item In tabblad {\bf Choose a chaos schedule}: kies voor `Schedule now` en klik op Next. Men kan hier ook opteren een 'Recurring Schedule' te creëeren die het experiment op vaste tijdstippen vb. elk uur, elke dag, elke maand ... zal uitvoeren.
+    \item In tabbled {\bf Summary}: Bevestig de configuratie rechtsonderaan via Finish. Bevestig nogmaals via `Go to workflow`.  
+\end{enumerate}

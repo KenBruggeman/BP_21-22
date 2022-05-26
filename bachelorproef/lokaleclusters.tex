@@ -60,62 +60,62 @@ Via een terminalsessie te openen in de directory waar de Vagrantfile staat, en v
 Eens men ingelogd is op de virtuele machine opent men een terminal sessie. 
 Volg deze stappen om Minikube te installeren: \autocite{Simic2020}
 \begin{enumerate}
-    \item {\bf Update het systeem en installeer vereiste packages:}
-    \begin{lstlisting}[language=bash]
-    # Update het systeem
-    $ sudo apt-get update -y
-    
-    # Upgrade het systeem
-    $ sudo apt-get upgrade -y
-    
-    # Installeer de curl package
-    $ sudo apt-get install curl
-    
-    # Installeer de apt-transport-https package
-    $ sudo apt-get install apt-transport-https
-    
-    \end{lstlisting}
+  \item {\bf Update het systeem en installeer vereiste packages:}
+\begin{lstlisting}[language=bash]
+# Update het systeem
+$ sudo apt-get update -y
 
-    \item {\bf Installeer Minikube:}
-    \begin{lstlisting}[language=bash]
-    # Download de minikube binary
-    $ wget https://storage.googleapis.com/minikube/releases/\
-      latest/minikube-linux-amd64
-    
-    # Kopieer binary naar /usr/local/bin/
-    $ sudo cp minikube-linux-amd64 /usr/local/bin/minikube
-    
-    # Verander de rechten van de binary 
-    $ sudo chmod 755 /usr/local/bin/minikube
-    
-    # Verifieer de installatie
-    $ minikube version
-    
-    \end{lstlisting}
+# Upgrade het systeem
+$ sudo apt-get upgrade -y
 
-    \item {\bf Installeer de kubectl tool om de communicatie met- / en het beheer van de Minikube cluster mogelijk te maken:}
-    \begin{lstlisting}[language=bash]
-    # Download de kubectl tool binary
-    $ curl -LO https://storage.googleapis.com/kubernetes-release/release/`\
-      curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`\
-      /bin/linux/amd64/kubectl
-    
-    # Maak de binary uitvoerbaar
-    $ chmod +x ./kubectl
-    
-    # Verplaats de binary naar /usr/local/bin/
-    $ sudo mv ./kubectl /usr/local/bin/kubectl
-    
-    # Verifieer de installatie
-    $kubectl version -o json
-    
-    \end{lstlisting}
-    
+# Installeer de curl package
+$ sudo apt-get install curl
+
+# Installeer de apt-transport-https package
+$ sudo apt-get install apt-transport-https
+
+\end{lstlisting}
+
+  \item {\bf Installeer Minikube:}
+\begin{lstlisting}[language=bash]
+# Download de minikube binary
+$ wget https://storage.googleapis.com/minikube/releases/\
+  latest/minikube-linux-amd64
+
+# Kopieer binary naar /usr/local/bin/
+$ sudo cp minikube-linux-amd64 /usr/local/bin/minikube
+
+# Verander de rechten van de binary 
+$ sudo chmod 755 /usr/local/bin/minikube
+
+# Verifieer de installatie
+$ minikube version
+
+\end{lstlisting}
+
+  \item {\bf Installeer de kubectl tool om de communicatie met- / en het beheer van de Minikube cluster mogelijk te maken:}
+\begin{lstlisting}[language=bash]
+# Download de kubectl tool binary
+$ curl -LO \
+  https://storage.googleapis.com/kubernetes-release/release/` \
+  curl -s https://storage.googleapis.com/kubernetes-release/ \
+  release/stable.txt` /bin/linux/amd64/kubectl
+
+# Maak de binary uitvoerbaar
+$ chmod +x ./kubectl
+
+# Verplaats de binary naar /usr/local/bin/
+$ sudo mv ./kubectl /usr/local/bin/kubectl
+
+# Verifieer de installatie
+$kubectl version -o json
+
+\end{lstlisting}  
 \end{enumerate} 
 
 \subsection{Minikube opstarten}
 
-Op dit moment zijn alle benodigde zaken geïnstalleerd maar is de Minikube cluster nog niet actief. De cluster start men op m.b.v. commando 'minikube start'. Hou er rekening mee dat dit commando steeds zal uitgevoerd moeten worden wanneer men de virtuele machine herstart.
+Op dit moment zijn alle benodigde zaken geïnstalleerd maar is de Minikube cluster nog niet actief. De cluster start men op m.b.v. commando {\bf minikube start}. Hou er rekening mee dat dit commando steeds zal uitgevoerd moeten worden wanneer men de virtuele machine herstart.
 Om de werking van de geïnstalleerde Kubernetes componenten te controleren kan men commando {\bf minikube status} gebruiken. Zie onderstaand voorbeeld ter illustratie: 
 \begin{lstlisting}[language=bash]
 $ minikube status
@@ -127,19 +127,6 @@ kubelet: Running
 apiserver: Running
 kubeconfig: Configured
 \end{lstlisting} 
-
-Enkele handige commando's om extra info van de minikube cluster op te vragen zijn:
-\begin{lstlisting}[language=bash]
-# De kubeconfig file opvragen die toegang tot de cluster regelt.
-$ kubectl config view 
-
-# Cluster info opvragen (vb. master node status en adres)
-$ kubectl cluster-info
-
-# SSH-verbinding met de cluster maken
-$ minikube ssh 
-
-\end{lstlisting}
 
 \subsection{Conclusie Minikube}
 
@@ -319,8 +306,6 @@ $ kubeadm init --pod-network-cidr 10.244.0.0/16 \
 --apiserver-advertise-address=[IP-master node]
 
 \end{lstlisting}
-
-Nota: Indien er problemen zijn kan men deze troubleshooten via commando {\bf journalctl -xeu kubelet}. 
 
 Het verwerken van dit commando zal even tijd nodig hebben. Als dit succesvol is zal men onderaan in de output de melding 'Your Kubernetes control-plane has initialized successfully!' zien. Onder deze melding krijgt men ook enkele commando's te zien die noodzakelijk zijn om gebruik te kunnen maken van de cluster. Ondanks er nog meer commando's verder in de output te zien zijn is het voorlopig enkel nodig onderstaande uit te voeren:
 \begin{lstlisting}[language=bash]
@@ -514,17 +499,7 @@ nginx-85b98978db-n9tb2  1/1   Running  10.233.92.1  node3
 
 De default configuratie van Kubespray heeft een cluster opgezet waarbij de Scheduler applicatie-pods kan onderbrengen op de control-plane node. Om de resources van de control-plane node onder controle te houden, maar ook eveneens om veiligheidsredenen, is het echter afgeraden dit in een cluster in productie toe te passen. Meer info over dit onderwerp kan men in de bron raadplegen. \autocite{Bailey2016}
 
-Optioneel: Men kan nodes vrijwaren om pods toegewezen te krijgen via taints en tolerations. Alhoewel er sprake is in de Kubespray documentatie dat men dit via Ansible kan configureren lijkt het onduidelijk hoe dit precies te bekomen. \autocite{Kubespray2022b}
-Een snelle oplossing hier is om dit manueel te configureren op de master node en nadien te controleren m.b.v. volgende commando's: 
-\begin{lstlisting}{language=bash}
-# Een taint configureren op de control plane
-$ kubectl taint node node1 \ 
-  node-role.kubernetes.io/master=node1:NoSchedule
-
-# Controle als de taint geconfigureerd is
-$ kubectl describe nodes | grep -i taints
-
-\end{lstlisting}
+Nota: Men kan nodes vrijwaren om pods toegewezen te krijgen via taints en tolerations. 
 
 \subsection{Conclusie Kubespray}
 
@@ -532,4 +507,4 @@ De manier hoe met Kubespray een lokale Kubernetes cluster werd opgezet maakt zow
 
 De procedure op de Kubespray website om een cluster tot stand te brengen is vrij summier en mocht duidelijker omschreven zijn. Het uitvoeren van de Ansible playbook bracht een cluster tot stand waarin de control plane node eveneens user pods toegewezen kreeg. Hoe dit precies kon aangepast worden via de playbook was eveneens onduidelijk gedocumenteerd. 
 
-In volgend hoofdstuk zal een Kubernetes cluster in de cloud via Google Cloud opgezet worden, om enerzijds te vergelijken als de setup vlotter verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.
+In volgend hoofdstuk zal een Kubernetes cluster via Google Cloud opgezet worden, om enerzijds te vergelijken als de setup vlotter verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.
