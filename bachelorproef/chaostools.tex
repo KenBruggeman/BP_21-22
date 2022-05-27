@@ -811,7 +811,7 @@ Nota: Experiment 2 en 3 zijn uitbreidingen op dit experiment en zullen dus gebru
 
 De bedoeling van dit experiment is aantonen dat een pod vernietigen in Kubernetes opgevangen wordt door de ReplicaSet die bij een Deployment hoort. Deze zal er steeds voor zorgen dat het gewenste aantal pods van een Deployment verzekerd wordt. Bij creatie van de Nginx Deployment in demoapp1 werd in het commando aangegeven dat drie replicas moesten bestaan. Dit experiment zal slechts 1 willekeurige Nginx pod vernietigen.  
 
-De nodige experimenten, geïnstalleerd in \ref{subsec:experimenteninstalleren} zijn alreeds aanwezig zowel in de namespace demoapp1 als demoapp2.
+De benodigde ChaosExperiment-objecten (zie Bijlage~\ref{subsec:experimenteninstalleren}) zijn alreeds aanwezig zowel in de namespace demoapp1 als demoapp2.
   
 Via volgend stappenplan stelt men de permissies van het eerste pod-delete experiment en creëert men een ChaosEngine waarmee het experiment kan uitgevoerd worden: 
 \begin{enumerate}

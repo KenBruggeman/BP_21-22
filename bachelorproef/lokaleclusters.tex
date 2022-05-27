@@ -484,11 +484,9 @@ Zoals men uit de output van dit commando ook kan afleiden maakt Kubespray standa
 
 In deze cluster zal ook alreeds de CNI Calico geïnstalleerd zijn, zodat netwerkcommunicatie tussen pods/nodes correct kan verlopen. Men heeft ook de mogelijkheid om via de Ansible playbook een andere CNI te installeren, volgens de documentatie op de Kubespray website. 
 
-Wanneer ter illustratie een simpele Deployment gelanceerd wordt op de master node o.b.v. de nginx image, en waarin 3 replicas aanwezig moeten zijn, dan kan men zien via commando {\bf kubectl get pods -o wide} dat deze gelijk verdeeld werden over de verschillende nodes:
+Wanneer ter illustratie een simpele Deployment gelanceerd wordt op de master node o.b.v. de Nginx image, en waarin 3 replicas aanwezig moeten zijn, dan kan men zien via commando {\bf kubectl get pods -o wide} dat deze gelijk verdeeld werden over de verschillende nodes:
 
 \begin{lstlisting}[language=bash]
-$ kubectl create deploy nginx --image=nginx --replicas=3
-        
 $ kubectl get pods -o wide
 NAME                    READY STATUS   IP           NODE
 nginx-85b98978db-4t792  1/1   Running  10.233.96.3  node2
@@ -499,12 +497,12 @@ nginx-85b98978db-n9tb2  1/1   Running  10.233.92.1  node3
 
 De default configuratie van Kubespray heeft een cluster opgezet waarbij de Scheduler applicatie-pods kan onderbrengen op de control-plane node. Om de resources van de control-plane node onder controle te houden, maar ook eveneens om veiligheidsredenen, is het echter afgeraden dit in een cluster in productie toe te passen. Meer info over dit onderwerp kan men in de bron raadplegen. \autocite{Bailey2016}
 
-Nota: Men kan nodes vrijwaren om pods toegewezen te krijgen via taints en tolerations. 
-
 \subsection{Conclusie Kubespray}
 
 De manier hoe met Kubespray een lokale Kubernetes cluster werd opgezet maakt zowel gebruik van de automatisatietools Vagrant als Ansible. Dit heeft het voordeel dat veel van de tijdrovende taken die in voorgaande tool Kubeadm aan bod kwamen alreeds geautomatiseerd zijn. Zo is elke node van de multi-node cluster alreeds toegevoegd aan de cluster, is er alreeds een CNI aanwezig, is de Container Runtime containerd op elke node geïnstalleerd ... De Ansible playbook had wel bijna een half uur nodig om deze cluster tot stand te brengen. Hierdoor kan men nog steeds concluderen dat een lokale cluster opzetten een tijdrovende taak is ondanks het wel het nodige inzicht met zich meebrengt welke zaken nodig zijn om een Kubernetes cluster operationeel te krijgen. 
 
 De procedure op de Kubespray website om een cluster tot stand te brengen is vrij summier en mocht duidelijker omschreven zijn. Het uitvoeren van de Ansible playbook bracht een cluster tot stand waarin de control plane node eveneens user pods toegewezen kreeg. Hoe dit precies kon aangepast worden via de playbook was eveneens onduidelijk gedocumenteerd. 
 
-In volgend hoofdstuk zal een Kubernetes cluster via Google Cloud opgezet worden, om enerzijds te vergelijken als de setup vlotter verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.
+Het opzetten van een monitoring platform voor het opvolgen van experimenten die het geheugen of CPU belasten zou eveneens nog moeten gebeuren in deze lokale omgeving, maar is vanwege de tijdsdruk niet verder onderzocht.  
+
+In volgend hoofdstuk zal een Kubernetes cluster via Google Cloud opgezet worden, om enerzijds te vergelijken als de setup sneller verloopt en anderzijds de extra functionaliteit in kaart te brengen die deze omgeving met zich meebrengt.
